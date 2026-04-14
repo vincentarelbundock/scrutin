@@ -1395,15 +1395,15 @@ debounce window.</p>
 <li>File outside watched dirs: no event.</li>
 </ul>
 <h3 id="36-config-projectconfigrs">3.6 Config (<code>project/config.rs</code>)<a class="headerlink" href="#36-config-projectconfigrs" title="Permanent link">&para;</a></h3>
-<p><strong>Lock:</strong> precedence is <code>defaults -&gt; scrutin.toml -&gt; --set -&gt; CLI flags</code>,
+<p><strong>Lock:</strong> precedence is <code>defaults -&gt; .scrutin/config.toml -&gt; --set -&gt; CLI flags</code>,
 walked from project root upward, fallback
-<code>~/.config/scrutin/scrutin.toml</code>, no env vars.</p>
+<code>~/.config/scrutin/config.toml</code>, no env vars.</p>
 <p><strong>Tests</strong> (9 already exist; add):</p>
 <ul>
 <li><code>--set foo.bar=1 --set foo.bar=2</code>: last wins.</li>
 <li><code>--set run.workers=abc</code>: typed error, not silent fallback.</li>
-<li>scrutin.toml in parent dir is found; in sibling dir is not.</li>
-<li>No scrutin.toml anywhere and no <code>~/.config/scrutin/scrutin.toml</code>: defaults used.</li>
+<li>.scrutin/config.toml in parent dir is found; in sibling dir is not.</li>
+<li>No .scrutin/config.toml anywhere and no <code>~/.config/scrutin/config.toml</code>: defaults used.</li>
 <li>Env vars <code>SCRUTIN_*</code> are ignored (assert this explicitly: it is a
   deliberate design choice, not an oversight).</li>
 </ul>
@@ -1620,7 +1620,7 @@ counts and exits correctly.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":[],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.code.copy"],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
     
     
       <script src="../../assets/javascripts/bundle.91a19a9e.min.js"></script>

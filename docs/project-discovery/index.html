@@ -1232,7 +1232,7 @@
 <p><strong>Tool</strong>: a test runner or other utility that scrutin knows how to drive (testthat, pytest, jarl, etc.). Each tool is compiled into the binary as a plugin.</p>
 <p><strong>Suite</strong>: a configured instance of a tool, pointing at specific directories in your project. A project can have multiple suites, even multiple suites using the same tool with different directories.</p>
 <h2 id="explicit-suites">Explicit suites<a class="headerlink" href="#explicit-suites" title="Permanent link">&para;</a></h2>
-<p>Declare <code>[[suite]]</code> entries in <code>scrutin.toml</code> to control exactly what runs. When at least one <code>[[suite]]</code> is present, auto-detection is skipped entirely.</p>
+<p>Declare <code>[[suite]]</code> entries in <code>.scrutin/config.toml</code> to control exactly what runs. When at least one <code>[[suite]]</code> is present, auto-detection is skipped entirely.</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">[[suite]]</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">tool</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;testthat&quot;</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">test_dirs</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;tests/testthat&quot;</span><span class="p">]</span>
@@ -1338,7 +1338,7 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>scrutin<span class="w">                     </span><span class="c1"># root is .</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>scrutin<span class="w"> </span>path/to/myproject<span class="w">   </span><span class="c1"># root is path/to/myproject</span>
 </span></code></pre></div>
-<p>All paths in <code>scrutin.toml</code> (test_dirs, source_dirs, runner, hooks) are relative to this root.</p>
+<p>All paths in <code>.scrutin/config.toml</code> (test_dirs, source_dirs, runner, hooks) are relative to this root.</p>
 <p>Scrutin does not walk up to find a parent project. If you run <code>scrutin</code> from inside <code>tests/testthat/</code>, it looks for tools in <code>tests/testthat/</code>, not in the parent R package. Run it from the project root or pass the path explicitly.</p>
 <h2 id="source-and-test-directories">Source and test directories<a class="headerlink" href="#source-and-test-directories" title="Permanent link">&para;</a></h2>
 <p>In auto-detection mode, each tool has default directories:</p>
@@ -1411,12 +1411,12 @@
 </table>
 <p>Source directories are used for dependency tracking in watch mode and for the file watcher.</p>
 <h2 id="config-file">Config file<a class="headerlink" href="#config-file" title="Permanent link">&para;</a></h2>
-<p>Scrutin looks for <code>scrutin.toml</code> in the project root directory. If none is found, it falls back to <code>~/.config/scrutin/scrutin.toml</code>. See the <a href="../reference/configuration/">configuration reference</a> for the full schema.</p>
+<p>Scrutin looks for <code>.scrutin/config.toml</code> in the project root directory. If none is found, it falls back to <code>~/.config/scrutin/config.toml</code>. See the <a href="../reference/configuration/">configuration reference</a> for the full schema.</p>
 <h2 id="virtual-environment-detection-python">Virtual environment detection (Python)<a class="headerlink" href="#virtual-environment-detection-python" title="Permanent link">&para;</a></h2>
 <p>For Python projects, scrutin resolves the interpreter in this order:</p>
 <ol>
-<li><code>[python].interpreter</code> in <code>scrutin.toml</code></li>
-<li><code>[python].venv</code> in <code>scrutin.toml</code> (path to a virtualenv directory)</li>
+<li><code>[python].interpreter</code> in <code>.scrutin/config.toml</code></li>
+<li><code>[python].venv</code> in <code>.scrutin/config.toml</code> (path to a virtualenv directory)</li>
 <li><code>$VIRTUAL_ENV</code> environment variable</li>
 <li><code>.venv/</code> or <code>venv/</code> in the project root</li>
 <li><code>$CONDA_PREFIX</code> environment variable</li>
@@ -1428,7 +1428,7 @@
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">interpreter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;python3.12&quot;</span><span class="w"> </span><span class="c1"># skip venv detection entirely</span>
 </span></code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
-<p><strong>"No test tools detected"</strong>: scrutin found no marker files in the directory you pointed it at. Either run from the project root, pass the root path explicitly, or add <code>[[suite]]</code> entries to <code>scrutin.toml</code>.</p>
+<p><strong>"No test tools detected"</strong>: scrutin found no marker files in the directory you pointed it at. Either run from the project root, pass the root path explicitly, or add <code>[[suite]]</code> entries to <code>.scrutin/config.toml</code>.</p>
 <p><strong>Wrong tool detected</strong>: use <code>--set run.tool=pytest</code> to restrict auto-detection, or switch to explicit <code>[[suite]]</code> entries.</p>
 <p><strong>Tests not found</strong>: run <code>scrutin -r list</code> to see which test files scrutin discovers. If the list is empty, check that your test directory matches the defaults above, or declare the directory explicitly with <code>[[suite]]</code>.</p>
 <p><strong>Non-standard layout</strong>: declare your suites explicitly. Explicit <code>[[suite]]</code> entries bypass all auto-detection and let you point scrutin at any directory structure.</p>
@@ -1483,7 +1483,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":[],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.code.copy"],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
     
     
       <script src="../assets/javascripts/bundle.91a19a9e.min.js"></script>

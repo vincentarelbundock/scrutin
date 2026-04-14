@@ -1323,7 +1323,7 @@
 <h6 id="subcommands"><strong>Subcommands:</strong><a class="headerlink" href="#subcommands" title="Permanent link">&para;</a></h6>
 <ul>
 <li><code>run</code> : Run tests (default)</li>
-<li><code>init</code> : Initialize scrutin.toml and .scrutin/ in the current package</li>
+<li><code>init</code> : Initialize .scrutin/config.toml and .scrutin/ in the current package</li>
 <li><code>stats</code> : Show flaky tests and slowness statistics from the local history DB</li>
 </ul>
 <h6 id="arguments"><strong>Arguments:</strong><a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h6>
@@ -1334,7 +1334,7 @@
 <h6 id="options"><strong>Options:</strong><a class="headerlink" href="#options" title="Permanent link">&para;</a></h6>
 <ul>
 <li><code>-r</code>, <code>--reporter &lt;NAME[:ARG]&gt;</code> : Output reporter. Values: <code>tui</code>, <code>plain</code>, <code>github</code>, <code>web[:ADDR]</code>, <code>list</code>, <code>junit:PATH</code>. Defaults to <code>tui</code> when stderr is a tty, else <code>plain</code></li>
-<li><code>-s</code>, <code>--set &lt;KEY=VALUE&gt;</code> : Override a scrutin.toml field. Repeatable. Dotted keys walk into nested tables (e.g. <code>run.workers=8</code>, <code>filter.include=["test_math*"]</code>, <code>watch.enabled=true</code>). RHS is parsed as a TOML expression, falling back to a bare string for unquoted values</li>
+<li><code>-s</code>, <code>--set &lt;KEY=VALUE&gt;</code> : Override a .scrutin/config.toml field. Repeatable. Dotted keys walk into nested tables (e.g. <code>run.workers=8</code>, <code>filter.include=["test_math*"]</code>, <code>watch.enabled=true</code>). RHS is parsed as a TOML expression, falling back to a bare string for unquoted values</li>
 </ul>
 <h2 id="scrutin-run"><code>scrutin run</code><a class="headerlink" href="#scrutin-run" title="Permanent link">&para;</a></h2>
 <p>Run tests (default)</p>
@@ -1347,10 +1347,10 @@
 <h6 id="options_1"><strong>Options:</strong><a class="headerlink" href="#options_1" title="Permanent link">&para;</a></h6>
 <ul>
 <li><code>-r</code>, <code>--reporter &lt;NAME[:ARG]&gt;</code> : Output reporter. Values: <code>tui</code>, <code>plain</code>, <code>github</code>, <code>web[:ADDR]</code>, <code>list</code>, <code>junit:PATH</code>. Defaults to <code>tui</code> when stderr is a tty, else <code>plain</code></li>
-<li><code>-s</code>, <code>--set &lt;KEY=VALUE&gt;</code> : Override a scrutin.toml field. Repeatable. Dotted keys walk into nested tables (e.g. <code>run.workers=8</code>, <code>filter.include=["test_math*"]</code>, <code>watch.enabled=true</code>). RHS is parsed as a TOML expression, falling back to a bare string for unquoted values</li>
+<li><code>-s</code>, <code>--set &lt;KEY=VALUE&gt;</code> : Override a .scrutin/config.toml field. Repeatable. Dotted keys walk into nested tables (e.g. <code>run.workers=8</code>, <code>filter.include=["test_math*"]</code>, <code>watch.enabled=true</code>). RHS is parsed as a TOML expression, falling back to a bare string for unquoted values</li>
 </ul>
 <h2 id="scrutin-init"><code>scrutin init</code><a class="headerlink" href="#scrutin-init" title="Permanent link">&para;</a></h2>
-<p>Initialize scrutin.toml and .scrutin/ in the current package</p>
+<p>Initialize .scrutin/config.toml and .scrutin/ in the current package</p>
 <p><strong>Usage:</strong> <code>scrutin init [PATH]</code></p>
 <h6 id="arguments_2"><strong>Arguments:</strong><a class="headerlink" href="#arguments_2" title="Permanent link">&para;</a></h6>
 <ul>
@@ -1422,7 +1422,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":[],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.code.copy"],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
     
     
       <script src="../../assets/javascripts/bundle.91a19a9e.min.js"></script>

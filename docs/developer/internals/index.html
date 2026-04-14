@@ -1332,7 +1332,7 @@
 <li>Rust reads NDJSON from the socket until EOF (socket close signals completion), releases the permit, and moves on. The NDJSON-reading phase runs outside the handshake lock, so multiple children execute concurrently.</li>
 </ol>
 <p><strong>ProcessPool flow</strong>: a <code>VecDeque&lt;RProcess&gt;</code> gated by a <code>Semaphore</code>. Each worker reads a path on stdin, runs the test in-process, emits NDJSON to stdout, and is killed + respawned after the file completes.</p>
-<p><strong>Pool sizing</strong>: default <code>min(available_parallelism, 8)</code> clamped to minimum 2. Configurable via <code>[run] workers</code> in <code>scrutin.toml</code>. In fork mode, "workers" controls the semaphore permits (concurrent children), not parent processes: a suite has exactly one parent.</p>
+<p><strong>Pool sizing</strong>: default <code>min(available_parallelism, 8)</code> clamped to minimum 2. Configurable via <code>[run] workers</code> in <code>.scrutin/config.toml</code>. In fork mode, "workers" controls the semaphore permits (concurrent children), not parent processes: a suite has exactly one parent.</p>
 <p><strong>Pre-warming</strong>: the parent (fork mode) or every worker (process mode) starts before any file is dispatched.</p>
 <p><strong>Shutdown</strong>: parents exit cleanly when stdin closes or on a <code>!shutdown</code> line; teardown hooks fire before <code>quit()</code>.</p>
 <p><strong>Failure handling</strong>: if a child fails to connect back or exits without sending <code>done</code>, the missing result is synthesized as an engine Error. If a worker crashes outright (EOF before any reply), the error is recorded and, in process mode, the worker is respawned.</p>
@@ -1618,7 +1618,7 @@ dependencies.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":[],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.code.copy"],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
     
     
       <script src="../../assets/javascripts/bundle.91a19a9e.min.js"></script>
