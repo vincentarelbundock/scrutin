@@ -31,6 +31,7 @@ use scrutin_tui as tui;
 #[derive(Parser)]
 #[command(
     name = "scrutin",
+    version,
     about = "Fast watch-mode test runner",
     args_conflicts_with_subcommands = true
 )]
