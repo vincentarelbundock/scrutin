@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/scrutin-core", "crates/scrutin-tui", "crates/scrutin-web", "crates/scrutin-bin"]
 
 [workspace.package]
-version = "0.0.1-alpha.5"
+version = "0.0.1-alpha.6"
 edition = "2024"
 description = "Quality dashboard, file watcher, and parallel runner."
 license = "MIT"
@@ -17,9 +17,9 @@ categories = ["development-tools::testing", "command-line-utilities"]
 [workspace.dependencies]
 # Internal crates. `path` is used for local builds; `version` is what ends up
 # on crates.io. Must be bumped in lockstep with `workspace.package.version`.
-scrutin-core = { path = "crates/scrutin-core", version = "0.0.1-alpha.5" }
-scrutin-tui  = { path = "crates/scrutin-tui",  version = "0.0.1-alpha.5" }
-scrutin-web  = { path = "crates/scrutin-web",  version = "0.0.1-alpha.5" }
+scrutin-core = { path = "crates/scrutin-core", version = "0.0.1-alpha.6" }
+scrutin-tui  = { path = "crates/scrutin-tui",  version = "0.0.1-alpha.6" }
+scrutin-web  = { path = "crates/scrutin-web",  version = "0.0.1-alpha.6" }
 
 # External
 serde = { version = "1", features = ["derive"] }
@@ -41,19 +41,24 @@ syntect = { version = "5", default-features = false, features = ["parsing", "def
 axum = { version = "0.8", features = ["tokio", "http1", "json", "macros"] }
 rusqlite = { version = "0.39", features = ["bundled"] }
 
-# -- cargo-dist ---------------------------------------------------------------
-# `dist` (formerly cargo-dist) builds prebuilt binaries and installers for
-# GitHub Releases. Run `dist init` locally to refresh the generated CI, or
-# `dist build` to build artifacts for the current host.
-
+# Config for 'dist'
 [workspace.metadata.dist]
-cargo-dist-version = "0.28.0"
+# The preferred dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.31.0"
+# CI backends to support
 ci = "github"
+# The installers to generate for each app
 installers = ["shell", "powershell"]
-targets = [
-    "aarch64-apple-darwin",
-    "x86_64-apple-darwin",
-    "x86_64-unknown-linux-gnu",
-    "x86_64-pc-windows-msvc",
-]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
+# Which actions to run on pull requests
 pr-run-mode = "plan"
+# Path that installers should place binaries in
+install-path = "CARGO_HOME"
+# Whether to install an updater program
+install-updater = false
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

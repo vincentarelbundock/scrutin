@@ -1,0 +1,57 @@
+name: Publish to crates.io
+
+# Fires on the same release tag that triggers cargo-dist's release.yml. Both
+# workflows run independently from the tag push, so binary uploads and
+# crates.io publishing aren't coupled: one failing doesn't block the other.
+#
+# Required secrets:
+#   CARGO_REGISTRY_TOKEN   crates.io token with publish rights.
+
+on:
+  push:
+    tags:
+      - '**[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  publish:
+    name: cargo publish
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Publish scrutin-core
+        run: cargo publish -p scrutin-core --locked --token "${CARGO_REGISTRY_TOKEN}"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io index
+        run: sleep 45
+
+      - name: Publish scrutin-tui
+        run: cargo publish -p scrutin-tui --locked --token "${CARGO_REGISTRY_TOKEN}"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish scrutin-web
+        run: cargo publish -p scrutin-web --locked --token "${CARGO_REGISTRY_TOKEN}"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io index
+        run: sleep 45
+
+      - name: Publish scrutin
+        run: cargo publish -p scrutin --locked --token "${CARGO_REGISTRY_TOKEN}"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

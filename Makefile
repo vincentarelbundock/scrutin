@@ -1,4 +1,4 @@
-.PHONY: help install demo tinytable watch depmap web sync-webview vscode positron rstudio editors docs docs-serve revert stage-docs release release-draft version bump
+.PHONY: help install demo tinytable watch depmap web sync-webview vscode positron rstudio editors docs docs-serve revert stage-docs release version bump
 
 .DEFAULT_GOAL := help
 
@@ -35,20 +35,16 @@ bump: ## Bump workspace version (usage: make bump VERSION=x.y.z)
 	@echo ""
 	@echo "Next: update CHANGELOG.md, commit Cargo.toml + Cargo.lock, then 'make release'."
 
-# Create a published GitHub Release for the current workspace version. This
-# triggers .github/workflows/release.yml, which builds binaries for every
-# target and publishes the crates to crates.io. Refuses to run on a dirty
-# tree so the tag actually reflects what's on disk.
-release: ## Create a published GitHub Release for the current version (fires CI)
+# Tag the current commit and push the tag. That triggers BOTH workflows:
+#   - .github/workflows/release.yml  (cargo-dist: binaries, installers,
+#                                     creates the GitHub Release)
+#   - .github/workflows/publish-crates.yml  (cargo publish to crates.io)
+# Refuses to run on a dirty tree so the tag reflects what's on disk.
+release: ## Tag and push v$(VERSION); fires cargo-dist + crates.io workflows
 	@test -z "$$(git status --porcelain)" || { echo "working tree is dirty; commit or stash first"; exit 1; }
-	@echo "Creating release v$(VERSION) from $$(git rev-parse --short HEAD)"
-	gh release create v$(VERSION) --title "v$(VERSION)" --generate-notes
-
-# Same as `release` but leaves the release as a draft so you can review it
-# before publishing (publishing is what fires the workflow).
-release-draft: ## Create a draft GitHub Release (publish from the UI to fire CI)
-	@test -z "$$(git status --porcelain)" || { echo "working tree is dirty; commit or stash first"; exit 1; }
-	gh release create v$(VERSION) --title "v$(VERSION)" --generate-notes --draft
+	@echo "Tagging v$(VERSION) at $$(git rev-parse --short HEAD) and pushing..."
+	git tag -a v$(VERSION) -m "Release v$(VERSION)"
+	git push origin v$(VERSION)
 
 # ==============================================================================
 # Run / dev
