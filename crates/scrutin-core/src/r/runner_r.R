@@ -193,7 +193,26 @@ if (nzchar(.scrutin_env$worker_startup_path)) {
 # Failure is non-fatal: surfaces as an error event, then continues.
 # On success, stashes the package name in .scrutin_env$pkg_name for
 # setup_tracing() to use.
+#
+# Pre-flight: if pkgload itself is missing, poison the worker with a
+# clear, actionable message. Otherwise the user sees a generic "there
+# is no package called 'pkgload'" repeated once per test file.
 .scrutin_env$load_package <- function() {
+  if (!requireNamespace("pkgload", quietly = TRUE)) {
+    .scrutin_env$emit(.scrutin_env$event(
+      file = "<worker_startup>",
+      outcome = "error",
+      subject_kind = "engine",
+      subject_name = "<worker_startup>",
+      message = paste(
+        "scrutin's default R runner requires 'pkgload', which is not installed.",
+        "Fix: install.packages('pkgload')",
+        "Or edit .scrutin/<tool>/runner.R to use library() instead of pkgload::load_all().",
+        sep = "\n"
+      )
+    ))
+    quit(save = "no", status = 2)
+  }
   tryCatch({
     pkgload::load_all(.scrutin_env$pkg_dir, quiet = TRUE)
     desc <- file.path(.scrutin_env$pkg_dir, "DESCRIPTION")
