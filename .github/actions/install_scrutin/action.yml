@@ -1,0 +1,23 @@
+name: Install scrutin
+description: Install the latest scrutin binary from GitHub Releases.
+
+runs:
+  using: composite
+  steps:
+    - name: Install scrutin (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        set -euo pipefail
+        curl --proto '=https' --tlsv1.2 -LsSf \
+          https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.sh | sh
+        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Install scrutin (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = "Stop"
+        irm https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.ps1 | iex
+        Add-Content -Path $env:GITHUB_PATH -Value "$env:USERPROFILE\.cargo\bin"

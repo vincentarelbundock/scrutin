@@ -1,0 +1,74 @@
+name: Check R package + run tests with scrutin
+description: |
+  Run R CMD check with --no-tests (so docs, examples, vignettes, and CRAN
+  policy are validated but test files are not executed), then run the
+  package's tests via scrutin.
+
+inputs:
+  r-version:
+    description: R version to install.
+    default: release
+    required: false
+  packages:
+    description: Extra R packages to install beyond what DESCRIPTION declares.
+    default: "tinytest pkgload"
+    required: false
+  check-args:
+    description: |
+      Full R vector passed as --args to R CMD check. Override only if you
+      need flags beyond the default --no-manual --no-tests --as-cran.
+    default: 'c("--no-manual","--no-tests","--as-cran")'
+    required: false
+  build-args:
+    description: R vector passed to R CMD build before check.
+    default: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+    required: false
+  upload-snapshots:
+    description: Upload testthat snapshot diffs on failure.
+    default: "true"
+    required: false
+  reporter:
+    description: scrutin reporter passed via -r (github, plain, junit:PATH, ...).
+    default: github
+    required: false
+  tool:
+    description: Restrict scrutin to a single tool (e.g. tinytest, testthat).
+    default: ""
+    required: false
+  scrutin-args:
+    description: Extra arguments appended to the scrutin invocation.
+    default: ""
+    required: false
+  working-directory:
+    description: Package root.
+    default: "."
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/install_r
+      with:
+        r-version: ${{ inputs.r-version }}
+        packages: any::rcmdcheck ${{ inputs.packages }}
+        needs: check
+
+    - uses: r-lib/actions/check-r-package@v2
+      with:
+        working-directory: ${{ inputs.working-directory }}
+        upload-snapshots: ${{ inputs.upload-snapshots }}
+        args: ${{ inputs.check-args }}
+        build_args: ${{ inputs.build-args }}
+
+    - uses: ./.github/actions/install_scrutin
+
+    - name: Run tests with scrutin
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        tool_arg=""
+        if [ -n "${{ inputs.tool }}" ]; then
+          tool_arg="--set run.tool=${{ inputs.tool }}"
+        fi
+        scrutin -r ${{ inputs.reporter }} $tool_arg ${{ inputs.scrutin-args }}
