@@ -47,7 +47,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: ./.github/actions/install_r
+    - uses: vincentarelbundock/scrutin/.github/actions/install_r@main
       with:
         r-version: ${{ inputs.r-version }}
         packages: any::rcmdcheck ${{ inputs.packages }}
@@ -60,7 +60,7 @@ runs:
         args: ${{ inputs.check-args }}
         build_args: ${{ inputs.build-args }}
 
-    - uses: ./.github/actions/install_scrutin
+    - uses: vincentarelbundock/scrutin/.github/actions/install_scrutin@main
 
     - name: Run tests with scrutin
       shell: bash
