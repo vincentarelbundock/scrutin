@@ -238,7 +238,12 @@ impl RProcess {
             }
         };
 
-        match timeout(self.timeout, read_fut).await {
+        let result = if self.timeout.is_zero() {
+            Ok(read_fut.await)
+        } else {
+            timeout(self.timeout, read_fut).await
+        };
+        match result {
             Ok(Ok(msgs)) => Ok(msgs),
             Ok(Err(e)) => {
                 // Propagate worker_startup sentinel verbatim so the pool

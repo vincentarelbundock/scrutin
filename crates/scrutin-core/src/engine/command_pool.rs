@@ -136,7 +136,11 @@ async fn run_command(
     cmd.envs(pkg.env.iter());
 
     let t0 = std::time::Instant::now();
-    let result = tokio::time::timeout(timeout, cmd.output()).await;
+    let result = if timeout.is_zero() {
+        Ok(cmd.output().await)
+    } else {
+        tokio::time::timeout(timeout, cmd.output()).await
+    };
     let duration_ms = t0.elapsed().as_millis() as u64;
 
     let file_name = file_basename(test_file);

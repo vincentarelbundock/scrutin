@@ -101,7 +101,7 @@ There is no `!reload` command: fork mode gets fresh state for free because every
 
 ### Timeouts
 
-Default 60 seconds per test file. When exceeded:
+Disabled by default. When `timeout_file_ms` is set to a positive value and a worker exceeds it:
 
 1. Worker is killed
 2. Timeout error result recorded

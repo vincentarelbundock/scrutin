@@ -88,9 +88,10 @@
 #   drawn seed is always printed so the run is reproducible by
 #   re-running with --set run.seed=<printed value>.
 
-# timeout_file_ms = 60000
+# timeout_file_ms = 0
 #   Per-file timeout in milliseconds. A worker that doesn't return
 #   results within this budget is killed and the file marked errored.
+#   0 (default) disables the per-file timeout.
 
 # timeout_run_ms = 0
 #   Whole-run timeout in milliseconds across all suites. When

@@ -215,7 +215,8 @@ pub struct RunConfig {
     pub seed: Option<u64>,
     /// Per-file timeout in milliseconds. Applies to every test worker
     /// subprocess; a worker that doesn't return in this many ms is killed
-    /// and the file marked errored.
+    /// and the file marked errored. 0 (default) disables the per-file
+    /// timeout.
     pub timeout_file_ms: u64,
     /// Whole-run timeout in milliseconds. If the entire run (across all
     /// suites) hasn't finished within this budget, all in-flight workers are
@@ -242,7 +243,7 @@ impl Default for RunConfig {
             color: true,
             shuffle: false,
             seed: None,
-            timeout_file_ms: 60_000,
+            timeout_file_ms: 0,
             timeout_run_ms: 0,
             reruns: 0,
             reruns_delay: 0,

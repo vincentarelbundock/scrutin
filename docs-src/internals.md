@@ -70,7 +70,7 @@ Workers are long-lived processes that keep your project loaded in memory. When a
 
   **Why fork mode is opt-in**: forking a process that is already multithreaded, or whose test code itself spawns forked workers, can deadlock or crash the child. Common offenders are R's `parallel::mclapply` / `parallel::mcparallel`, Python's `multiprocessing` with the default `fork` start method, and BLAS/OpenMP-backed numerical libraries that hold internal thread pools. POSIX is explicit that only async-signal-safe code is legal between `fork()` and `exec()` in a multithreaded process; most R/Python packages do not respect that, so the safe default is to spawn fresh.
 - **Crashes**: if a worker crashes mid-test, the error is recorded and the worker is automatically replaced. One crash never takes down the rest of the run.
-- **Timeouts**: each test file has a 60-second timeout by default (`timeout_file_ms` in config). If a test hangs, the worker is killed and replaced.
+- **Timeouts**: per-file timeouts are disabled by default. Set `timeout_file_ms` in config to any positive value to kill and replace workers that don't return within that many milliseconds.
 
 ### Outcome taxonomy
 
