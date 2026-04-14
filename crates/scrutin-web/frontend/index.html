@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scrutin</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/syntect.css" />
+</head>
+<body>
+  <header id="topbar">
+    <!-- Left: level pill + breadcrumb (drill-down location). Rebuilt by
+         renderBreadcrumb() on every level change; segments are clickable. -->
+    <div class="breadcrumb" id="breadcrumb">
+      <button id="btn-back" class="back-btn hidden" title="Back (Esc)">&larr;</button>
+      <span class="level-pill" id="level-pill">FILES</span>
+      <span class="crumbs" id="crumbs"></span>
+    </div>
+    <!-- Right: metadata + controls. pkg name and workers live here so
+         they stay out of the breadcrumb. -->
+    <div class="meta" id="meta">
+      <span id="pkg-name" class="pkg-name">&mdash;</span>
+      <span class="sep">&middot;</span>
+      <span id="workers" class="workers">&mdash;</span>
+    </div>
+    <div class="controls">
+      <button id="btn-run-all" title="Run all (a)">&#9654; run all</button>
+      <button id="btn-run-visible" title="Run visible (v)">&#9654; run visible</button>
+      <button id="btn-run-selected" title="Run selected (d)">&#9654; run selected</button>
+      <button id="btn-rerun-failing" class="hidden" title="Rerun failing (R)">&#8635; rerun failing</button>
+      <button id="btn-cancel" class="hidden" title="Cancel (c)">&#10005; cancel</button>
+      <label class="watch-toggle" title="Toggle watch mode (w)">
+        <input type="checkbox" id="toggle-watch" />
+        <span>watch</span>
+      </label>
+      <button id="btn-theme" title="Toggle light/dark">&#9680;</button>
+    </div>
+  </header>
+
+  <main id="layout">
+    <section id="left-pane">
+      <div class="pane-subbar" id="left-subbar">
+        <input id="filter-input" type="text" placeholder="filter…" />
+        <select id="plugin-select" title="Suite filter (p / P)">
+          <option value="">all</option>
+        </select>
+        <select id="status-select" title="Status filter (t / T)">
+          <option value="">all statuses</option>
+          <option value="failed">failed</option>
+          <option value="errored">errored</option>
+          <option value="warned">warned</option>
+          <option value="passed">passed</option>
+          <option value="skipped">skipped</option>
+          <option value="running">running</option>
+          <option value="pending">pending</option>
+          <option value="cancelled">cancelled</option>
+        </select>
+      </div>
+      <div id="col-headers" class="file-row col-header"></div>
+      <ul id="left-list" class="file-list"></ul>
+    </section>
+
+    <div id="pane-resizer" title="Drag to resize"></div>
+
+    <section id="right-pane">
+      <div id="right-body" class="detail-body"></div>
+    </section>
+  </main>
+
+  <footer id="countsbar">
+    <span class="count pass">●0</span>
+    <span class="count fail">✗0</span>
+    <span class="count error">⚠0</span>
+    <span class="count warn">⚡0</span>
+    <span class="count skip">⊘0</span>
+    <span class="count xfail">⊙0</span>
+    <span class="spacer"></span>
+    <span id="keyboard-hint" class="keyboard-hint"></span>
+    <span id="status-text">idle</span>
+  </footer>
+
+  <div id="help" class="overlay hidden">
+    <div class="card">
+      <h2>Keyboard shortcuts</h2>
+      <dl id="help-bindings"></dl>
+      <p class="hint">Esc or ? to close</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

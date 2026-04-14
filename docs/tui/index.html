@@ -1,0 +1,1372 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Fast watch-mode test runner for R and Python">
+      
+      
+      
+        <link rel="canonical" href="https://scrutin.dev/tui/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/logo.svg">
+      <meta name="generator" content="zensical-0.0.32">
+    
+    
+      
+        <title>Terminal UI - scrutin</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.53a7feaf.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/home.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,a=__md_scope)=>JSON.parse(t.getItem(a.pathname+"."+e)),__md_set=(e,t,a=localStorage,_=__md_scope)=>{try{a.setItem(_.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#terminal-ui" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="scrutin" class="md-header__button md-logo" aria-label="scrutin" data-md-component="logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 285.02344 87" role="img" style="height:2rem;width:auto">
+  <title>Scrutin</title>
+  <rect x="1" y="1" width="58" height="72" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="11" y="15" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="20.5" x2="51" y2="20.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="33" width="11" height="11" rx="2" ry="2" fill="currentColor"/>
+  <polyline points="16.5,45.5 20,50 27,42.5" fill="none" stroke="var(--md-default-bg-color)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(-3,-7)"/>
+  <line x1="29" y1="38.5" x2="51" y2="38.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="51" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="56.5" x2="49" y2="56.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <circle cx="55" cy="65" r="16" fill="none" stroke="currentColor" stroke-width="2.5"/>
+  <line x1="67" y1="77" x2="79" y2="85" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <text x="93" y="54.2" font-family="Menlo, ui-monospace, SFMono-Regular, monospace" font-size="48" font-weight="500" fill="currentColor" letter-spacing="-1">Scrutin</text>
+</svg>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            scrutin
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Terminal UI
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="scrutin" class="md-nav__button md-logo" aria-label="scrutin" data-md-component="logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 285.02344 87" role="img" style="height:2rem;width:auto">
+  <title>Scrutin</title>
+  <rect x="1" y="1" width="58" height="72" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="11" y="15" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="20.5" x2="51" y2="20.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="33" width="11" height="11" rx="2" ry="2" fill="currentColor"/>
+  <polyline points="16.5,45.5 20,50 27,42.5" fill="none" stroke="var(--md-default-bg-color)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(-3,-7)"/>
+  <line x1="29" y1="38.5" x2="51" y2="38.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="51" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="56.5" x2="49" y2="56.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <circle cx="55" cy="65" r="16" fill="none" stroke="currentColor" stroke-width="2.5"/>
+  <line x1="67" y1="77" x2="79" y2="85" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <text x="93" y="54.2" font-family="Menlo, ui-monospace, SFMono-Regular, monospace" font-size="48" font-weight="500" fill="currentColor" letter-spacing="-1">Scrutin</text>
+</svg>
+    </a>
+    scrutin
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    R
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/testthat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    testthat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/tinytest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    tinytest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/pointblank/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pointblank
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/validate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    validate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/jarl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    jarl
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/pytest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pytest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/ruff/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ruff
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/great-expectations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Great Expectations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../editors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../watch-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Watch Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filtering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filtering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keybindings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keybindings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../internals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How It Works
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run History
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command-Line
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#navigating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigating
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#levels-and-overlays" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Levels and overlays
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filtering-and-sorting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering and sorting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keybindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keybindings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Keybindings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run control
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filtering-and-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering and display
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-keybindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom keybindings
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+<h1 id="terminal-ui">Terminal UI<a class="headerlink" href="#terminal-ui" title="Permanent link">&para;</a></h1>
+<p>The default frontend. Scrutin launches the TUI automatically when stderr is a tty. It uses vim-style modal navigation: if you know <code>j</code> / <code>k</code> / <code>Enter</code> / <code>Esc</code>, you already know how to use it.</p>
+<h2 id="navigating">Navigating<a class="headerlink" href="#navigating" title="Permanent link">&para;</a></h2>
+<p>The screen is split into two panes. At the <strong>Files</strong> level (the default), the left pane shows your test files and the right pane previews the results for the highlighted file. Press <code>j</code> / <code>k</code> to move through the list, and <code>Enter</code> (or <code>l</code>) to drill in.</p>
+<p>At the <strong>Detail</strong> level, the left pane shows individual tests within the file and the right pane shows the failure message and source context for the highlighted test. Press <code>Enter</code> on a failing test to drill into the <strong>Failure</strong> level with full error and source.</p>
+<p>Press <code>Esc</code> (or <code>h</code> / <code>q</code>) to pop back one level. <code>?</code> opens a help overlay with the full, live-generated keybinding reference.</p>
+<h2 id="levels-and-overlays">Levels and overlays<a class="headerlink" href="#levels-and-overlays" title="Permanent link">&para;</a></h2>
+<p>The TUI separates drill <strong>level</strong> (Files / Detail / Failure) from transient <strong>overlays</strong> (Help, Log, palettes). Overlays sit on top of a level without changing it; <code>Esc</code> dismisses the overlay first, then pops the level.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Entry</th>
+<th>Exit</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Files level</td>
+<td>default</td>
+<td><code>q</code></td>
+<td>Navigate file list, trigger runs</td>
+</tr>
+<tr>
+<td>Detail level</td>
+<td><code>Enter</code> on a file</td>
+<td><code>Esc</code> / <code>h</code> / <code>q</code></td>
+<td>Test results within a file</td>
+</tr>
+<tr>
+<td>Failure level</td>
+<td><code>Enter</code> on a failed test</td>
+<td><code>Esc</code> / <code>h</code> / <code>q</code></td>
+<td>Full failure message + source</td>
+</tr>
+<tr>
+<td>Filter palette</td>
+<td><code>/</code></td>
+<td><code>Esc</code> / <code>Enter</code></td>
+<td>Live filter by basename</td>
+</tr>
+<tr>
+<td>Run palette</td>
+<td><code>r</code> at Files level, <code>R</code> at Detail/Failure</td>
+<td><code>Esc</code> / <code>Enter</code></td>
+<td>Run all / failing / selection</td>
+</tr>
+<tr>
+<td>Sort palette</td>
+<td><code>s</code></td>
+<td><code>Esc</code> / <code>Enter</code></td>
+<td>Pick sort mode</td>
+</tr>
+<tr>
+<td>Action palette</td>
+<td><code>a</code></td>
+<td><code>Esc</code> / <code>Enter</code></td>
+<td>Plugin actions (jarl fix, ruff fix, ...)</td>
+</tr>
+<tr>
+<td>Help overlay</td>
+<td><code>?</code></td>
+<td><code>Esc</code> / <code>q</code> / <code>?</code></td>
+<td>Keybinding reference</td>
+</tr>
+<tr>
+<td>Log overlay</td>
+<td><code>L</code></td>
+<td><code>Esc</code> / <code>q</code></td>
+<td>Subprocess stderr and internal messages</td>
+</tr>
+</tbody>
+</table>
+<h2 id="running-tests">Running tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h2>
+<p>At the Files level, <code>r</code> opens the run palette (run all, run failing, run selection, run current). In Detail / Failure, <code>r</code> immediately re-runs the current file and <code>R</code> opens the run palette. <code>x</code> cancels the current file; <code>X</code> cancels the entire run.</p>
+<p>During a run, results stream in live: you can browse files and drill into failures while other tests are still running.</p>
+<h2 id="filtering-and-sorting">Filtering and sorting<a class="headerlink" href="#filtering-and-sorting" title="Permanent link">&para;</a></h2>
+<p><code>/</code> opens the filter palette. The file list narrows as you type. <code>Enter</code> confirms, <code>Esc</code> cancels.</p>
+<p><code>s</code> opens the sort palette. Modes: <strong>sequential</strong> (emission order), <strong>status</strong>, <strong>name</strong>, <strong>suite</strong>, <strong>time</strong>. The selection persists across runs. <code>t</code> / <code>T</code> cycles the status filter (all → failures → errors → passes → ...); <code>p</code> / <code>P</code> cycles the suite filter when a project has more than one tool.</p>
+<h2 id="keybindings">Keybindings<a class="headerlink" href="#keybindings" title="Permanent link">&para;</a></h2>
+<p>These are the defaults, compiled into <code>scrutin_core::keymap::DEFAULT_KEYMAP</code> and shared across frontends. <code>?</code> in the TUI renders the same table live.</p>
+<h3 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j</code> / <code>k</code> or <code>Down</code> / <code>Up</code></td>
+<td>Move cursor down / up</td>
+</tr>
+<tr>
+<td><code>g</code> / <code>G</code> or <code>Home</code> / <code>End</code></td>
+<td>Jump to top / bottom</td>
+</tr>
+<tr>
+<td><code>PageDown</code> / <code>PageUp</code> or <code>Ctrl-f</code> / <code>Ctrl-b</code></td>
+<td>Page down / up</td>
+</tr>
+<tr>
+<td><code>J</code> / <code>K</code></td>
+<td>Scroll source pane down / up</td>
+</tr>
+<tr>
+<td><code>Enter</code> / <code>l</code> / <code>Right</code></td>
+<td>Drill in</td>
+</tr>
+<tr>
+<td><code>Esc</code> / <code>h</code> / <code>q</code> / <code>Left</code></td>
+<td>Back / pop level</td>
+</tr>
+</tbody>
+</table>
+<h3 id="run-control">Run control<a class="headerlink" href="#run-control" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>r</code></td>
+<td>At Files: open run palette. At Detail/Failure: re-run current file</td>
+</tr>
+<tr>
+<td><code>R</code></td>
+<td>At Detail/Failure: open run palette</td>
+</tr>
+<tr>
+<td><code>x</code></td>
+<td>Cancel current file</td>
+</tr>
+<tr>
+<td><code>X</code></td>
+<td>Cancel entire run</td>
+</tr>
+</tbody>
+</table>
+<h3 id="filtering-and-display">Filtering and display<a class="headerlink" href="#filtering-and-display" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/</code></td>
+<td>Filter palette</td>
+</tr>
+<tr>
+<td><code>s</code></td>
+<td>Sort palette</td>
+</tr>
+<tr>
+<td><code>t</code> / <code>T</code></td>
+<td>Cycle status filter forward / back</td>
+</tr>
+<tr>
+<td><code>p</code> / <code>P</code></td>
+<td>Cycle suite filter forward / back</td>
+</tr>
+<tr>
+<td><code>Space</code></td>
+<td>Toggle selection on current file</td>
+</tr>
+<tr>
+<td><code>v</code></td>
+<td>Visual select mode</td>
+</tr>
+<tr>
+<td><code>-</code></td>
+<td>Toggle vertical / horizontal split</td>
+</tr>
+<tr>
+<td><code>(</code> / <code>)</code></td>
+<td>Shrink / grow the list pane</td>
+</tr>
+</tbody>
+</table>
+<h3 id="other">Other<a class="headerlink" href="#other" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a</code></td>
+<td>Plugin action palette (jarl fix, ruff fix, ...)</td>
+</tr>
+<tr>
+<td><code>e</code></td>
+<td>Open test file in <code>$EDITOR</code></td>
+</tr>
+<tr>
+<td><code>E</code></td>
+<td>Open source file in <code>$EDITOR</code></td>
+</tr>
+<tr>
+<td><code>y</code></td>
+<td>Yank failure message to clipboard</td>
+</tr>
+<tr>
+<td><code>L</code></td>
+<td>Log overlay</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>Help overlay</td>
+</tr>
+</tbody>
+</table>
+<h2 id="custom-keybindings">Custom keybindings<a class="headerlink" href="#custom-keybindings" title="Permanent link">&para;</a></h2>
+<p>You can override any keybinding in <code>scrutin.toml</code>. Each <code>[keymap.&lt;mode&gt;]</code> table fully <strong>replaces</strong> the defaults for that mode : deleting a line unbinds the key, deleting the whole subtable restores the built-in defaults. <code>scrutin init</code> writes the defaults out in full so you can edit in place.</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">[keymap.normal]</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">j</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cursor_down&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">k</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cursor_up&quot;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">Enter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;enter&quot;</span>
+</span></code></pre></div>
+<p>Mode names: <code>normal</code>, <code>detail</code>, <code>failure</code>, <code>help</code>, <code>log</code>. Action names are enumerated in <code>scrutin_core::keymap::all_action_names()</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":[],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.91a19a9e.min.js"></script>
+      
+    
+  </body>
+</html>

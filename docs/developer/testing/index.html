@@ -1,0 +1,1630 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Fast watch-mode test runner for R and Python">
+      
+      
+      
+        <link rel="canonical" href="https://scrutin.dev/developer/testing/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/logo.svg">
+      <meta name="generator" content="zensical-0.0.32">
+    
+    
+      
+        <title>Testing Spec - scrutin</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.53a7feaf.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/home.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,a=__md_scope)=>JSON.parse(t.getItem(a.pathname+"."+e)),__md_set=(e,t,a=localStorage,_=__md_scope)=>{try{a.setItem(_.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#testing-spec" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="scrutin" class="md-header__button md-logo" aria-label="scrutin" data-md-component="logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 285.02344 87" role="img" style="height:2rem;width:auto">
+  <title>Scrutin</title>
+  <rect x="1" y="1" width="58" height="72" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="11" y="15" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="20.5" x2="51" y2="20.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="33" width="11" height="11" rx="2" ry="2" fill="currentColor"/>
+  <polyline points="16.5,45.5 20,50 27,42.5" fill="none" stroke="var(--md-default-bg-color)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(-3,-7)"/>
+  <line x1="29" y1="38.5" x2="51" y2="38.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="51" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="56.5" x2="49" y2="56.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <circle cx="55" cy="65" r="16" fill="none" stroke="currentColor" stroke-width="2.5"/>
+  <line x1="67" y1="77" x2="79" y2="85" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <text x="93" y="54.2" font-family="Menlo, ui-monospace, SFMono-Regular, monospace" font-size="48" font-weight="500" fill="currentColor" letter-spacing="-1">Scrutin</text>
+</svg>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            scrutin
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Testing Spec
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="scrutin" class="md-nav__button md-logo" aria-label="scrutin" data-md-component="logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 285.02344 87" role="img" style="height:2rem;width:auto">
+  <title>Scrutin</title>
+  <rect x="1" y="1" width="58" height="72" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="11" y="15" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="20.5" x2="51" y2="20.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="33" width="11" height="11" rx="2" ry="2" fill="currentColor"/>
+  <polyline points="16.5,45.5 20,50 27,42.5" fill="none" stroke="var(--md-default-bg-color)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(-3,-7)"/>
+  <line x1="29" y1="38.5" x2="51" y2="38.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="51" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="56.5" x2="49" y2="56.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <circle cx="55" cy="65" r="16" fill="none" stroke="currentColor" stroke-width="2.5"/>
+  <line x1="67" y1="77" x2="79" y2="85" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <text x="93" y="54.2" font-family="Menlo, ui-monospace, SFMono-Regular, monospace" font-size="48" font-weight="500" fill="currentColor" letter-spacing="-1">Scrutin</text>
+</svg>
+    </a>
+    scrutin
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../project-discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    R
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/testthat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    testthat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/tinytest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    tinytest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/pointblank/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pointblank
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/validate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    validate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/jarl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    jarl
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/pytest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pytest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/ruff/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ruff
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/great-expectations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Great Expectations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../editors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../watch-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Watch Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../filtering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filtering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../keybindings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keybindings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../internals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How It Works
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run History
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command-Line
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-guiding-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. Guiding principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-test-pyramid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Test pyramid
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-harnesses-to-build-first-blocking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Harnesses to build first (blocking)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-surfaces-and-behaviors-to-lock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Surfaces and behaviors to lock
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Surfaces and behaviors to lock">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-ndjson-protocol-engineprotocolrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 NDJSON protocol (engine/protocol.rs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-runner-companions-rrunnerr-pythonrunnerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Runner companions (r/*/runner.*.R, python/*/runner.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-engine-pool-runner-run_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Engine: pool, runner, run_events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-dep-map-rdepmaprs-pythonimportsrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Dep-map (r/depmap.rs, python/imports.rs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-watcher-enginewatcherrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Watcher (engine/watcher.rs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-config-projectconfigrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 Config (project/config.rs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-cli-scrutin-binsrcclimodrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 CLI (scrutin-bin/src/cli/mod.rs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#38-reporters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.8 Reporters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#39-rerun-flaky-max_fail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.9 Rerun, flaky, max_fail
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#310-duckdb-history-storagedbrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.10 DuckDB history (storage/db.rs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#311-filter-include-exclude" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.11 Filter, include, exclude
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#312-plugin-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.12 Plugin actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#313-hooks-projecthooksrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.13 Hooks (project/hooks.rs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#314-tui-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.14 TUI state machine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#315-tui-snapshot-rendering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.15 TUI snapshot rendering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#316-web-wire-format-and-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.16 Web wire format and routes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#317-end-to-end-cli-ci_run__fixture-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.17 End-to-end CLI (ci_run_*_fixture style)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-deliberately-out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Deliberately out of scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-rollout-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Rollout order
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+<h1 id="testing-spec">Testing Spec<a class="headerlink" href="#testing-spec" title="Permanent link">&para;</a></h1>
+<p>This document specifies what the scrutin test suite should cover, what
+behaviors are locked in (i.e., tests exist precisely to prevent their
+regression), and what is deliberately out of scope.</p>
+<p>It is both a design doc and a rollout plan: sections 0 and 1 set policy,
+section 2 lists the shared harnesses that must exist before most of the
+behavior-locking tests can be written cleanly, and sections 3 onward
+enumerate the surfaces of the system with the specific behaviors to lock
+and the test shape required to lock them.</p>
+<p>Companion docs: <code>protocol.md</code> pins the NDJSON wire format and outcome
+taxonomy referenced throughout; <code>internals.md</code> describes the architecture
+the tests exercise.</p>
+<h2 id="0-guiding-principles">0. Guiding principles<a class="headerlink" href="#0-guiding-principles" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Test contracts, not implementation.</strong> The six-outcome taxonomy, the
+  NDJSON protocol shape, the config precedence order, and the dep-map
+  inputs-to-outputs are contracts. The internal types that implement
+  them are not. Tests that break on refactor without catching a real
+  regression are worse than nothing.</li>
+<li><strong>One honest E2E per tool beats ten mocked ones.</strong> scrutin's
+  value is correctness across real R/Python subprocesses; mocking the
+  subprocess erases the thing being tested. The <code>ci_run_*_fixture</code>
+  pattern (see <code>crates/scrutin-bin/tests/</code>) is the right shape: add
+  more of them, don't replace them with unit tests.</li>
+<li><strong>Locked behaviors are documented twice.</strong> Once in this spec (what)
+  and once in a test named after the behavior (proof). If a test has
+  no corresponding spec line, either the spec is incomplete or the test
+  is testing implementation.</li>
+<li><strong>Skip gracefully, don't mock.</strong> If <code>Rscript</code> or <code>pytest</code> is
+  unavailable, skip the test; don't fake the subprocess. CI provides
+  the real coverage; local dev on a stripped machine isn't blocked.</li>
+<li><strong>Snapshot with care.</strong> Golden-file snapshots are valuable for wire
+  formats (NDJSON, JUnit, CTRF, wire JSON) and TUI buffers, not for
+  free-form human-readable output that will churn.</li>
+</ul>
+<h2 id="1-test-pyramid">1. Test pyramid<a class="headerlink" href="#1-test-pyramid" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>What lives here</th>
+<th>Runtime budget</th>
+<th>Target count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unit</strong></td>
+<td>Pure functions: glob matching, config merging, outcome rank, protocol encode/decode, filter, git SHA parse, hashing</td>
+<td>under 5ms each</td>
+<td>~250</td>
+</tr>
+<tr>
+<td><strong>Module-integration</strong> (no subprocess)</td>
+<td>Engine pool with fake runner, dep-map against an in-memory package, watcher against tempdir, DuckDB schema round-trip</td>
+<td>under 500ms each</td>
+<td>~60</td>
+</tr>
+<tr>
+<td><strong>E2E fixture</strong></td>
+<td>scrutin binary against <code>demo/</code> or a purpose-built fixture, real <code>Rscript</code>/<code>pytest</code> subprocess</td>
+<td>1 to 10s each</td>
+<td>~30</td>
+</tr>
+<tr>
+<td><strong>Snapshot</strong></td>
+<td>TUI view trees, JUnit XML, CTRF JSON, web wire types, compared byte-for-byte against a golden file</td>
+<td>under 50ms each</td>
+<td>~40</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-harnesses-to-build-first-blocking">2. Harnesses to build first (blocking)<a class="headerlink" href="#2-harnesses-to-build-first-blocking" title="Permanent link">&para;</a></h2>
+<p>Without these, most behavior-locking tests cannot be written cleanly.
+They are listed in dependency order.</p>
+<ol>
+<li><strong><code>FakePlugin</code> + <code>fake_runner</code> binary.</strong> A plugin that declares a
+   synthetic "language" and a tiny runner binary that emits scripted
+   NDJSON on stdin. Lets engine, pool, and run_events tests run
+   without R or Python. Lives in <code>crates/scrutin-core/src/testing/</code>.</li>
+<li><strong><code>temp_package!</code> macro.</strong> Builds an on-disk package with a given
+   layout (DESCRIPTION + R/ + tests/, or pyproject.toml + src/ +
+   tests/) in a tempdir, returns a <code>Package</code>. Eliminates per-test
+   boilerplate.</li>
+<li><strong>NDJSON golden harness.</strong> <code>assert_ndjson_matches("fixture/name.ndjson", stream)</code>
+   that pretty-prints diffs. Used for runner-companion output locking.</li>
+<li><strong><code>RunAccumulator</code> builder.</strong> A typed way to construct a known-state
+   accumulator for reporter tests without driving a full run.</li>
+<li><strong>TUI test harness.</strong> A headless <code>AppState</code> builder, key-event
+   feeder, and buffer renderer, so <code>press_keys("tjjs").frame()</code>
+   produces a <code>ratatui::buffer::Buffer</code> for snapshot comparison.
+   Without this the TUI stays untested.</li>
+</ol>
+<h2 id="3-surfaces-and-behaviors-to-lock">3. Surfaces and behaviors to lock<a class="headerlink" href="#3-surfaces-and-behaviors-to-lock" title="Permanent link">&para;</a></h2>
+<h3 id="31-ndjson-protocol-engineprotocolrs">3.1 NDJSON protocol (<code>engine/protocol.rs</code>)<a class="headerlink" href="#31-ndjson-protocol-engineprotocolrs" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> the wire shape as documented in <code>protocol.md</code>. Three
+top-level variants (<code>event</code>, <code>summary</code>, <code>done</code>); event carries
+<code>Outcome</code> from the six-bucket taxonomy; <code>summary.duration_ms</code> is
+authoritative for wall time; events are authoritative for counts.</p>
+<p><strong>Tests:</strong></p>
+<ul>
+<li>Each of the six outcomes round-trips (string to enum to string, unchanged).</li>
+<li><code>rawStatus</code> and unknown fields are preserved in <code>extra</code> (forward compat).</li>
+<li>jsonlite edge case: <code>NULL</code> serialized as <code>{}</code> deserializes to <code>None</code>.</li>
+<li>Malformed line does not panic; logged and skipped.</li>
+<li>Two events for the same file: counts accumulate; summary replaces timing.</li>
+</ul>
+<h3 id="32-runner-companions-rrunnerr-pythonrunnerpy">3.2 Runner companions (<code>r/*/runner.*.R</code>, <code>python/*/runner.py</code>)<a class="headerlink" href="#32-runner-companions-rrunnerr-pythonrunnerpy" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> each companion emits exactly the taxonomy expected. This is
+the seam where the R/Python/tool idiom is translated to scrutin's
+vocabulary; drift here is the single most common source of bugs.</p>
+<p><strong>Per-tool E2E</strong> (one fixture file per outcome bucket, already
+present in <code>demo/</code>):</p>
+<ul>
+<li><code>pass</code> case: <code>event(pass)</code> + <code>summary(0 failed)</code> + <code>done</code>.</li>
+<li><code>fail</code> case: <code>event(fail)</code> with a non-empty <code>message</code>.</li>
+<li><code>error</code> case (syntax error, missing import): <code>event(error)</code>.</li>
+<li><code>skip</code> case: <code>event(skip)</code>.</li>
+<li><code>xfail</code> case (pytest <code>@pytest.mark.xfail</code>, manual for R): <code>event(xfail)</code>.</li>
+<li><code>warn</code> case (jarl, ruff): <code>event(warn)</code>.</li>
+<li>Crashed runner (kill the subprocess mid-file): <code>error</code> for the file, not a hang.</li>
+</ul>
+<p><strong>Snapshot:</strong> full NDJSON for a known <code>demo/</code> subtree, byte-compared
+against <code>tests/goldens/&lt;tool&gt;-&lt;case&gt;.ndjson</code>.</p>
+<h3 id="33-engine-pool-runner-run_events">3.3 Engine: pool, runner, run_events<a class="headerlink" href="#33-engine-pool-runner-run_events" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> per-suite warm worker pool; cancel propagates; any-free-worker
+assignment; startup-hook failure poisons the pool.</p>
+<p><strong>Tests (use <code>FakePlugin</code>):</strong></p>
+<ul>
+<li>N files, W workers, W &lt; N: all N complete; no more than W concurrent.</li>
+<li>Cancel during run: remaining files never start; running files are
+  SIGKILLed within a bounded timeout.</li>
+<li>Per-file timeout: file exceeds timeout produces <code>error</code> event, pool reclaimed.</li>
+<li>Startup hook exits non-zero: pool reports poisoned, no files run, run completes.</li>
+<li>Multi-suite fan-out: 2 suites with 3 files each, different worker
+  counts, run concurrently; events for both interleave on the single
+  <code>mpsc</code> receiver.</li>
+<li><code>CancelHandle</code> shared across suites: cancel on one propagates.</li>
+</ul>
+<h3 id="34-dep-map-rdepmaprs-pythonimportsrs">3.4 Dep-map (<code>r/depmap.rs</code>, <code>python/imports.rs</code>)<a class="headerlink" href="#34-dep-map-rdepmaprs-pythonimportsrs" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> editing a source file invalidates the test files that
+reference its symbols, across all suites of that language.</p>
+<p><strong>Tests:</strong></p>
+<ul>
+<li>R: <code>R/math.R</code> defines <code>add()</code>; <code>tests/testthat/test-math.R</code> calls
+  <code>add()</code>. Edit <code>R/math.R</code> produces set including <code>test-math.R</code>.</li>
+<li>R multi-suite: same, plus <code>inst/tinytest/test-math.R</code> calls <code>add()</code>.
+  Edit <code>R/math.R</code> includes <strong>both</strong> test files.</li>
+<li>R: edit a test file invalidates only itself.</li>
+<li>R: edit an unreferenced file (<code>R/unused.R</code>) invalidates nothing.</li>
+<li>R: circular source reference does not infinite-loop.</li>
+<li>Python: <code>from pkg.math import add</code> in <code>tests/test_math.py</code>. Edit
+  <code>src/pkg/math.py</code> includes <code>test_math.py</code>.</li>
+<li>Python: relative imports (<code>from .math import add</code>) resolve correctly.</li>
+<li>Python: <code>import pkg; pkg.math.add(...)</code> (attribute access): document
+  behavior explicitly. Current design: invalidates all tests importing
+  <code>pkg</code>. This is a design question worth locking with a test.</li>
+<li>Stale dep-map: file hash changed since cache triggers rebuild.</li>
+</ul>
+<h3 id="35-watcher-enginewatcherrs">3.5 Watcher (<code>engine/watcher.rs</code>)<a class="headerlink" href="#35-watcher-enginewatcherrs" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> file-system events produce the expected rerun set within a
+debounce window.</p>
+<p><strong>Tests:</strong></p>
+<ul>
+<li>Edit <code>R/math.R</code> produces one batch containing that path (debounced).</li>
+<li>Rapid-fire edits (10 saves in 50ms): one batch, not ten.</li>
+<li>Editor atomic-save (write-tmp plus rename): one event, not two.</li>
+<li>Deleted file: removal event propagates; dep-map invalidates downstream.</li>
+<li>File outside watched dirs: no event.</li>
+</ul>
+<h3 id="36-config-projectconfigrs">3.6 Config (<code>project/config.rs</code>)<a class="headerlink" href="#36-config-projectconfigrs" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> precedence is <code>defaults -&gt; scrutin.toml -&gt; --set -&gt; CLI flags</code>,
+walked from project root upward, fallback
+<code>~/.config/scrutin/scrutin.toml</code>, no env vars.</p>
+<p><strong>Tests</strong> (9 already exist; add):</p>
+<ul>
+<li><code>--set foo.bar=1 --set foo.bar=2</code>: last wins.</li>
+<li><code>--set run.workers=abc</code>: typed error, not silent fallback.</li>
+<li>scrutin.toml in parent dir is found; in sibling dir is not.</li>
+<li>No scrutin.toml anywhere and no <code>~/.config/scrutin/scrutin.toml</code>: defaults used.</li>
+<li>Env vars <code>SCRUTIN_*</code> are ignored (assert this explicitly: it is a
+  deliberate design choice, not an oversight).</li>
+</ul>
+<h3 id="37-cli-scrutin-binsrcclimodrs">3.7 CLI (<code>scrutin-bin/src/cli/mod.rs</code>)<a class="headerlink" href="#37-cli-scrutin-binsrcclimodrs" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> argv to <code>Cli</code> struct parse is stable; default subcommand is
+<code>run</code>; one reporter per invocation.</p>
+<p><strong>Tests</strong> (12 already exist; add):</p>
+<ul>
+<li><code>scrutin demo</code>: default <code>run</code> with default reporter.</li>
+<li><code>scrutin -r junit:out.xml -r plain demo</code>: error, one reporter per invocation.</li>
+<li><code>scrutin init demo</code> and <code>scrutin stats demo</code>: routed to correct subcommand.</li>
+<li><code>scrutin -r web demo</code>: binds loopback by default.</li>
+<li><code>scrutin -r web:0.0.0.0:7878 demo</code>: if loopback-only is a security
+  posture, non-loopback bind should error; lock that here.</li>
+</ul>
+<h3 id="38-reporters">3.8 Reporters<a class="headerlink" href="#38-reporters" title="Permanent link">&para;</a></h3>
+<p><strong>plain</strong> (E2E against <code>demo/</code>):</p>
+<ul>
+<li>Summary line format stable (snapshot).</li>
+<li>Exit code 0 on all-pass, 1 on any failure, 2 on internal error.</li>
+</ul>
+<p><strong>github:</strong></p>
+<ul>
+<li>Emits <code>::group::</code> and <code>::endgroup::</code> per file (snapshot).</li>
+<li><code>::error file=...,line=...</code> for each failed file.</li>
+<li>Writes to <code>$GITHUB_STEP_SUMMARY</code> when set.</li>
+</ul>
+<p><strong>junit</strong> (schema lock):</p>
+<ul>
+<li>Output is parseable by a standard JUnit XML parser (round-trip with
+  <code>quick-xml</code> or a dedicated crate).</li>
+<li><code>&lt;testsuite name&gt;</code>, <code>&lt;testcase classname&gt;</code>, <code>&lt;failure&gt;</code>, <code>&lt;skipped&gt;</code>
+  tags present with expected attributes.</li>
+<li>User-supplied metadata via <code>--set metadata.extra.*</code> lands in <code>&lt;properties&gt;</code>.</li>
+</ul>
+<p><strong>list:</strong></p>
+<ul>
+<li>Prints exactly the files that would run, across all active suites,
+  after filter and exclude.</li>
+<li>Spawns zero subprocesses (assert with a fake plugin that panics if invoked).</li>
+</ul>
+<h3 id="39-rerun-flaky-max_fail">3.9 Rerun, flaky, max_fail<a class="headerlink" href="#39-rerun-flaky-max_fail" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> <code>reruns=N</code> retries failing files up to N times; a pass on
+rerun marks the file <code>flaky=true</code>; <code>max_fail=K</code> stops after K <strong>bad
+files</strong> (not K expectations), and cancels all suites.</p>
+<p><strong>Tests:</strong></p>
+<ul>
+<li>File fails once, passes on rerun: final outcome pass, <code>flaky=true</code>, <code>retries=1</code>.</li>
+<li>File fails all N+1 attempts: final outcome fail, <code>flaky=false</code>, <code>retries=N</code>.</li>
+<li><code>max_fail=1</code> with 3 failing files across 2 suites: exactly 1 bad
+  file in output, both pools cancelled.</li>
+<li><code>max_fail</code> counts a file with 10 failed expectations as 1, not 10.</li>
+</ul>
+<h3 id="310-duckdb-history-storagedbrs">3.10 DuckDB history (<code>storage/db.rs</code>)<a class="headerlink" href="#310-duckdb-history-storagedbrs" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> schema is stable or versioned; a run inserts the expected
+rows; reads are deterministic.</p>
+<p><strong>Tests:</strong></p>
+<ul>
+<li>Fresh DB: schema created; <code>scrutin stats</code> on empty DB does not panic.</li>
+<li>Run N files: N rows in results table with expected columns (aligned
+  to CTRF names per TODO).</li>
+<li>Schema change: migration runs; old data readable.</li>
+<li>Concurrent runs do not corrupt the DB (write lock).</li>
+</ul>
+<h3 id="311-filter-include-exclude">3.11 Filter, include, exclude<a class="headerlink" href="#311-filter-include-exclude" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> glob patterns in config and <code>-t TAG</code> (future) filter the
+resolved file set consistently across reporters.</p>
+<p><strong>Tests</strong> (glob_match tests exist; add):</p>
+<ul>
+<li><code>include = ["tests/fast/*.R"]</code> plus <code>exclude = ["tests/fast/skip-*.R"]</code>: exact set.</li>
+<li>Filter applied identically to <code>-r list</code> and actual runs.</li>
+<li>Empty filter equals no filter (runs everything).</li>
+</ul>
+<h3 id="312-plugin-actions">3.12 Plugin actions<a class="headerlink" href="#312-plugin-actions" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> <code>ActionScope::File</code> runs the command on the selected file
+only; <code>ActionScope::All</code> runs on all files in the suite after
+filters; <code>rerun: true</code> re-runs affected files after.</p>
+<p><strong>Tests:</strong></p>
+<ul>
+<li>File-scope action invoked with exactly the selected path.</li>
+<li>All-scope action invoked with the full filtered list.</li>
+<li><code>rerun: true</code> triggers a new run covering the affected files.</li>
+<li>Action output captured and exposed via <code>Mode::ActionOutput</code>.</li>
+</ul>
+<h3 id="313-hooks-projecthooksrs">3.13 Hooks (<code>project/hooks.rs</code>)<a class="headerlink" href="#313-hooks-projecthooksrs" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> pre-run and post-run hooks execute in project root; non-zero
+exit from pre-run aborts the run; post-run always runs (even on cancel
+or failure).</p>
+<p><strong>Tests</strong> (1 already exists; expand):</p>
+<ul>
+<li>Hook env includes expected vars (scrutin version, run id).</li>
+<li>Pre-run hook SIGKILL: run aborts with a clear error.</li>
+</ul>
+<h3 id="314-tui-state-machine">3.14 TUI state machine<a class="headerlink" href="#314-tui-state-machine" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> mode stack invariants; <code>level()</code> and <code>overlay_kind()</code> return
+the right frames; keybindings per table do what they claim.</p>
+<p><strong>Tests (need the harness from section 2):</strong></p>
+<ul>
+<li>Mode stack: push/pop round-trip; Esc pops exactly one frame.</li>
+<li>Overlay on top of level: <code>level()</code> returns the level,
+  <code>overlay_kind()</code> returns <code>Some(...)</code>.</li>
+<li>Palette dispatch: <code>a</code> opens Action palette; selecting an item runs
+  the action and opens <code>ActionOutput</code>.</li>
+<li>Cursor dispatch: <code>move_cursor(mode, delta)</code> updates exactly the
+  cursor for that mode.</li>
+<li>Layout collapse: terminal width below <code>MIN_LIST_COLS + MIN_MAIN_COLS</code>
+  collapses to a single focused pane.</li>
+</ul>
+<h3 id="315-tui-snapshot-rendering">3.15 TUI snapshot rendering<a class="headerlink" href="#315-tui-snapshot-rendering" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> the file list, counts bar, and hints bar render identically
+for a given <code>AppState</code>.</p>
+<p><strong>Tests (snapshot):</strong></p>
+<ul>
+<li><code>demo/</code> after a full run, Normal mode: snapshot buffer.</li>
+<li>Detail mode on a failing file: snapshot buffer.</li>
+<li>Failure mode, cursor at second failure: snapshot buffer.</li>
+<li>Resize mid-render: no panic; layout recomputed.</li>
+</ul>
+<h3 id="316-web-wire-format-and-routes">3.16 Web wire format and routes<a class="headerlink" href="#316-web-wire-format-and-routes" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> API surface in <code>docs-src/web-spec.md</code>; loopback-only
+middleware rejects external requests; <code>outcome_order</code> in snapshot
+matches <code>Outcome::rank()</code>.</p>
+<p><strong>Tests</strong> (7 wire tests exist; add):</p>
+<ul>
+<li>Each route returns the documented shape (golden JSON).</li>
+<li>Non-loopback request returns 403.</li>
+<li>SSE stream delivers events in the right order (smoke test with
+  <code>reqwest</code> against a test server).</li>
+<li>SPA fallback serves <code>index.html</code> for unknown paths.</li>
+</ul>
+<h3 id="317-end-to-end-cli-ci_run__fixture-style">3.17 End-to-end CLI (<code>ci_run_*_fixture</code> style)<a class="headerlink" href="#317-end-to-end-cli-ci_run__fixture-style" title="Permanent link">&para;</a></h3>
+<p><strong>Lock:</strong> <code>scrutin -r plain demo</code> produces the expected aggregate
+counts and exits correctly.</p>
+<p><strong>Tests</strong> (4 exist; add one per reporter against <code>demo/</code>):</p>
+<ul>
+<li><code>-r github demo</code>: expected stdout plus step summary.</li>
+<li><code>-r junit:x.xml demo</code>: valid XML with expected content.</li>
+<li><code>-r list demo</code>: exact file list, no subprocess.</li>
+<li><code>-r plain --set run.reruns=2 demo</code> with a flaky test: marked flaky.</li>
+<li><code>-r plain --set run.max_fail=1 demo</code>: early exit.</li>
+</ul>
+<h2 id="4-deliberately-out-of-scope">4. Deliberately out of scope<a class="headerlink" href="#4-deliberately-out-of-scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Ratatui drawing correctness.</strong> We test our state machine and our
+  buffer output; we do not test ratatui itself.</li>
+<li><strong>R and Python language semantics.</strong> We test that testthat results
+  round-trip; we do not test testthat.</li>
+<li><strong>Cross-OS matrix.</strong> Windows support is on the TODO; testing it is
+  gated on that landing.</li>
+<li><strong>DuckDB version pinning.</strong> We test our schema; we do not test duckdb.</li>
+</ul>
+<h2 id="5-rollout-order">5. Rollout order<a class="headerlink" href="#5-rollout-order" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Harnesses (section 2): <code>FakePlugin</code>, <code>temp_package!</code>, NDJSON
+   golden, TUI harness. <strong>Blocks everything else.</strong></li>
+<li>Protocol and runner companion goldens (sections 3.1, 3.2).
+   <strong>Highest regression value.</strong> Any taxonomy drift shows up immediately.</li>
+<li>Dep-map (section 3.4) and rerun/flaky/max_fail (section 3.9).
+   <strong>Core value props.</strong></li>
+<li>Engine pool, cancel, multi-suite (section 3.3).</li>
+<li>Reporters (section 3.8) snapshots.</li>
+<li>TUI state and snapshot (sections 3.14, 3.15).</li>
+<li>Web routes (section 3.16).</li>
+<li>Everything else (watcher, filter, hooks, DB, actions).</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":[],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.91a19a9e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,64 @@
+{
+  "name": "scrutin",
+  "displayName": "Scrutin",
+  "description": "Fast, watch-mode test runner for R and Python — integrated into VS Code",
+  "version": "0.0.1",
+  "publisher": "scrutin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vincentarelbundock/scrutin"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Testing"],
+  "activationEvents": [
+    "workspaceContains:**/scrutin.toml",
+    "workspaceContains:**/DESCRIPTION",
+    "workspaceContains:**/pyproject.toml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "scrutin.start", "title": "Scrutin: Start" },
+      { "command": "scrutin.stop", "title": "Scrutin: Stop" },
+      { "command": "scrutin.showPanel", "title": "Scrutin: Show Panel" },
+      { "command": "scrutin.runAll", "title": "Scrutin: Run All" },
+      { "command": "scrutin.rerunFailing", "title": "Scrutin: Rerun Failing" },
+      { "command": "scrutin.cancel", "title": "Scrutin: Cancel" },
+      { "command": "scrutin.toggleWatch", "title": "Scrutin: Toggle Watch" }
+    ],
+    "configuration": {
+      "title": "Scrutin",
+      "properties": {
+        "scrutin.binaryPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the scrutin binary. Leave empty to find it on $PATH."
+        },
+        "scrutin.watchOnStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable watch mode when starting the server."
+        },
+        "scrutin.autoStart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically start scrutin when the workspace opens."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^3.0.0"
+  }
+}

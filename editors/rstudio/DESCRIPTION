@@ -1,0 +1,16 @@
+Package: scrutin
+Title: RStudio Add-In for the Scrutin Test Runner
+Version: 0.0.1
+Authors@R: person("Vincent", "Arel-Bundock", role = c("aut", "cre"),
+                  email = "vincent.arel-bundock@umontreal.ca")
+Description: Launches the scrutin web dashboard inside the RStudio Viewer
+    pane. Spawns 'scrutin -r web' as a background process with watch mode
+    and displays the live test results in the IDE.
+License: MIT + file LICENSE
+Imports:
+    jsonlite,
+    later,
+    processx,
+    rstudioapi
+Encoding: UTF-8
+RoxygenNote: 7.3.2

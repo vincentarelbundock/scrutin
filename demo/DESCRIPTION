@@ -1,0 +1,11 @@
+Package: demo
+Type: Package
+Title: Demo Package for Scrutin Test Runner
+Version: 1.0
+Date: 2026-04-09
+Authors@R: person("Scrutin", "Dev", role = c("aut", "cre"), email = "dev@example.com")
+Description: A toy project used to exercise scrutin's reporting across
+    three frameworks living side-by-side: testthat, tinytest, and pytest.
+License: GPL (>= 2)
+Suggests: testthat, tinytest, pointblank, validate
+Encoding: UTF-8

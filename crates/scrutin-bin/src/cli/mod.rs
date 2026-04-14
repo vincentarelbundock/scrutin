@@ -1,0 +1,912 @@
+//! Command-line interface, argument parsing, and top-level orchestration.
+//!
+//! `main.rs` is a 5-line shell that delegates to [`run`]. Reporter
+//! implementations live in the [`reporter`] submodule; this file owns CLI
+//! parsing, config layering, subcommand dispatch, and the `init`/`stats`
+//! verbs.
+
+mod reporter;
+mod style;
+
+use std::io::IsTerminal;
+use std::path::{Path, PathBuf};
+
+use anyhow::{Context, Result};
+use clap::{Parser, Subcommand};
+
+use scrutin_core::analysis::hashing;
+use scrutin_core::engine::pool::ProcessPool;
+use scrutin_core::filter::apply_include_exclude;
+use scrutin_core::project::hooks::{self, ProcessHooks};
+use scrutin_core::logbuf;
+use scrutin_core::metadata::{self, RunMetadata};
+use scrutin_core::project::config::Config;
+use scrutin_core::project::package::Package;
+use scrutin_core::storage::sqlite;
+use scrutin_tui as tui;
+
+/// Top-level CLI. Most invocations are `scrutin [path]`, which is shorthand
+/// for `scrutin run [path]`. Verbs that don't run tests (`init`, `stats`)
+/// live as explicit subcommands so each gets its own `--help`.
+#[derive(Parser)]
+#[command(
+    name = "scrutin",
+    about = "Fast watch-mode test runner",
+    args_conflicts_with_subcommands = true
+)]
+pub struct Cli {
+    #[command(subcommand)]
+    pub command: Option<Command>,
+
+    /// Default: run tests. Flags here are forwarded to the implicit `run`
+    /// subcommand when no explicit subcommand is given.
+    #[command(flatten)]
+    pub run_args: RunArgs,
+}
+
+#[derive(Subcommand)]
+pub enum Command {
+    /// Run tests (default).
+    Run(RunArgs),
+    /// Initialize scrutin.toml and .scrutin/ in the current package.
+    Init {
+        /// Path to the project (default: current directory).
+        #[arg(default_value = ".")]
+        path: PathBuf,
+    },
+    /// Show flaky tests and slowness statistics from the local history DB.
+    Stats {
+        /// Path to the project (default: current directory).
+        #[arg(default_value = ".")]
+        path: PathBuf,
+    },
+    /// Generate documentation artifacts (CLI reference, man pages, shell completions).
+    #[cfg(feature = "generate-docs")]
+    #[command(hide = true)]
+    GenerateDocs {
+        /// Output directory for generated files.
+        #[arg(default_value = "target/docs")]
+        out_dir: PathBuf,
+    },
+}
+
+#[derive(clap::Args, Default)]
+pub struct RunArgs {
+    /// Path to the project (default: current directory).
+    #[arg(default_value = ".")]
+    pub path: PathBuf,
+
+    /// Output reporter. Values: `tui`, `plain`, `github`, `web[:ADDR]`,
+    /// `list`, `junit:PATH`. Defaults to `tui` when stderr is a tty, else
+    /// `plain`.
+    #[arg(short = 'r', long = "reporter", value_name = "NAME[:ARG]")]
+    pub reporter: Vec<ReporterSpec>,
+
+    /// Override a scrutin.toml field. Repeatable. Dotted keys walk into
+    /// nested tables (e.g. `run.workers=8`, `filter.include=["test_math*"]`,
+    /// `watch.enabled=true`). RHS is parsed as a TOML expression, falling
+    /// back to a bare string for unquoted values.
+    #[arg(short = 's', long = "set", value_name = "KEY=VALUE")]
+    pub set: Vec<String>,
+}
+
+/// One output reporter. Stream reporters write to stderr / own the terminal;
+/// file reporters write to a path; `list` is a special one-shot reporter.
+/// Parsed from clap via `FromStr`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ReporterSpec {
+    Tui,
+    Plain,
+    Github,
+    Web(Option<String>),
+    List,
+    Junit(PathBuf),
+}
+
+impl std::str::FromStr for ReporterSpec {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (name, arg) = match s.split_once(':') {
+            Some((n, a)) => (n, Some(a)),
+            None => (s, None),
+        };
+        match (name, arg) {
+            ("tui", None) => Ok(ReporterSpec::Tui),
+            ("plain", None) => Ok(ReporterSpec::Plain),
+            ("github", None) => Ok(ReporterSpec::Github),
+            ("web", None) => Ok(ReporterSpec::Web(None)),
+            ("web", Some(a)) if !a.is_empty() => Ok(ReporterSpec::Web(Some(a.to_string()))),
+            ("web", Some(_)) => Err("reporter 'web' address must be non-empty: web:ADDR".into()),
+            ("list", None) => Ok(ReporterSpec::List),
+            ("junit", Some(p)) if !p.is_empty() => Ok(ReporterSpec::Junit(PathBuf::from(p))),
+            ("junit", _) => Err("reporter 'junit' requires a path: junit:PATH".into()),
+            ("tui" | "plain" | "github" | "list", Some(_)) => {
+                Err(format!("reporter '{name}' does not take an argument"))
+            }
+            _ => Err(format!(
+                "unknown target '{name}' (expected: tui, plain, github, web[:ADDR], list, junit:PATH)"
+            )),
+        }
+    }
+}
+
+/// The resolved reporter after defaults have been applied.
+#[derive(Debug)]
+pub enum Reporter {
+    Tui,
+    Plain,
+    Github,
+    Web {
+        addr: std::net::SocketAddr,
+    },
+    List,
+    Junit(PathBuf),
+}
+
+impl Reporter {
+    pub fn is_plain(&self) -> bool {
+        matches!(self, Reporter::Plain)
+    }
+}
+
+/// Resolve the user-supplied reporter (or pick a default). Centralizes all
+/// the defaulting rules so the run loop only sees a fully-resolved enum.
+///
+pub fn resolve_reporter(spec: Option<&ReporterSpec>) -> Result<Reporter> {
+    let spec = match spec {
+        Some(s) => s.clone(),
+        None => {
+            if std::io::stderr().is_terminal() {
+                ReporterSpec::Tui
+            } else {
+                ReporterSpec::Plain
+            }
+        }
+    };
+    match spec {
+        ReporterSpec::Tui => Ok(Reporter::Tui),
+        ReporterSpec::Plain => Ok(Reporter::Plain),
+        ReporterSpec::Github => Ok(Reporter::Github),
+        ReporterSpec::List => Ok(Reporter::List),
+        ReporterSpec::Junit(p) => Ok(Reporter::Junit(p)),
+        ReporterSpec::Web(addr_opt) => {
+            let addr_str = addr_opt.as_deref().unwrap_or("127.0.0.1:7878");
+            let addr: std::net::SocketAddr = addr_str.parse().map_err(|e| {
+                anyhow::anyhow!("invalid web address {:?}: {}", addr_str, e)
+            })?;
+            Ok(Reporter::Web { addr })
+        }
+    }
+}
+
+/// RAII guard ensuring process-teardown hooks fire even on early error
+/// returns (`?` propagation, panics, etc.).
+struct TeardownGuard {
+    hooks: Option<ProcessHooks>,
+}
+
+impl TeardownGuard {
+    fn new(hooks: ProcessHooks) -> Self {
+        Self { hooks: Some(hooks) }
+    }
+    fn disarm(&mut self) -> Option<ProcessHooks> {
+        self.hooks.take()
+    }
+}
+
+impl Drop for TeardownGuard {
+    fn drop(&mut self) {
+        if let Some(h) = self.hooks.take() {
+            h.run_teardown();
+        }
+    }
+}
+
+pub async fn run() -> Result<()> {
+    install_signal_handler();
+
+    let cli = Cli::parse();
+    // The default subcommand is `run` with the top-level `run_args`.
+    let command = cli.command.unwrap_or(Command::Run(cli.run_args));
+
+    match command {
+        Command::Run(args) => run_subcommand(args).await,
+        Command::Init { path } => {
+            let root = std::fs::canonicalize(&path)
+                .with_context(|| format!("path does not exist: {}", path.display()))?;
+            let pkg = discover_for_verb(&root)?;
+            run_init(&pkg)
+        }
+        Command::Stats { path } => {
+            let root = std::fs::canonicalize(&path)
+                .with_context(|| format!("path does not exist: {}", path.display()))?;
+            run_stats(&root)
+        }
+        #[cfg(feature = "generate-docs")]
+        Command::GenerateDocs { out_dir } => generate_docs(&out_dir),
+    }
+}
+
+/// Discover a `Package` for the `init` verb. Uses auto-detection only
+/// (ignores `[[suite]]` config since init is about scaffolding).
+fn discover_for_verb(root: &Path) -> Result<Package> {
+    Package::from_auto_detect(
+        root.to_path_buf(),
+        "auto",
+        &[],
+        Vec::new(),
+        |_| Ok(scrutin_core::project::package::WorkerHookPaths::default()),
+        |_| None,
+        Default::default(),
+    )
+}
+
+
+async fn run_subcommand(mut args: RunArgs) -> Result<()> {
+    // Canonicalize up-front: R's pkgload::load_all resolves relative paths
+    // against its own cwd, so `demo` would blow up inside R.
+    args.path = std::fs::canonicalize(&args.path)
+        .with_context(|| format!("path does not exist: {}", args.path.display()))?;
+
+    // Config layering: defaults -> scrutin.toml -> --set -> CLI flags.
+    // scrutin intentionally has no config env vars; scrutin.toml is the
+    // only persistent source of truth.
+    let mut cfg = Config::load(&args.path)?;
+    cfg.apply_set_overrides(&args.set)?;
+
+    if !cfg.run.color {
+        style::disable_color();
+    }
+
+    // Resolve reporter before anything else so we know whether to talk to
+    // a tty or stay quiet about color, headers, etc.
+    if args.reporter.len() > 1 {
+        anyhow::bail!("only one --reporter (-r) is allowed");
+    }
+    let reporter = resolve_reporter(args.reporter.first())?;
+
+    // Startup hook runs before *anything* touches plugins or spawns
+    // subprocesses.
+    let process_hooks = ProcessHooks::from_config(&cfg, &args.path);
+    process_hooks.run_startup()?;
+    let mut teardown_guard = TeardownGuard::new(process_hooks);
+
+    // Build the package: explicit [[suite]] entries take priority over
+    // auto-detection. The CLI path is the project root.
+    let root = args.path.clone();
+    let cfg_for_hooks = cfg.clone();
+    let cfg_for_runner = cfg.clone();
+    let root_for_hooks = root.clone();
+    let python_interpreter = cfg.python.resolve_interpreter(&root);
+
+    let pkg = if !cfg.suites.is_empty() {
+        Package::from_suites(
+            root,
+            &cfg.suites,
+            &cfg.pytest.extra_args,
+            python_interpreter,
+            |plugin| {
+                let wh = hooks::resolve_worker_hooks(&cfg_for_hooks, plugin, &root_for_hooks)?;
+                Ok(scrutin_core::project::package::WorkerHookPaths {
+                    startup: wh.startup,
+                    teardown: wh.teardown,
+                })
+            },
+            cfg.env.clone(),
+        )?
+    } else {
+        Package::from_auto_detect(
+            root,
+            &cfg.run.tool,
+            &cfg.pytest.extra_args,
+            python_interpreter,
+            |plugin| {
+                let wh = hooks::resolve_worker_hooks(&cfg_for_hooks, plugin, &root_for_hooks)?;
+                Ok(scrutin_core::project::package::WorkerHookPaths {
+                    startup: wh.startup,
+                    teardown: wh.teardown,
+                })
+            },
+            |plugin| cfg_for_runner.runner_override(plugin.name()).map(PathBuf::from),
+            cfg.env.clone(),
+        )?
+    };
+    let n_workers = cfg.run.workers.unwrap_or_else(ProcessPool::default_workers);
+
+    print_header(&pkg, n_workers, reporter.is_plain());
+
+    let mut test_files = pkg.test_files()?;
+    let filter = resolve_filter_args(&cfg);
+    // Tool filter: restrict to files owned by the named tools.
+    if !filter.tools.is_empty() {
+        test_files.retain(|f| {
+            pkg.suite_for(f)
+                .is_some_and(|s| filter.tools.iter().any(|t| t == s.plugin.name()))
+        });
+    }
+    apply_include_exclude(&mut test_files, &filter.includes, &filter.excludes);
+    if test_files.is_empty() {
+        eprintln!("No test files found.");
+        return Ok(());
+    }
+    // Shuffle (if `[run] shuffle` is set or `[run] seed` is set).
+    if cfg.run.shuffle || cfg.run.seed.is_some() {
+        let seed = cfg.run.seed.unwrap_or_else(fresh_seed);
+        eprintln!("{}", style::dim(format!("shuffle seed: {}", seed)));
+        shuffle_files(&mut test_files, seed);
+    }
+
+    // List reporter is a one-shot: print matching files and exit before
+    // touching dep maps, watch, or any subprocess.
+    if matches!(reporter, Reporter::List) {
+        println!(
+            "{} test file{} would run",
+            test_files.len(),
+            if test_files.len() == 1 { "" } else { "s" }
+        );
+        for f in &test_files {
+            let rel = f.strip_prefix(&pkg.root).unwrap_or(f);
+            println!("  {}", rel.display());
+        }
+        return Ok(());
+    }
+
+    // Both R and pytest contribute to the same unified dep map keyed by
+    // path-relative-to-root.
+    let depmap_stale = hashing::is_dep_map_stale(&pkg).unwrap_or(true);
+    let dep_map = sqlite::with_open(&pkg.root, |c| Ok(sqlite::load_dep_map(c)))
+        .ok()
+        .filter(|m| !m.is_empty());
+
+    let is_full_suite = filter.tools.is_empty()
+        && filter.includes.is_empty()
+        && filter.excludes.is_empty();
+
+    let run_metadata = build_run_metadata(&cfg, &pkg, n_workers);
+
+    // Watch mode: TUI and web use the config default (true); plain and
+    // JUnit default to one-shot. Override with `-s watch.enabled=true/false`.
+    let watch = match reporter {
+        Reporter::Tui | Reporter::Web { .. } => cfg.watch.enabled,
+        Reporter::Plain | Reporter::Github | Reporter::Junit(_) | Reporter::List => false,
+    };
+
+    let exit_code = match reporter {
+        Reporter::List => unreachable!("handled above"),
+        Reporter::Web { addr } => {
+            let open_browser = std::env::var("CI").is_err();
+            scrutin_web::run_web(
+                addr,
+                pkg.clone(),
+                n_workers,
+                test_files.clone(),
+                watch,
+                open_browser,
+                cfg.run.timeout_file_ms,
+                cfg.run.timeout_run_ms,
+                cfg.run.fork_workers,
+                cfg.web.editor.clone(),
+            )
+            .await?;
+            0
+        }
+        Reporter::Tui => {
+            run_tui_mode(
+                &pkg,
+                &test_files,
+                &filter.includes,
+                &filter.excludes,
+                n_workers,
+                watch,
+                dep_map,
+                &cfg,
+            )
+            .await?
+        }
+        Reporter::Plain => {
+            reporter::plain::run(
+                &pkg,
+                &test_files,
+                &filter.includes,
+                &filter.excludes,
+                n_workers,
+                watch,
+                dep_map,
+                &cfg,
+                None,
+                depmap_stale,
+                is_full_suite,
+                &run_metadata,
+            )
+            .await?
+        }
+        Reporter::Github => {
+            reporter::github::run(
+                &pkg,
+                &test_files,
+                n_workers,
+                &cfg,
+                depmap_stale,
+                is_full_suite,
+                &run_metadata,
+            )
+            .await?
+        }
+        Reporter::Junit(ref junit_path) => {
+            reporter::plain::run(
+                &pkg,
+                &test_files,
+                &filter.includes,
+                &filter.excludes,
+                n_workers,
+                watch,
+                dep_map,
+                &cfg,
+                Some(junit_path),
+                depmap_stale,
+                is_full_suite,
+                &run_metadata,
+            )
+            .await?
+        }
+    };
+
+    if let Some(h) = teardown_guard.disarm() {
+        h.run_teardown();
+    }
+    if exit_code != 0 {
+        std::process::exit(exit_code);
+    }
+    Ok(())
+}
+
+fn install_signal_handler() {
+    tokio::spawn(async {
+        if tokio::signal::ctrl_c().await.is_ok() {
+            // Restore the terminal in case the TUI was active (raw mode,
+            // alternate screen). ratatui::restore() is a no-op when the
+            // terminal was never initialized.
+            ratatui::restore();
+            eprintln!("\nscrutin interrupted.");
+            std::process::exit(130);
+        }
+    });
+}
+
+
+/// Assemble the per-run [`RunMetadata`] from config + automatic
+/// provenance.
+fn build_run_metadata(cfg: &Config, pkg: &Package, n_workers: usize) -> RunMetadata {
+    let mut provenance = metadata::capture_provenance(&pkg.root, cfg.metadata.enabled);
+    if cfg.metadata.enabled {
+        provenance.tool = Some(pkg.tool_names());
+        provenance.workers = Some(n_workers);
+    }
+    RunMetadata {
+        provenance,
+        labels: cfg.extras.clone(),
+    }
+}
+
+/// Fallback seed when system time is unavailable or `seed = 0` is configured.
+const FALLBACK_SEED: u64 = 0xdead_beef_cafe_babe;
+
+/// Draw a fresh seed from system time.
+fn fresh_seed() -> u64 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos() as u64)
+        .unwrap_or(FALLBACK_SEED)
+}
+
+/// Fisher-Yates shuffle driven by a seeded xorshift64 PRNG.
+fn shuffle_files(files: &mut [PathBuf], seed: u64) {
+    let mut state = if seed == 0 { FALLBACK_SEED } else { seed };
+    let mut next = || {
+        // xorshift64 (Marsaglia)
+        state ^= state << 13;
+        state ^= state >> 7;
+        state ^= state << 17;
+        state
+    };
+    for i in (1..files.len()).rev() {
+        let j = (next() % (i as u64 + 1)) as usize;
+        files.swap(i, j);
+    }
+}
+
+fn run_stats(root: &Path) -> Result<()> {
+    let db_path = root.join(".scrutin").join("state.db");
+    if !db_path.exists() {
+        eprintln!("No database found. Run tests first to build history.");
+        return Ok(());
+    }
+    print_stats(root);
+    Ok(())
+}
+
+
+#[allow(clippy::too_many_arguments)]
+async fn run_tui_mode(
+    pkg: &Package,
+    test_files: &[PathBuf],
+    includes: &[String],
+    excludes: &[String],
+    n_workers: usize,
+    watch: bool,
+    dep_map: Option<std::collections::HashMap<String, Vec<String>>>,
+    cfg: &Config,
+) -> Result<i32> {
+    let log = logbuf::LogBuffer::new();
+    let run_groups: Vec<tui::RunGroup> = cfg
+        .filter
+        .groups
+        .iter()
+        .map(|(name, g)| tui::RunGroup {
+            name: name.clone(),
+            include: g.include.clone(),
+            exclude: g.exclude.clone(),
+        })
+        .collect();
+    tui::run_tui(
+        pkg,
+        test_files,
+        includes,
+        excludes,
+        n_workers,
+        watch,
+        dep_map,
+        log,
+        run_groups,
+        cfg.run.reruns,
+        cfg.run.reruns_delay,
+        cfg.watch.debounce_ms,
+        cfg.run.timeout_file_ms,
+        cfg.run.timeout_run_ms,
+        cfg.run.fork_workers,
+        &cfg.keymap,
+    )
+    .await?;
+    Ok(0)
+}
+
+// --- Stats ---
+
+fn print_stats(root: &Path) {
+    let conn = match sqlite::open(root) {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("{}", style::dim(format!("could not open history DB: {e}")));
+            return;
+        }
+    };
+
+    match sqlite::flaky_tests(&conn) {
+        Ok(flaky) if !flaky.is_empty() => {
+            eprintln!("{}", style::yellow_bold("Flaky tests (alternating pass/fail):"));
+            for t in &flaky {
+                eprintln!(
+                    "  {} {} > {}  ({}/{} failed, {:.0}% flake rate)",
+                    style::yellow("⚠"),
+                    style::dim(t.file.as_str()),
+                    t.test,
+                    t.failures,
+                    t.total,
+                    t.flake_rate * 100.0
+                );
+            }
+            eprintln!();
+        }
+        _ => {
+            eprintln!("{}", style::dim("No flaky tests detected."));
+            eprintln!();
+        }
+    }
+
+    match sqlite::slow_tests(&conn) {
+        Ok(slow) if !slow.is_empty() => {
+            eprintln!("{}", style::cyan_bold("Slowest tests:"));
+            for t in &slow {
+                eprintln!(
+                    "  {} {} > {}  (avg {}ms, max {}ms, {} runs)",
+                    style::cyan("◑"),
+                    style::dim(t.file.as_str()),
+                    t.test,
+                    t.avg_ms as u64,
+                    t.max_ms as u64,
+                    t.runs
+                );
+            }
+        }
+        _ => {
+            eprintln!("{}", style::dim("No slow test data yet."));
+        }
+    }
+}
+
+// --- Init ---
+
+/// Render the annotated `scrutin.toml` template: substitute `{{DETECTED}}`
+/// and append a `[keymap.<mode>]` subtable per mode with every default
+/// binding written as a commented `# "key" = "action"` line. Commented
+/// defaults mean the file is a no-op as-shipped (defaults apply); users
+/// uncomment the bindings they want to override (replace semantics).
+/// Shared between `scrutin init` and the docs-generation path so they
+/// can't drift.
+pub(crate) fn render_config_template(detected: &str) -> String {
+    let mut content = include_str!("init_template.toml")
+        .replace("{{DETECTED}}", detected);
+    for (mode_name, entries) in scrutin_tui::default_keymap_for_init() {
+        content.push_str(&format!("\n# [keymap.{}]\n", mode_name));
+        let max_key_len = entries.iter().map(|(k, _)| k.len()).max().unwrap_or(0);
+        for (key, action) in entries {
+            content.push_str(&format!(
+                "# {:<width$} = \"{}\"\n",
+                format!("\"{}\"", key),
+                action,
+                width = max_key_len + 2
+            ));
+        }
+    }
+    content
+}
+
+fn run_init(pkg: &Package) -> Result<()> {
+    let detected = pkg.tool_names();
+
+    let toml_path = pkg.root.join("scrutin.toml");
+    if toml_path.exists() {
+        eprintln!("scrutin.toml already exists, skipping.");
+    } else {
+        // Always write `tool = "auto"` -- the loader only accepts a
+        // single plugin name or "auto", and a multi-suite project produces
+        // a `+`-joined display name that the loader would reject.
+        let content = render_config_template(&detected);
+        std::fs::write(&toml_path, content)?;
+        eprintln!("Created scrutin.toml");
+    }
+
+    let scrutin_dir = pkg.root.join(".scrutin");
+    std::fs::create_dir_all(&scrutin_dir)?;
+    eprintln!("Created .scrutin/");
+
+    // Write default runner scripts to .scrutin/<tool>/ so users can
+    // customize them (e.g. swap pkgload::load_all() for library()).
+    for suite in &pkg.test_suites {
+        let plugin = &suite.plugin;
+        let dir = scrutin_dir.join(plugin.name());
+        std::fs::create_dir_all(&dir)?;
+        let ext = plugin.script_extension();
+        let runner_path = dir.join(format!("runner.{ext}"));
+        if !runner_path.exists() {
+            // R runners source() a shared runner_r.R; write it next to the
+            // per-plugin script so the relative path resolves.
+            if plugin.language() == "r" {
+                let shared_path = dir.join("runner_r.R");
+                if !shared_path.exists() {
+                    std::fs::write(&shared_path, scrutin_core::r::R_RUNNER_SHARED)?;
+                }
+            }
+            std::fs::write(&runner_path, plugin.runner_script())?;
+            eprintln!(
+                "Wrote default runner to {}",
+                runner_path.strip_prefix(&pkg.root).unwrap_or(&runner_path).display()
+            );
+        }
+    }
+
+    // Only the SQLite database (run history + dep map + hash cache) is
+    // per-machine throwaway state. Runner scripts under `.scrutin/<tool>/`
+    // are user-editable and belong in version control so the whole team
+    // picks up any customization.
+    let gitignore_path = pkg.root.join(".gitignore");
+    let needs_entry = if gitignore_path.exists() {
+        let content = std::fs::read_to_string(&gitignore_path)?;
+        !content.lines().any(|l| {
+            let t = l.trim();
+            t == ".scrutin/state.db*"
+                || t == ".scrutin/"
+                || t == ".scrutin"
+        })
+    } else {
+        true
+    };
+
+    if needs_entry {
+        use std::io::Write;
+        let mut f = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&gitignore_path)?;
+        writeln!(f, "\n# scrutin history + caches (keep runner scripts tracked)")?;
+        writeln!(f, ".scrutin/state.db*")?;
+        eprintln!("Added .scrutin/state.db* to .gitignore");
+    }
+
+    eprintln!();
+    eprintln!("Initialized scrutin for {} ({})", pkg.name, detected);
+    eprintln!("Run `scrutin` to start testing.");
+
+    Ok(())
+}
+
+// --- Helpers ---
+
+fn print_header(pkg: &Package, n_workers: usize, ci: bool) {
+    if !ci {
+        eprintln!(
+            "{} {} ({}, {} worker{})",
+            style::bold("scrutin"),
+            style::cyan(pkg.name.as_str()),
+            pkg.tool_names(),
+            n_workers,
+            if n_workers == 1 { "" } else { "s" }
+        );
+        eprintln!();
+    }
+}
+
+/// Resolved filter state: tool names to restrict to (empty = all),
+/// include globs, exclude globs.
+struct ResolvedFilter {
+    tools: Vec<String>,
+    includes: Vec<String>,
+    excludes: Vec<String>,
+}
+
+fn resolve_filter_args(cfg: &Config) -> ResolvedFilter {
+    ResolvedFilter {
+        tools: Vec::new(),
+        includes: cfg.filter.include.clone(),
+        excludes: cfg.filter.exclude.clone(),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Documentation generation (behind `generate-docs` feature)
+// ---------------------------------------------------------------------------
+
+#[cfg(feature = "generate-docs")]
+fn generate_docs(out_dir: &Path) -> Result<()> {
+    use clap::CommandFactory;
+
+    std::fs::create_dir_all(out_dir)?;
+
+    // CLI reference markdown
+    let md = clap_markdown::help_markdown::<Cli>();
+    let cli_md_path = out_dir.join("cli-reference.md");
+    std::fs::write(&cli_md_path, md)?;
+    eprintln!("  wrote {}", cli_md_path.display());
+
+    // Rendered scrutin.toml template (annotated template + commented
+    // keymap defaults) for the configuration docs page.
+    let cfg_toml = render_config_template("<auto-detected from the project root at init time>");
+    let cfg_path = out_dir.join("configuration-template.toml");
+    std::fs::write(&cfg_path, cfg_toml)?;
+    eprintln!("  wrote {}", cfg_path.display());
+
+    // Man page
+    let man_dir = out_dir.join("man");
+    std::fs::create_dir_all(&man_dir)?;
+    let cmd = Cli::command();
+    let man = clap_mangen::Man::new(cmd);
+    let mut buf = Vec::new();
+    man.render(&mut buf)?;
+    let man_path = man_dir.join("scrutin.1");
+    std::fs::write(&man_path, buf)?;
+    eprintln!("  wrote {}", man_path.display());
+
+    // Shell completions
+    let comp_dir = out_dir.join("completions");
+    std::fs::create_dir_all(&comp_dir)?;
+    let shells: &[(clap_complete::Shell, &str)] = &[
+        (clap_complete::Shell::Bash, "scrutin.bash"),
+        (clap_complete::Shell::Zsh, "_scrutin"),
+        (clap_complete::Shell::Fish, "scrutin.fish"),
+    ];
+    for (shell, filename) in shells {
+        let mut cmd = Cli::command();
+        let mut file = std::fs::File::create(comp_dir.join(filename))?;
+        clap_complete::generate(*shell, &mut cmd, "scrutin", &mut file);
+        eprintln!("  wrote {}", comp_dir.join(filename).display());
+    }
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ----- resolve_reporter -----
+
+    #[test]
+    fn resolve_reporter_defaults_to_plain_when_no_tty() {
+        let r = resolve_reporter(None).unwrap();
+        assert!(matches!(r, Reporter::Plain));
+    }
+
+    #[test]
+    fn resolve_reporter_web_parses_addr() {
+        let r = resolve_reporter(Some(&ReporterSpec::Web(Some("127.0.0.1:9999".into())))).unwrap();
+        if let Reporter::Web { addr, .. } = r {
+            assert_eq!(addr.port(), 9999);
+        } else {
+            panic!("expected Web");
+        }
+    }
+
+    #[test]
+    fn resolve_reporter_web_default_addr() {
+        let r = resolve_reporter(Some(&ReporterSpec::Web(None))).unwrap();
+        if let Reporter::Web { addr, .. } = r {
+            assert_eq!(addr.port(), 7878);
+        } else {
+            panic!("expected Web");
+        }
+    }
+
+    #[test]
+    fn resolve_reporter_web_invalid_addr() {
+        let err = resolve_reporter(Some(&ReporterSpec::Web(Some("not-an-addr".into())))).unwrap_err();
+        assert!(err.to_string().contains("invalid web address"));
+    }
+
+    #[test]
+    fn resolve_reporter_list() {
+        let r = resolve_reporter(Some(&ReporterSpec::List)).unwrap();
+        assert!(matches!(r, Reporter::List));
+    }
+
+    #[test]
+    fn resolve_reporter_junit() {
+        let r = resolve_reporter(Some(&ReporterSpec::Junit("r.xml".into()))).unwrap();
+        assert!(matches!(r, Reporter::Junit(_)));
+    }
+
+    #[test]
+    fn resolve_reporter_github() {
+        let r = resolve_reporter(Some(&ReporterSpec::Github)).unwrap();
+        assert!(matches!(r, Reporter::Github));
+    }
+
+    // ----- ReporterSpec::FromStr -----
+
+    #[test]
+    fn reporter_spec_from_str_junit_requires_path() {
+        assert!("junit".parse::<ReporterSpec>().is_err());
+        assert!("junit:".parse::<ReporterSpec>().is_err());
+        assert_eq!(
+            "junit:r.xml".parse::<ReporterSpec>().unwrap(),
+            ReporterSpec::Junit("r.xml".into())
+        );
+    }
+
+    #[test]
+    fn reporter_spec_from_str_web_variants() {
+        assert_eq!("web".parse::<ReporterSpec>().unwrap(), ReporterSpec::Web(None));
+        assert_eq!(
+            "web:0.0.0.0:3000".parse::<ReporterSpec>().unwrap(),
+            ReporterSpec::Web(Some("0.0.0.0:3000".into()))
+        );
+    }
+
+    #[test]
+    fn reporter_spec_from_str_list() {
+        assert_eq!("list".parse::<ReporterSpec>().unwrap(), ReporterSpec::List);
+        assert!("list:foo".parse::<ReporterSpec>().is_err());
+    }
+
+    #[test]
+    fn reporter_spec_from_str_github() {
+        assert_eq!("github".parse::<ReporterSpec>().unwrap(), ReporterSpec::Github);
+        assert!("github:foo".parse::<ReporterSpec>().is_err());
+    }
+
+    #[test]
+    fn reporter_spec_from_str_unknown() {
+        assert!("xml".parse::<ReporterSpec>().is_err());
+        assert!("plain:foo".parse::<ReporterSpec>().is_err());
+    }
+}

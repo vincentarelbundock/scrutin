@@ -1,0 +1,55 @@
+[project]
+docs_dir = "docs-src"
+site_dir = "docs"
+site_name = "scrutin"
+site_description = "Fast watch-mode test runner for R and Python"
+site_url = "https://scrutin.dev"
+extra_css = ["stylesheets/home.css"]
+nav = [
+  {"Home" = "index.md"},
+  {"Getting Started" = "getting-started.md"},
+  {"Project Discovery" = "project-discovery.md"},
+  {"R" = [
+    {"testthat" = "tools/testthat.md"},
+    {"tinytest" = "tools/tinytest.md"},
+    {"pointblank" = "tools/pointblank.md"},
+    {"validate" = "tools/validate.md"},
+    {"jarl" = "tools/jarl.md"},
+  ]},
+  {"Python" = [
+    {"pytest" = "tools/pytest.md"},
+    {"ruff" = "tools/ruff.md"},
+    {"Great Expectations" = "tools/great-expectations.md"},
+  ]},
+  {"Frontends" = "frontends.md"},
+  {"Editors" = "editors.md"},
+  {"Watch Mode" = "watch-mode.md"},
+  {"Filtering" = "filtering.md"},
+  {"Keybindings" = "keybindings.md"},
+  {"How It Works" = "internals.md"},
+  {"History" = "history.md"},
+  {"Configuration" = "reference/configuration.md"},
+  {"Command-Line" = "reference/cli.md"},
+  {"Roadmap" = "roadmap.md"},
+]
+
+[project.theme]
+logo = "assets/logo.svg"
+favicon = "assets/logo.svg"
+custom_dir = "docs-src/overrides"
+font.text = "Inter"
+font.code = "JetBrains Mono"
+
+[[project.theme.palette]]
+scheme = "default"
+primary = "teal"
+accent = "deep-orange"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "teal"
+accent = "deep-orange"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"

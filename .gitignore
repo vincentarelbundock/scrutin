@@ -1,0 +1,22 @@
+/target
+.DS_Store
+.claude/settings.local.json
+
+node_modules/
+
+# VS Code extension build artifacts
+editors/vscode/out/
+editors/vscode/*.vsix
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Zensical build output is committed in docs/ for GitHub Pages
+uv.lock
+
+# Staged zensical config written by `make stage-docs` (docs_dir remapped
+# to target/staged-docs-src). Lives at the repo root because zensical
+# rejects ".." in docs_dir / site_dir.
+.zensical-staged.toml

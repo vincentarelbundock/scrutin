@@ -1,0 +1,20 @@
+[package]
+name = "scrutin-web"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+scrutin-core = { path = "../scrutin-core" }
+
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+futures.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+xxhash-rust.workspace = true
+syntect.workspace = true
+
+axum.workspace = true

@@ -1,0 +1,13 @@
+[package]
+name = "scrutin-tui"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+scrutin-core = { path = "../scrutin-core" }
+anyhow.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true
+tokio.workspace = true
+syntect.workspace = true
+unicode-width = "0.2"

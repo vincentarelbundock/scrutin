@@ -1,0 +1,14 @@
+Name: Start scrutin
+Description: Start the scrutin test runner with web dashboard
+Binding: scrutin_start_addin
+Interactive: false
+
+Name: Stop scrutin
+Description: Stop the running scrutin process
+Binding: scrutin_stop_addin
+Interactive: false
+
+Name: Show scrutin
+Description: Open the scrutin dashboard in the Viewer pane
+Binding: scrutin_show_addin
+Interactive: false

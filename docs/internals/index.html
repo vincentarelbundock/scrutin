@@ -1,0 +1,1443 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Fast watch-mode test runner for R and Python">
+      
+      
+      
+        <link rel="canonical" href="https://scrutin.dev/internals/">
+      
+      
+        <link rel="prev" href="../keybindings/">
+      
+      
+        <link rel="next" href="../history/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/logo.svg">
+      <meta name="generator" content="zensical-0.0.32">
+    
+    
+      
+        <title>How it works - scrutin</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.53a7feaf.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/home.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,a=__md_scope)=>JSON.parse(t.getItem(a.pathname+"."+e)),__md_set=(e,t,a=localStorage,_=__md_scope)=>{try{a.setItem(_.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-it-works" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="scrutin" class="md-header__button md-logo" aria-label="scrutin" data-md-component="logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 285.02344 87" role="img" style="height:2rem;width:auto">
+  <title>Scrutin</title>
+  <rect x="1" y="1" width="58" height="72" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="11" y="15" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="20.5" x2="51" y2="20.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="33" width="11" height="11" rx="2" ry="2" fill="currentColor"/>
+  <polyline points="16.5,45.5 20,50 27,42.5" fill="none" stroke="var(--md-default-bg-color)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(-3,-7)"/>
+  <line x1="29" y1="38.5" x2="51" y2="38.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="51" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="56.5" x2="49" y2="56.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <circle cx="55" cy="65" r="16" fill="none" stroke="currentColor" stroke-width="2.5"/>
+  <line x1="67" y1="77" x2="79" y2="85" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <text x="93" y="54.2" font-family="Menlo, ui-monospace, SFMono-Regular, monospace" font-size="48" font-weight="500" fill="currentColor" letter-spacing="-1">Scrutin</text>
+</svg>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            scrutin
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              How it works
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="scrutin" class="md-nav__button md-logo" aria-label="scrutin" data-md-component="logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 285.02344 87" role="img" style="height:2rem;width:auto">
+  <title>Scrutin</title>
+  <rect x="1" y="1" width="58" height="72" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="11" y="15" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="20.5" x2="51" y2="20.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="33" width="11" height="11" rx="2" ry="2" fill="currentColor"/>
+  <polyline points="16.5,45.5 20,50 27,42.5" fill="none" stroke="var(--md-default-bg-color)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(-3,-7)"/>
+  <line x1="29" y1="38.5" x2="51" y2="38.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <rect x="11" y="51" width="11" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="29" y1="56.5" x2="49" y2="56.5" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
+  <circle cx="55" cy="65" r="16" fill="none" stroke="currentColor" stroke-width="2.5"/>
+  <line x1="67" y1="77" x2="79" y2="85" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <text x="93" y="54.2" font-family="Menlo, ui-monospace, SFMono-Regular, monospace" font-size="48" font-weight="500" fill="currentColor" letter-spacing="-1">Scrutin</text>
+</svg>
+    </a>
+    scrutin
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    R
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/testthat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    testthat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/tinytest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    tinytest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/pointblank/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pointblank
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/validate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    validate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/jarl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    jarl
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/pytest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pytest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/ruff/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ruff
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/great-expectations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Great Expectations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../editors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../watch-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Watch Mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filtering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filtering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keybindings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keybindings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How It Works
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How It Works
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#file-watcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File watcher
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependency-tracker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency tracker
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#worker-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Worker lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outcome-taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outcome taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontends
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-scrutin-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The .scrutin/ directory
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run History
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command-Line
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#file-watcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File watcher
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependency-tracker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency tracker
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#worker-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Worker lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outcome-taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outcome taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontends
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-scrutin-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The .scrutin/ directory
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+<h1 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h1>
+<p>Scrutin is a single Rust binary that orchestrates test execution across R and Python. It handles file watching, dependency resolution, process management, and result presentation. The actual test execution happens in language-specific subprocesses driven by embedded runner scripts.</p>
+<pre class="mermaid"><code>flowchart TD
+    W[File watcher] --&gt; D[Dependency tracker] --&gt; E[Run engine]
+
+    subgraph P [Tool plugins]
+        direction LR
+        P1[testthat] ~~~ P2[pytest] ~~~ P3[ruff] ~~~ P4[...]
+    end
+
+    E --&gt; P
+    subgraph UI [Frontends]
+        direction LR
+        U1[TUI] ~~~ U2[Web] ~~~ U3[IDE] ~~~ U4[Plain] ~~~ U5[GitHub] ~~~ U6[JUnit]
+    end
+
+    P --&gt; UI
+
+    style P fill:transparent,stroke:#888
+    style UI fill:transparent,stroke:#888</code></pre>
+<h2 id="file-watcher">File watcher<a class="headerlink" href="#file-watcher" title="Permanent link">&para;</a></h2>
+<p>Watch mode is on by default in the TUI and web. scrutin monitors your project's source and test directories for changes using OS-level file notifications. When a file changes, the watcher passes it to the dependency tracker to figure out which tests are affected, then hands the result to the run engine.</p>
+<p>When watch mode is off (any plain/github/junit/list reporter, or <code>--set watch.enabled=false</code>), runs are single-shot and this step is skipped entirely.</p>
+<h2 id="dependency-tracker">Dependency tracker<a class="headerlink" href="#dependency-tracker" title="Permanent link">&para;</a></h2>
+<p>When a file changes, the dependency tracker determines which test files need to re-run. It uses different strategies depending on the language.</p>
+<p><strong>Filename matching</strong> is always active and instant. Scrutin maps source file names to likely test files using naming conventions:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>R/foo.R         --&gt;  tests/testthat/test-foo.R
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>src/foo.py      --&gt;  tests/test_foo.py
+</span></code></pre></div>
+<p>This covers most cases but can miss indirect dependencies.</p>
+<p><strong>R runtime tracing</strong> provides higher accuracy. During every test run, scrutin's R runner calls <code>trace()</code> on each function in the package namespace so that each source file whose functions get invoked is recorded. When the test finishes, the runner emits the list of touched source files back to the engine, which accumulates a <code>source → [tests]</code> map across runs. Because this is observed rather than inferred, only real call paths create edges: dynamic dispatch, method lookup, and helpers called through wrappers are all captured. The map is cached locally and refined every time a test executes. It is multi-suite aware: editing <code>R/math.R</code> invalidates test files under both <code>tests/testthat/</code> and <code>inst/tinytest/</code>.</p>
+<p><strong>Python static import analysis</strong> parses all <code>.py</code> files to extract <code>import</code> and <code>from ... import</code> statements, building a full import graph across both test and source files. Resolution is <strong>transitive</strong>: if <code>test_x.py</code> imports <code>helpers.py</code> which imports <code>core.py</code>, editing <code>core.py</code> will trigger <code>test_x.py</code>. The parser handles absolute imports, relative imports, submodule probing, multi-line parenthesized imports, and backslash continuation lines. Circular imports (allowed by Python) are handled safely. Dynamic imports (<code>importlib.import_module</code>) are missed. Unresolved changes fall back to the filename heuristic or a full suite re-run.</p>
+<p>If no mapping is found for a changed file, all test files re-run.</p>
+<h2 id="run-engine">Run engine<a class="headerlink" href="#run-engine" title="Permanent link">&para;</a></h2>
+<p>The run engine is the core of scrutin. It takes a list of test files, partitions them by tool, and runs them through the appropriate plugin. Each tool gets its own pool of worker subprocesses running concurrently. A project with testthat + pytest gets two pools at once. All pools share a single cancel signal, so cancelling a run stops everything.</p>
+<p>The engine communicates with worker subprocesses via NDJSON (newline-delimited JSON). File paths go to the worker on stdin; results come back from the forked child on a loopback TCP socket in fork mode, or on stdout in the non-fork / Windows fallback. Four message types flow back:</p>
+<ul>
+<li><strong>event</strong>: one per test or validation step, carrying the outcome, test name, optional error message, line number, and duration.</li>
+<li><strong>summary</strong>: one per file, carrying the authoritative wall-clock time.</li>
+<li><strong>deps</strong>: one per file (R only), listing the source files whose functions were touched during the test.</li>
+<li><strong>done</strong>: signals the worker is ready for the next file.</li>
+</ul>
+<p>Every tool emits the same message format, so the engine and all frontends are tool-agnostic.</p>
+<h3 id="worker-lifecycle">Worker lifecycle<a class="headerlink" href="#worker-lifecycle" title="Permanent link">&para;</a></h3>
+<p>Workers are long-lived processes that keep your project loaded in memory. When a test file needs to run, scrutin sends the file path to an idle worker over stdin.</p>
+<ul>
+<li><strong>Startup</strong>: the worker starts the language interpreter, runs an embedded runner script, and loads the project (<code>pkgload::load_all()</code> for R, <code>import</code> for Python). It then waits for file paths on stdin.</li>
+<li><strong>Fork isolation</strong>: by default (<code>fork_workers: true</code>), workers stay alive and fork() per test file. Each child gets a copy-on-write clone of the warm interpreter state, runs the test, and exits. This provides both fast startup (the project is loaded once) and full process isolation (no state leakage between files). Set <code>fork_workers: false</code> to kill and respawn the worker after every file instead. Fork mode is Linux/macOS only and is automatically disabled on Windows.</li>
+<li><strong>Crashes</strong>: if a worker crashes mid-test, the error is recorded and the worker is automatically replaced. One crash never takes down the rest of the run.</li>
+<li><strong>Timeouts</strong>: each test file has a 60-second timeout by default (<code>timeout_file_ms</code> in config). If a test hangs, the worker is killed and replaced.</li>
+</ul>
+<h3 id="outcome-taxonomy">Outcome taxonomy<a class="headerlink" href="#outcome-taxonomy" title="Permanent link">&para;</a></h3>
+<p>Every test result is classified into one of six outcomes:</p>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>Meaning</th>
+<th>Breaks the build?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pass</code></td>
+<td>Assertion held</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>fail</code></td>
+<td>Assertion broken</td>
+<td><strong>Yes</strong></td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>Could not evaluate (exception, missing dependency)</td>
+<td><strong>Yes</strong></td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td>Intentionally not run</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>xfail</code></td>
+<td>Failed but expected, not a regression</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>warn</code></td>
+<td>Soft issue, surfaced but does not break the build</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>A file is considered failing when <code>failed &gt; 0 || errored &gt; 0</code>. This determines the exit code and CI gate behavior. Expected failures (<code>xfail</code>) and warnings (<code>warn</code>) are visible but do not break anything.</p>
+<h2 id="tool-plugins">Tool plugins<a class="headerlink" href="#tool-plugins" title="Permanent link">&para;</a></h2>
+<p>Each tool is compiled into the binary as a plugin. Plugins define how to detect the project, spawn workers, discover test files, and map source files to test files. Multiple plugins can be active simultaneously in the same project.</p>
+<table>
+<thead>
+<tr>
+<th>Plugin</th>
+<th>Language</th>
+<th>Type</th>
+<th>Mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>testthat</td>
+<td>R</td>
+<td>Unit testing</td>
+<td>Worker</td>
+</tr>
+<tr>
+<td>tinytest</td>
+<td>R</td>
+<td>Unit testing</td>
+<td>Worker</td>
+</tr>
+<tr>
+<td>pointblank</td>
+<td>R</td>
+<td>Data validation</td>
+<td>Worker</td>
+</tr>
+<tr>
+<td>validate</td>
+<td>R</td>
+<td>Data validation</td>
+<td>Worker</td>
+</tr>
+<tr>
+<td>jarl</td>
+<td>R</td>
+<td>Linting</td>
+<td>Command</td>
+</tr>
+<tr>
+<td>pytest</td>
+<td>Python</td>
+<td>Unit testing</td>
+<td>Worker</td>
+</tr>
+<tr>
+<td>ruff</td>
+<td>Python</td>
+<td>Linting</td>
+<td>Command</td>
+</tr>
+<tr>
+<td>Great Expectations</td>
+<td>Python</td>
+<td>Data validation</td>
+<td>Worker</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Worker mode</strong> plugins use long-lived subprocesses that communicate via NDJSON, as described above.</p>
+<p><strong>Command mode</strong> plugins (jarl, ruff) run an external CLI tool directly per file and parse the output in Rust. No persistent subprocess is needed. This is appropriate for tools that are fast enough to invoke per file.</p>
+<p>Plugins can define custom actions (e.g., jarl and ruff expose "fix all" and "fix all unsafe", which run across every file in the suite). Pressing <code>a</code> in the TUI or web opens an action palette listing all available actions for the selected file's tool.</p>
+<h2 id="frontends">Frontends<a class="headerlink" href="#frontends" title="Permanent link">&para;</a></h2>
+<p>The run engine streams results to whichever frontend is active. One frontend per invocation, selected with <code>--reporter</code> (<code>-r</code>):</p>
+<ul>
+<li><strong>TUI</strong> (default): interactive terminal UI with file list, test detail, filtering, sorting, and keyboard navigation.</li>
+<li><strong>Web</strong>: browser dashboard served on localhost with live updates via server-sent events.</li>
+<li><strong>IDE</strong>: VS Code, Positron, and RStudio extensions that embed the web frontend.</li>
+<li><strong>Plain</strong>: streaming text output for terminals and CI logs.</li>
+<li><strong>GitHub</strong>: GitHub Actions annotations, log groups, and step summary.</li>
+<li><strong>JUnit</strong>: XML report file compatible with CI systems that consume JUnit format.</li>
+</ul>
+<h2 id="the-scrutin-directory">The <code>.scrutin/</code> directory<a class="headerlink" href="#the-scrutin-directory" title="Permanent link">&para;</a></h2>
+<p>Created automatically in your project root. This directory should be gitignored (<code>scrutin init</code> adds it for you).</p>
+<ul>
+<li><strong><code>state.db</code></strong>: DuckDB database storing run history and run metadata (git SHA, branch, hostname, CI provider, custom labels). Written via the <code>duckdb</code> CLI on a best-effort basis (no CLI = no history). Powers <code>scrutin stats</code> for flaky test detection and slow test ranking. Schema migrations drop and recreate tables, so version bumps may reset history.</li>
+<li><strong><code>depmap.json</code> / <code>hashes.json</code></strong>: JSON cache for the runtime-traced source-to-test map and the xxhash64 file fingerprints that invalidate it. Written atomically after every run.</li>
+<li><strong><code>runner_*.R</code> / <code>runner_*.py</code></strong>: embedded runner scripts, written at subprocess startup.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":[],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.91a19a9e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="{{csp}}" />
+  <title>Scrutin</title>
+  <link rel="stylesheet" href="{{styleUri}}" />
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">scrutin</div>
+    <div class="meta">
+      <span id="pkg-name" class="pkg-name">—</span>
+      <span class="sep">·</span>
+      <span id="workers" class="workers">—</span>
+    </div>
+    <div class="controls">
+      <button id="btn-run-all" title="Run all (a)">▶ run all</button>
+      <button id="btn-run-visible" title="Run visible (v)">▶ run visible</button>
+      <button id="btn-rerun-failing" class="hidden" title="Rerun failing (R)">↻ rerun failing</button>
+      <button id="btn-cancel" class="hidden" title="Cancel (c)">✕ cancel</button>
+      <label class="watch-toggle" title="Toggle watch mode (w)">
+        <input type="checkbox" id="toggle-watch" />
+        <span>watch</span>
+      </label>
+    </div>
+  </header>
+
+  <main id="layout">
+    <section id="left-pane">
+      <div class="pane-title" id="left-title">
+        <button id="btn-back" class="back-btn hidden" title="Back (Esc)">←</button>
+        <span id="left-title-text">Files</span>
+      </div>
+      <div class="pane-subbar" id="left-subbar">
+        <input id="filter-input" type="text" placeholder="filter…" />
+        <select id="plugin-select" title="Suite filter (p / P)">
+          <option value="">all</option>
+        </select>
+        <select id="status-select" title="Status filter (t / T)">
+          <option value="">all statuses</option>
+          <option value="failed">failed</option>
+          <option value="errored">errored</option>
+          <option value="warned">warned</option>
+          <option value="passed">passed</option>
+          <option value="skipped">skipped</option>
+          <option value="running">running</option>
+          <option value="pending">pending</option>
+          <option value="cancelled">cancelled</option>
+        </select>
+      </div>
+      <div id="col-headers" class="file-row col-header"></div>
+      <ul id="left-list" class="file-list"></ul>
+    </section>
+
+    <div id="pane-resizer" title="Drag to resize"></div>
+
+    <section id="right-pane">
+      <div class="pane-title" id="right-title">no file selected</div>
+      <div id="right-body" class="detail-body"></div>
+    </section>
+  </main>
+
+  <footer id="countsbar">
+    <span class="count pass">●0</span>
+    <span class="count fail">✗0</span>
+    <span class="count error">⚠0</span>
+    <span class="count warn">⚡0</span>
+    <span class="count skip">⊘0</span>
+    <span class="count xfail">⊙0</span>
+    <span class="spacer"></span>
+    <span id="keyboard-hint" class="keyboard-hint">type ? for keyboard shortcuts</span>
+    <span id="status-text">idle</span>
+  </footer>
+
+  <div id="help" class="overlay hidden">
+    <div class="card">
+      <h2>Keyboard shortcuts</h2>
+      <dl>
+        <dt>j / k / ↑ / ↓</dt><dd>next / prev item</dd>
+        <dt>Enter</dt><dd>drill into file detail</dd>
+        <dt>Esc</dt><dd>back to file list</dd>
+        <dt>a</dt><dd>run all</dd>
+        <dt>v</dt><dd>run visible (current filter)</dd>
+        <dt>r</dt><dd>rerun selected file</dd>
+        <dt>R</dt><dd>rerun all failing</dd>
+        <dt>c</dt><dd>cancel</dd>
+        <dt>e</dt><dd>edit test file in $EDITOR</dd>
+        <dt>E</dt><dd>edit source file in $EDITOR</dd>
+        <dt>w</dt><dd>toggle watch</dd>
+        <dt>n / N</dt><dd>next / prev failing test (detail level)</dd>
+        <dt>p / P</dt><dd>cycle plugin filter</dd>
+        <dt>s</dt><dd>sort palette</dd>
+        <dt>/</dt><dd>focus filter input</dd>
+        <dt>?</dt><dd>toggle this overlay</dd>
+      </dl>
+      <p class="hint" id="help-plugin-hint"></p>
+      <p class="hint">Esc or ? to close</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script nonce="{{nonce}}">window.__SCRUTIN_BASE_URL__ = "{{baseUrl}}";</script>
+  <script nonce="{{nonce}}" src="{{scriptUri}}"></script>
+</body>
+</html>

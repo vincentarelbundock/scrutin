@@ -1,0 +1,69 @@
+// scrutin unified client — entry point.
+//
+// Shared by the standalone web reporter and the VS Code / Positron webview.
+// All logic lives in `./modules/`. This file does three things:
+//   1. boot handlers after DOMContentLoaded
+//   2. wire the static topbar buttons to action handlers
+//   3. kick off the initial snapshot fetch + SSE subscription
+//
+// Navigation model (three drill levels, each a Level handler in levels.js):
+//   files   \u2192  file list    \u2192 test list for highlighted file
+//   detail  \u2192  test list    \u2192 scrollable detail for highlighted test
+//   failure \u2192  (no sidebar) \u2192 3-pane Test + Source + Error carousel
+
+import { state } from "./modules/state.js";
+import { $ } from "./modules/util.js";
+import { fetchSnapshot,
+  runAll, runVisible, cancelRun, rerunFailing, rerunSelected, toggleWatch,
+} from "./modules/api.js";
+import { connectEvents } from "./modules/events.js";
+import {
+  renderAll, renderFilterList, renderLeftPane, renderControls,
+} from "./modules/render.js";
+import { wireKeyboard } from "./modules/keymap.js";
+import { exitDetail, exitFailure } from "./modules/navigation.js";
+import {
+  toggleTheme, applyStoredTheme, applyStoredSidebarWidth, wireSidebarResize,
+} from "./modules/theme.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+  applyStoredTheme();
+  applyStoredSidebarWidth();
+  wireSidebarResize();
+
+  // Topbar button bindings (static IDs in index.html).
+  const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
+  on("btn-run-all",        "click", runAll);
+  on("btn-run-visible",    "click", runVisible);
+  on("btn-run-selected",   "click", rerunSelected);
+  on("btn-cancel",         "click", cancelRun);
+  on("btn-rerun-failing",  "click", rerunFailing);
+  on("toggle-watch",       "change", toggleWatch);
+  on("btn-theme",          "click", toggleTheme);
+
+  // Back button walks one level up. Breadcrumb crumbs can jump further
+  // via `jumpToLevel` (wired inside renderBreadcrumb).
+  on("btn-back", "click", () => {
+    if (state.level === "failure") exitFailure();
+    else if (state.level === "detail") exitDetail();
+  });
+
+  // File-list chrome inputs (filter textbox + suite/status selects).
+  on("filter-input", "input", (e) => {
+    state.filterText = e.target.value;
+    renderFilterList(); renderLeftPane(); renderControls();
+  });
+  on("plugin-select", "change", (e) => {
+    state.pluginFilter = e.target.value;
+    renderFilterList(); renderLeftPane(); renderControls();
+  });
+  on("status-select", "change", (e) => {
+    state.statusFilter = e.target.value;
+    renderFilterList(); renderLeftPane(); renderControls();
+  });
+
+  wireKeyboard();
+
+  // Boot: hydrate state, then subscribe to live events.
+  fetchSnapshot().then(() => { renderAll(); connectEvents(); });
+});

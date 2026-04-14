@@ -1,0 +1,162 @@
+/* Hide site name text in navbar — logo is sufficient */
+.md-header__topic .md-ellipsis {
+  visibility: hidden;
+}
+
+/* Navbar logo color */
+.md-header__button.md-logo svg {
+  color: var(--md-primary-fg-color);
+}
+
+/* Hide the page title on the home page */
+h1#__skip {
+  display: none;
+}
+
+/* Hide the auto-generated home page entry in the sidebar */
+.md-nav--primary > .md-nav__list > .md-nav__item:first-child {
+  display: none;
+}
+
+/* Hero section */
+.hero {
+  text-align: center;
+  padding: 0 1rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: justify;
+}
+
+.hero p:has(.md-button) {
+  text-align: center;
+}
+
+
+.hero-logo {
+  display: block;
+  width: 22em;
+  max-width: 80%;
+  height: auto;
+  margin: 0 auto 1.5rem;
+}
+
+/* Section headings */
+.feature-section {
+  text-align: center;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.feature-section h2 {
+  margin-bottom: 0.5rem;
+}
+
+.feature-section p {
+  opacity: 0.85;
+  text-align: justify;
+}
+
+/* Screenshot rows — 2 side by side */
+.screenshot-row {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin: 1.5rem auto 2rem;
+  max-width: 56rem;
+  padding: 0 1rem;
+}
+
+.screenshot-row p {
+  flex: 1;
+  margin: 0;
+}
+
+/* Screenshot rows — 3 side by side */
+.screenshot-row.three p {
+  flex: 1;
+}
+
+/* Single centered screenshot */
+.screenshot-full {
+  text-align: center;
+  margin: 1.5rem auto;
+  max-width: 44rem;
+  padding: 0 1rem;
+}
+
+/* All screenshots */
+.screenshot {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  width: 100%;
+  height: auto;
+}
+
+/* Screenshot card (image + label stacked) */
+.screenshot-card {
+  flex: 1;
+  text-align: center;
+}
+
+/* Screenshot labels (editor names under screenshots) */
+.screenshot-label {
+  text-align: center;
+  margin: 0.3rem 0 0;
+  font-size: 0.9rem;
+}
+
+/* Caption text below screenshots */
+.feature-caption {
+  text-align: center;
+  max-width: 36rem;
+  margin: 0.5rem auto 2rem;
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+/* 2-column wide cards */
+.grid.cards.wide > ul {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Feature grid cards */
+.grid.cards > ul > li {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.4rem;
+  padding: 1.2rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.grid.cards > ul > li:hover {
+  border-color: var(--md-primary-fg-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.grid.cards > ul > li hr {
+  margin: 0.6rem 0;
+}
+
+/* Color the hero logo with the theme primary */
+.hero-logo {
+  color: var(--md-primary-fg-color);
+}
+
+.hero-check {
+  stroke: var(--md-default-bg-color);
+}
+
+/* Responsive: stack screenshots on narrow screens */
+@media (max-width: 40rem) {
+  .screenshot-row {
+    flex-direction: column;
+  }
+
+  .grid.cards.wide > ul {
+    grid-template-columns: 1fr;
+  }
+}

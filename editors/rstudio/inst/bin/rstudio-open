@@ -1,0 +1,24 @@
+#!/bin/sh
+# Helper script used as $EDITOR when scrutin runs inside RStudio.
+# Writes the file path + line to a temp file that the R-side poller
+# picks up and forwards to rstudioapi::navigateToFile().
+#
+# Called by scrutin as: rstudio-open [+LINE] FILE
+
+LINE=""
+FILE=""
+
+for arg in "$@"; do
+  case "$arg" in
+    +[0-9]*) LINE="${arg#+}" ;;
+    *)       FILE="$arg" ;;
+  esac
+done
+
+[ -z "$FILE" ] && exit 1
+[ -z "$SCRUTIN_EDITOR_FIFO" ] && exit 1
+
+# Escape backslashes and double quotes for valid JSON.
+ESCAPED_FILE=$(printf '%s' "$FILE" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
+printf '{"file":"%s","line":%s}\n' "$ESCAPED_FILE" "${LINE:-null}" >> "$SCRUTIN_EDITOR_FIFO"

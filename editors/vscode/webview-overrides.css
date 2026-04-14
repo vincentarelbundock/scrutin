@@ -1,0 +1,27 @@
+/* VS Code webview variable overrides.
+ *
+ * Maps scrutin's CSS custom properties to VS Code theme tokens so the
+ * panel automatically matches the user's active colour theme.
+ * This file is prepended to the web frontend's style.css during
+ * `make sync-webview` — the web frontend's :root blocks are stripped.
+ */
+
+:root {
+  --bg: var(--vscode-editor-background);
+  --bg-2: var(--vscode-sideBar-background, #151821);
+  --bg-3: var(--vscode-input-background, #1c2030);
+  --fg: var(--vscode-editor-foreground);
+  --fg-dim: var(--vscode-descriptionForeground, #8a8f9e);
+  --border: var(--vscode-panel-border, #2a2f3d);
+  --accent: var(--vscode-focusBorder, #00d1b2);
+  --pass: #4caf50;
+  --fail: #e53935;
+  --error: #c62828;
+  --warn: #ffb300;
+  --skip: #607d8b;
+  --xfail: #9575cd;
+  --pending: #546e7a;
+  --running: #29b6f6;
+  --gutter-bg: var(--vscode-editorGutter-background, #161a24);
+  --highlight-bg: var(--vscode-editor-findMatchHighlightBackground, #2a2030);
+}
