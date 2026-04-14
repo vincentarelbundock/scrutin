@@ -33,7 +33,7 @@ jobs:
       matrix:
         include:
           - { os: macos-14,     target: aarch64-apple-darwin,     archive: tar.xz }
-          - { os: macos-13,     target: x86_64-apple-darwin,      archive: tar.xz }
+          - { os: macos-14,     target: x86_64-apple-darwin,      archive: tar.xz }
           - { os: ubuntu-24.04, target: x86_64-unknown-linux-gnu, archive: tar.xz }
           - { os: windows-2022, target: x86_64-pc-windows-msvc,   archive: zip    }
     steps:
