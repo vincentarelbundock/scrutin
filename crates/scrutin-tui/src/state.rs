@@ -641,7 +641,7 @@ pub(super) struct AppState {
     /// Default bindings generated from the shared keymap at startup.
     pub(super) default_bindings:
         std::collections::HashMap<Mode, Vec<super::keymap::Binding>>,
-    /// Per-mode runtime keymap built from `[keymap.<mode>]` in scrutin.toml.
+    /// Per-mode runtime keymap built from `[keymap.<mode>]` in .scrutin/config.toml.
     /// When a mode has an entry here, its bindings fully replace the defaults.
     pub(super) user_keymap:
         std::collections::HashMap<Mode, Vec<super::keymap::Binding>>,

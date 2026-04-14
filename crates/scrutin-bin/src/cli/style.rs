@@ -15,7 +15,7 @@ const YELLOW: &str = "\x1b[33m";
 const CYAN: &str = "\x1b[36m";
 
 /// Whether color output is enabled. Defaults to true; set to false via
-/// `[run] color = false` in scrutin.toml.
+/// `[run] color = false` in .scrutin/config.toml.
 static COLOR_ENABLED: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(true);
 

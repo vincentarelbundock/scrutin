@@ -20,7 +20,7 @@ pub struct ProcessHooks {
     project_root: PathBuf,
     startup: Option<PathBuf>,
     teardown: Option<PathBuf>,
-    /// `[env]` from scrutin.toml. Applied to both startup and teardown
+    /// `[env]` from .scrutin/config.toml. Applied to both startup and teardown
     /// scripts so they see the same env as test workers — consistency
     /// across every subprocess that runs user code.
     env: BTreeMap<String, String>,

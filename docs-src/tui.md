@@ -88,7 +88,7 @@ These are the defaults, compiled into `scrutin_core::keymap::DEFAULT_KEYMAP` and
 
 ## Custom keybindings
 
-You can override any keybinding in `scrutin.toml`. Each `[keymap.<mode>]` table fully **replaces** the defaults for that mode : deleting a line unbinds the key, deleting the whole subtable restores the built-in defaults. `scrutin init` writes the defaults out in full so you can edit in place.
+You can override any keybinding in `.scrutin/config.toml`. Each `[keymap.<mode>]` table fully **replaces** the defaults for that mode : deleting a line unbinds the key, deleting the whole subtable restores the built-in defaults. `scrutin init` writes the defaults out in full so you can edit in place.
 
 ```toml
 [keymap.normal]

@@ -76,7 +76,7 @@ lib.rs
 │   └── hashing.rs              multi-suite content fingerprints
 ├── project/
 │   ├── package.rs              Package + TestSuite (multi-suite data model)
-│   ├── config.rs               scrutin.toml parsing + --set overrides
+│   ├── config.rs               .scrutin/config.toml parsing + --set overrides
 │   └── plugin.rs               Plugin trait + PluginAction + all_plugins() registry
 ├── engine/
 │   ├── run_events.rs           the run-engine seam (RunEvent, RunHandle, start_run)
@@ -98,7 +98,7 @@ lib.rs
 
 ### Key modules
 
-- **`scrutin-bin/src/cli/mod.rs`** : `Cli` struct (clap `Subcommand`-based: default `run`, plus `init` / `stats`), `RunArgs`, `ReporterSpec` + `resolve_reporter`, top-level orchestration and subcommand dispatch, init scaffolding. One reporter per invocation via `--reporter` (`-r`): `tui`, `plain`, `github`, `web[:ADDR]`, `list`, `junit:PATH`. Watch mode (`-w`) applies to TUI and web. Config layering: defaults, `scrutin.toml`, `--set`, surviving CLI flags.
+- **`scrutin-bin/src/cli/mod.rs`** : `Cli` struct (clap `Subcommand`-based: default `run`, plus `init` / `stats`), `RunArgs`, `ReporterSpec` + `resolve_reporter`, top-level orchestration and subcommand dispatch, init scaffolding. One reporter per invocation via `--reporter` (`-r`): `tui`, `plain`, `github`, `web[:ADDR]`, `list`, `junit:PATH`. Watch mode (`-w`) applies to TUI and web. Config layering: defaults, `.scrutin/config.toml`, `--set`, surviving CLI flags.
 - **`scrutin-bin/src/cli/reporter/mod.rs`** : shared reporter types (`FileRecord`, `RunAccumulator`, `FileTally`, `RunStats`) and helpers (`tally_messages`, `collect_failed_files`, `replace_results`). All non-TUI, non-web reporters depend on this.
 - **`scrutin-bin/src/cli/reporter/plain.rs`** : plain-mode reporter. Watch loop, rerun logic, JUnit sidecar output, DB persistence, text rendering. Runs always go through `run_via_engine`, which calls `run_events::start_run`, so the same multi-suite seam serves all frontends.
 - **`scrutin-bin/src/cli/reporter/github.rs`** : GitHub Actions reporter (`-r github`). Streams `::group::`/`::endgroup::` per file, emits `::error`/`::warning` annotations for inline PR feedback, writes a markdown summary to `$GITHUB_STEP_SUMMARY`. Single-shot (no watch, no reruns). Adding a new reporter = one new file here + enum variant + match arm in `cli/mod.rs`.
@@ -117,7 +117,7 @@ lib.rs
 
 Communication protocol: NDJSON over the worker's stdout, one message per line.
 
-Config precedence: defaults → `scrutin.toml` (ancestor-walked from project root, fallback `~/.config/scrutin/scrutin.toml`) → `--set` overrides → CLI flags. **scrutin intentionally has no config env vars** : `scrutin.toml` is the only persistent source of truth.
+Config precedence: defaults → `.scrutin/config.toml` (ancestor-walked from project root, fallback `~/.config/scrutin/config.toml`) → `--set` overrides → CLI flags. **scrutin intentionally has no config env vars** : `.scrutin/config.toml` is the only persistent source of truth.
 
 ## Fixtures
 
@@ -166,7 +166,7 @@ route is additionally wrapped in a `require_loopback` middleware. See
 - Crossterm has no native async, so key polling runs on `tokio::task::spawn_blocking` and emits via an mpsc channel.
 - Plugin trait so new languages don't require touching the engine. Plugins live under their language's top-level dir.
 - **Multi-suite via per-pool fan-out, not per-file routing in one pool.** A `ProcessPool` is bound to one suite for the lifetime of a run; mixing testthat + pytest means *two pools running concurrently*, each with its own warm worker subprocesses. The fan-out happens once, in `run_events::start_run`, so neither the pool nor the consumer (TUI / plain mode) needs to know how many suites exist. Adding a third tool to a project is a config-free change : `detect_plugins` finds it, `start_run` spawns another pool.
-- **`max_fail` is file-level, not expectation-level.** A single crashing file counts as one bad file regardless of how many expectations it took down with it. Documented in `scrutin.toml` and enforced via `RunAccumulator::failed_files`.
+- **`max_fail` is file-level, not expectation-level.** A single crashing file counts as one bad file regardless of how many expectations it took down with it. Documented in `.scrutin/config.toml` and enforced via `RunAccumulator::failed_files`.
 - **Single tally walker.** `tally_messages` is the only place plain mode classifies a `Message`; both the live `RunAccumulator::push` path and the post-rerun `RunAccumulator::from_results` recomputation route through it so they cannot drift.
 - SQLite (embedded via rusqlite, bundled) for history and local caches. One `.scrutin/state.db` holds runs, results, user extras, the dep map, and file-hash fingerprints.
 - jsonlite-tolerant deserializers in `protocol.rs` because R serializes `NULL` as `{}`.

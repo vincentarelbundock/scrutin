@@ -42,7 +42,7 @@ scrutin -r plain mypackage     # text output
 
 ## Configuration
 
-No configuration is required. To override defaults in `scrutin.toml`:
+No configuration is required. To override defaults in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]

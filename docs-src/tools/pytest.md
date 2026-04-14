@@ -43,7 +43,7 @@ scrutin -r plain myproject     # text output
 
 ## Configuration
 
-No configuration is required. To override defaults in `scrutin.toml`:
+No configuration is required. To override defaults in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]
@@ -56,8 +56,8 @@ source_dirs = ["src"]
 
 Scrutin auto-detects your Python virtual environment. Detection order:
 
-1. `[python].interpreter` in `scrutin.toml`
-2. `[python].venv` in `scrutin.toml`
+1. `[python].interpreter` in `.scrutin/config.toml`
+2. `[python].venv` in `.scrutin/config.toml`
 3. `$VIRTUAL_ENV` environment variable
 4. `.venv/` or `venv/` in the project root
 5. `$CONDA_PREFIX` environment variable

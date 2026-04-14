@@ -30,7 +30,7 @@ pub struct TestSuite {
     pub worker_hooks: WorkerHookPaths,
     /// Optional path to a user-provided runner script. When `Some`, the
     /// engine reads this file instead of the embedded default. Set from
-    /// `[[suite]].runner` or `[<tool>].runner` in scrutin.toml.
+    /// `[[suite]].runner` or `[<tool>].runner` in .scrutin/config.toml.
     pub runner_override: Option<PathBuf>,
 }
 

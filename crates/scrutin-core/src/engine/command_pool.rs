@@ -132,7 +132,7 @@ async fn run_command(
     for (k, v) in plugin.env_vars(&pkg.root) {
         cmd.env(k, v);
     }
-    // User [env] from scrutin.toml, applied last so user vars win.
+    // User [env] from .scrutin/config.toml, applied last so user vars win.
     cmd.envs(pkg.env.iter());
 
     let t0 = std::time::Instant::now();

@@ -159,16 +159,16 @@ debounce window.
 
 ### 3.6 Config (`project/config.rs`)
 
-**Lock:** precedence is `defaults -> scrutin.toml -> --set -> CLI flags`,
+**Lock:** precedence is `defaults -> .scrutin/config.toml -> --set -> CLI flags`,
 walked from project root upward, fallback
-`~/.config/scrutin/scrutin.toml`, no env vars.
+`~/.config/scrutin/config.toml`, no env vars.
 
 **Tests** (9 already exist; add):
 
 - `--set foo.bar=1 --set foo.bar=2`: last wins.
 - `--set run.workers=abc`: typed error, not silent fallback.
-- scrutin.toml in parent dir is found; in sibling dir is not.
-- No scrutin.toml anywhere and no `~/.config/scrutin/scrutin.toml`: defaults used.
+- .scrutin/config.toml in parent dir is found; in sibling dir is not.
+- No .scrutin/config.toml anywhere and no `~/.config/scrutin/config.toml`: defaults used.
 - Env vars `SCRUTIN_*` are ignored (assert this explicitly: it is a
   deliberate design choice, not an oversight).
 

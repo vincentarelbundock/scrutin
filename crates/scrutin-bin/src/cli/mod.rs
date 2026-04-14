@@ -49,7 +49,7 @@ pub struct Cli {
 pub enum Command {
     /// Run tests (default).
     Run(RunArgs),
-    /// Initialize scrutin.toml and .scrutin/ in the current package.
+    /// Initialize .scrutin/config.toml and .scrutin/ in the current package.
     Init {
         /// Path to the project (default: current directory).
         #[arg(default_value = ".")]
@@ -83,7 +83,7 @@ pub struct RunArgs {
     #[arg(short = 'r', long = "reporter", value_name = "NAME[:ARG]")]
     pub reporter: Vec<ReporterSpec>,
 
-    /// Override a scrutin.toml field. Repeatable. Dotted keys walk into
+    /// Override a .scrutin/config.toml field. Repeatable. Dotted keys walk into
     /// nested tables (e.g. `run.workers=8`, `filter.include=["test_math*"]`,
     /// `watch.enabled=true`). RHS is parsed as a TOML expression, falling
     /// back to a bare string for unquoted values.
@@ -249,9 +249,9 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
     args.path = std::fs::canonicalize(&args.path)
         .with_context(|| format!("path does not exist: {}", args.path.display()))?;
 
-    // Config layering: defaults -> scrutin.toml -> --set -> CLI flags.
-    // scrutin intentionally has no config env vars; scrutin.toml is the
-    // only persistent source of truth.
+    // Config layering: defaults -> .scrutin/config.toml -> --set -> CLI flags.
+    // scrutin intentionally has no config env vars; .scrutin/config.toml is
+    // the only persistent source of truth.
     let mut cfg = Config::load(&args.path)?;
     cfg.apply_set_overrides(&args.set)?;
 
@@ -628,7 +628,7 @@ fn print_stats(root: &Path) {
 
 // --- Init ---
 
-/// Render the annotated `scrutin.toml` template: substitute `{{DETECTED}}`
+/// Render the annotated `.scrutin/config.toml` template: substitute `{{DETECTED}}`
 /// and append a `[keymap.<mode>]` subtable per mode with every default
 /// binding written as a commented `# "key" = "action"` line. Commented
 /// defaults mean the file is a no-op as-shipped (defaults apply); users
@@ -656,21 +656,21 @@ pub(crate) fn render_config_template(detected: &str) -> String {
 fn run_init(pkg: &Package) -> Result<()> {
     let detected = pkg.tool_names();
 
-    let toml_path = pkg.root.join("scrutin.toml");
+    let scrutin_dir = pkg.root.join(".scrutin");
+    std::fs::create_dir_all(&scrutin_dir)?;
+    eprintln!("Created .scrutin/");
+
+    let toml_path = scrutin_dir.join("config.toml");
     if toml_path.exists() {
-        eprintln!("scrutin.toml already exists, skipping.");
+        eprintln!(".scrutin/config.toml already exists, skipping.");
     } else {
         // Always write `tool = "auto"` -- the loader only accepts a
         // single plugin name or "auto", and a multi-suite project produces
         // a `+`-joined display name that the loader would reject.
         let content = render_config_template(&detected);
         std::fs::write(&toml_path, content)?;
-        eprintln!("Created scrutin.toml");
+        eprintln!("Created .scrutin/config.toml");
     }
-
-    let scrutin_dir = pkg.root.join(".scrutin");
-    std::fs::create_dir_all(&scrutin_dir)?;
-    eprintln!("Created .scrutin/");
 
     // Write default runner scripts to .scrutin/<tool>/ so users can
     // customize them (e.g. swap pkgload::load_all() for library()).
@@ -780,7 +780,7 @@ fn generate_docs(out_dir: &Path) -> Result<()> {
     std::fs::write(&cli_md_path, md)?;
     eprintln!("  wrote {}", cli_md_path.display());
 
-    // Rendered scrutin.toml template (annotated template + commented
+    // Rendered .scrutin/config.toml template (annotated template + commented
     // keymap defaults) for the configuration docs page.
     let cfg_toml = render_config_template("<auto-detected from the project root at init time>");
     let cfg_path = out_dir.join("configuration-template.toml");

@@ -91,7 +91,7 @@ pub(super) enum Visibility {
 
 /// A single entry in a mode's binding table. `desc` is `Cow` so the static
 /// default tables can use string literals (`Cow::Borrowed`) at compile time
-/// while user-supplied bindings from scrutin.toml use owned strings
+/// while user-supplied bindings from .scrutin/config.toml use owned strings
 /// (`Cow::Owned`) auto-generated at parse time.
 pub(super) struct Binding {
     pub key: KeyCode,
@@ -217,7 +217,7 @@ pub(super) fn mode_color(mode: &Mode) -> ratatui::style::Color {
 // ── Config-driven keymap support ────────────────────────────────────────────
 //
 // Users can override the default bindings via `[keymap.<mode>]` tables in
-// scrutin.toml. Each subtable replaces the default bindings for that mode
+// .scrutin/config.toml. Each subtable replaces the default bindings for that mode
 // (replace semantics, not overlay): if `[keymap.normal]` exists at all, it
 // fully defines normal-mode bindings, and any default key not listed there
 // is unbound. `scrutin init` writes every default into the file so the
@@ -310,7 +310,7 @@ impl Action {
 }
 
 /// Format a `KeyCode + KeyModifiers` back into the textual form used in
-/// scrutin.toml. Inverse of `parse_key_string`. Used by `scrutin init`
+/// .scrutin/config.toml. Inverse of `parse_key_string`. Used by `scrutin init`
 /// when emitting the default keymap.
 pub(super) fn key_to_string(code: KeyCode, mods: KeyModifiers) -> String {
     let mut parts: Vec<&str> = Vec::new();
@@ -348,7 +348,7 @@ pub(super) fn key_to_string(code: KeyCode, mods: KeyModifiers) -> String {
     }
 }
 
-/// Parse a key string from scrutin.toml into a `(KeyCode, KeyModifiers)`.
+/// Parse a key string from .scrutin/config.toml into a `(KeyCode, KeyModifiers)`.
 /// Accepts:
 ///   - Single chars: `j`, `J` (uppercase implies shift),
 ///     symbols: `-`, `[`, `}`, `?`, `/`

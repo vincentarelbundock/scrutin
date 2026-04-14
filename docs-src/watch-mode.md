@@ -1,6 +1,6 @@
 # Watch Mode
 
-In watch mode, scrutin monitors your project and re-runs affected tests every time you save a file. It's on by default in the TUI and web: just run `scrutin` and start editing. Set `watch.enabled = false` in `scrutin.toml` (or pass `--set watch.enabled=false`) to opt out. The plain, GitHub, JUnit, and list reporters are always one-shot regardless.
+In watch mode, scrutin monitors your project and re-runs affected tests every time you save a file. It's on by default in the TUI and web: just run `scrutin` and start editing. Set `watch.enabled = false` in `.scrutin/config.toml` (or pass `--set watch.enabled=false`) to opt out. The plain, GitHub, JUnit, and list reporters are always one-shot regardless.
 
 ## What happens on save
 

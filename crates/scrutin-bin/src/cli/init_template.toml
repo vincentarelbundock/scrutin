@@ -1,7 +1,7 @@
 # scrutin configuration
 #
-# scrutin is configured via scrutin.toml in the project root. Fallback:
-# ~/.config/scrutin/scrutin.toml. There are no SCRUTIN_* environment
+# scrutin is configured via .scrutin/config.toml in the project root. Fallback:
+# ~/.config/scrutin/config.toml. There are no SCRUTIN_* environment
 # variables: this file is the only persistent source of truth.
 #
 # Any field below can be overridden at invocation time with

@@ -48,7 +48,7 @@ The TUI and web share a single keybinding table, defined in `scrutin_core::keyma
 
 ## Custom keybindings
 
-Override any binding in `scrutin.toml`. Each `[keymap.<mode>]` table fully replaces the defaults for that mode (replace, not overlay): deleting a line unbinds the key, deleting the whole subtable restores the built-in defaults.
+Override any binding in `.scrutin/config.toml`. Each `[keymap.<mode>]` table fully replaces the defaults for that mode (replace, not overlay): deleting a line unbinds the key, deleting the whole subtable restores the built-in defaults.
 
 ```toml
 [keymap.normal]

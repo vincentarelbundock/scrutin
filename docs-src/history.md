@@ -75,7 +75,7 @@ One row per `(run, file, subject)`. The fact table. Tool metadata (`tool`, `tool
 
 ### `extras`
 
-User-supplied key/value labels, populated from `[extras]` in `scrutin.toml` and `--set extras.KEY=VALUE` on the CLI. The only table where key names are not known at schema time. Everything scrutin captures itself has a dedicated column on `runs` or `results`. Typical contents:
+User-supplied key/value labels, populated from `[extras]` in `.scrutin/config.toml` and `--set extras.KEY=VALUE` on the CLI. The only table where key names are not known at schema time. Everything scrutin captures itself has a dedicated column on `runs` or `results`. Typical contents:
 
 ```toml
 [extras]

@@ -50,7 +50,7 @@ pub struct AppState {
     pub seq: Arc<std::sync::atomic::AtomicU64>,
     pub dep_map: Arc<RwLock<Option<HashMap<String, Vec<String>>>>>,
     pub initial_files: Arc<Vec<PathBuf>>,
-    /// Optional editor command from `[web].editor` in scrutin.toml. When
+    /// Optional editor command from `[web].editor` in .scrutin/config.toml. When
     /// set, wins over `$VISUAL` / `$EDITOR` for the "open in editor"
     /// action. Whitespace-split into argv tokens so wrappers like
     /// `"code --wait"` work.

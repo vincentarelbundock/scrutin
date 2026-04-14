@@ -50,7 +50,7 @@ Both invoke `jarl` once with every matching file (after include / exclude filter
 
 ## Configuration
 
-No configuration is required beyond the `jarl.toml` marker file. To override defaults in `scrutin.toml`:
+No configuration is required beyond the `jarl.toml` marker file. To override defaults in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]

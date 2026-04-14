@@ -78,7 +78,7 @@ Two pool implementations live side by side in `engine/pool.rs`:
 
 **ProcessPool flow**: a `VecDeque<RProcess>` gated by a `Semaphore`. Each worker reads a path on stdin, runs the test in-process, emits NDJSON to stdout, and is killed + respawned after the file completes.
 
-**Pool sizing**: default `min(available_parallelism, 8)` clamped to minimum 2. Configurable via `[run] workers` in `scrutin.toml`. In fork mode, "workers" controls the semaphore permits (concurrent children), not parent processes: a suite has exactly one parent.
+**Pool sizing**: default `min(available_parallelism, 8)` clamped to minimum 2. Configurable via `[run] workers` in `.scrutin/config.toml`. In fork mode, "workers" controls the semaphore permits (concurrent children), not parent processes: a suite has exactly one parent.
 
 **Pre-warming**: the parent (fork mode) or every worker (process mode) starts before any file is dispatched.
 

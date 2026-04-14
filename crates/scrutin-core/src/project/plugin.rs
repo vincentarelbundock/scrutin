@@ -31,7 +31,7 @@ pub trait Plugin: Send + Sync {
     fn name(&self) -> &'static str;
 
     /// Language identifier used as the top-level key under `[hooks.*]` in
-    /// scrutin.toml (e.g. "r", "python").
+    /// .scrutin/config.toml (e.g. "r", "python").
     fn language(&self) -> &'static str;
 
     /// Does this plugin apply to the given project root?
@@ -226,7 +226,7 @@ pub fn detect_plugins(root: &Path, tool_filter: &str) -> Result<Vec<Arc<dyn Plug
     if matches.is_empty() {
         bail!(
             "No test tools detected in {}. \
-             Configure suites explicitly in scrutin.toml or run scrutin from the project root.",
+             Configure suites explicitly in .scrutin/config.toml or run scrutin from the project root.",
             root.display()
         );
     }

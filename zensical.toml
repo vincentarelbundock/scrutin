@@ -39,6 +39,7 @@ favicon = "assets/logo.svg"
 custom_dir = "docs-src/overrides"
 font.text = "Inter"
 font.code = "JetBrains Mono"
+features = ["content.code.copy"]
 
 [[project.theme.palette]]
 scheme = "default"

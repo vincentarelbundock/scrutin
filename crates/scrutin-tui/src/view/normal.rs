@@ -128,19 +128,22 @@ pub(super) fn draw_side_pane(f: &mut ratatui::Frame, state: &mut AppState, area:
             state.nav.source_scroll_max = file_line_count(&path).saturating_sub(inner.height as usize);
         }
         _ => {
-            // Pending / Passed / Cancelled \u{2014} show per-test list, or the file
-            // source if there are no tests yet (e.g. Pending: not run yet).
+            // Pending / Skipped: the test list is uninformative (empty for
+            // Pending, or a single "(file)" marker from tinytest exit_file()
+            // for Skipped), so show the file source instead.
+            if matches!(status, FileStatus::Pending | FileStatus::Skipped { .. }) {
+                let h = inner.height as usize;
+                let src = load_source_context_ex(
+                    &path, None, h,
+                    state.nav.source_scroll, state.nav.source_hscroll,
+                );
+                f.render_widget(Paragraph::new(src), inner);
+                state.nav.source_scroll_max = file_line_count(&path).saturating_sub(inner.height as usize);
+                return;
+            }
+            // Passed / Cancelled \u{2014} show per-test list, or a placeholder when
+            // the file produced no tests.
             if tests.is_empty() {
-                if matches!(status, FileStatus::Pending) {
-                    let h = inner.height as usize;
-                    let src = load_source_context_ex(
-                        &path, None, h,
-                        state.nav.source_scroll, state.nav.source_hscroll,
-                    );
-                    f.render_widget(Paragraph::new(src), inner);
-                    state.nav.source_scroll_max = file_line_count(&path).saturating_sub(inner.height as usize);
-                    return;
-                }
                 let msg = match &status {
                     FileStatus::Cancelled => " (cancelled)",
                     _                     => " (no tests)",

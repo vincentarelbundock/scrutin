@@ -95,14 +95,14 @@ impl Provenance {
 /// One run's worth of provenance plus user labels.
 ///
 /// `provenance` is the typed automatic capture; `labels` carries the
-/// free-form `[extras]` key/value pairs from `scrutin.toml` and
+/// free-form `[extras]` key/value pairs from `.scrutin/config.toml` and
 /// `--set extras.KEY=VALUE` CLI overrides.
 #[derive(Debug, Clone, Default)]
 pub struct RunMetadata {
     /// Automatic provenance. Populated by [`capture_provenance`]; an
     /// all-`None` value means `[metadata] enabled = false`.
     pub provenance: Provenance,
-    /// User labels from `[extras]` in `scrutin.toml`.
+    /// User labels from `[extras]` in `.scrutin/config.toml`.
     pub labels: BTreeMap<String, String>,
 }
 

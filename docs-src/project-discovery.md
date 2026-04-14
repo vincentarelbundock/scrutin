@@ -8,7 +8,7 @@ Scrutin needs to know two things: which tools to run, and where the test files l
 
 ## Explicit suites
 
-Declare `[[suite]]` entries in `scrutin.toml` to control exactly what runs. When at least one `[[suite]]` is present, auto-detection is skipped entirely.
+Declare `[[suite]]` entries in `.scrutin/config.toml` to control exactly what runs. When at least one `[[suite]]` is present, auto-detection is skipped entirely.
 
 ```toml
 [[suite]]
@@ -71,7 +71,7 @@ scrutin                     # root is .
 scrutin path/to/myproject   # root is path/to/myproject
 ```
 
-All paths in `scrutin.toml` (test_dirs, source_dirs, runner, hooks) are relative to this root.
+All paths in `.scrutin/config.toml` (test_dirs, source_dirs, runner, hooks) are relative to this root.
 
 Scrutin does not walk up to find a parent project. If you run `scrutin` from inside `tests/testthat/`, it looks for tools in `tests/testthat/`, not in the parent R package. Run it from the project root or pass the path explicitly.
 
@@ -106,14 +106,14 @@ Source directories are used for dependency tracking in watch mode and for the fi
 
 ## Config file
 
-Scrutin looks for `scrutin.toml` in the project root directory. If none is found, it falls back to `~/.config/scrutin/scrutin.toml`. See the [configuration reference](reference/configuration.md) for the full schema.
+Scrutin looks for `.scrutin/config.toml` in the project root directory. If none is found, it falls back to `~/.config/scrutin/config.toml`. See the [configuration reference](reference/configuration.md) for the full schema.
 
 ## Virtual environment detection (Python)
 
 For Python projects, scrutin resolves the interpreter in this order:
 
-1. `[python].interpreter` in `scrutin.toml`
-2. `[python].venv` in `scrutin.toml` (path to a virtualenv directory)
+1. `[python].interpreter` in `.scrutin/config.toml`
+2. `[python].venv` in `.scrutin/config.toml` (path to a virtualenv directory)
 3. `$VIRTUAL_ENV` environment variable
 4. `.venv/` or `venv/` in the project root
 5. `$CONDA_PREFIX` environment variable
@@ -129,7 +129,7 @@ interpreter = "python3.12" # skip venv detection entirely
 
 ## Troubleshooting
 
-**"No test tools detected"**: scrutin found no marker files in the directory you pointed it at. Either run from the project root, pass the root path explicitly, or add `[[suite]]` entries to `scrutin.toml`.
+**"No test tools detected"**: scrutin found no marker files in the directory you pointed it at. Either run from the project root, pass the root path explicitly, or add `[[suite]]` entries to `.scrutin/config.toml`.
 
 **Wrong tool detected**: use `--set run.tool=pytest` to restrict auto-detection, or switch to explicit `[[suite]]` entries.
 

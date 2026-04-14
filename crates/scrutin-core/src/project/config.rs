@@ -24,7 +24,7 @@ pub struct Config {
     pub hooks: HooksConfig,
     pub metadata: MetadataConfig,
     /// User-supplied key/value labels attached to every run. Populated from
-    /// `[extras]` in `scrutin.toml` and `--set extras.KEY=VALUE` on the CLI.
+    /// `[extras]` in `.scrutin/config.toml` and `--set extras.KEY=VALUE` on the CLI.
     /// Values may be any TOML scalar (string, int, float, bool) and are
     /// coerced to strings at the storage/reporter boundary.
     #[serde(default, deserialize_with = "deserialize_extra_map")]
@@ -163,7 +163,7 @@ pub struct WebConfig {
 }
 
 /// Explicit declaration of a single test suite. Used in `[[suite]]` array
-/// of tables in scrutin.toml. When at least one suite is declared,
+/// of tables in .scrutin/config.toml. When at least one suite is declared,
 /// auto-detection is skipped.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct SuiteConfig {
@@ -315,9 +315,9 @@ impl Config {
         }
     }
 
-    /// Load config from `root/scrutin.toml`, falling back to user config.
+    /// Load config from `root/.scrutin/config.toml`, falling back to user config.
     pub fn load(root: &Path) -> Result<Self> {
-        let candidate = root.join("scrutin.toml");
+        let candidate = root.join(".scrutin").join("config.toml");
         if candidate.is_file() {
             let contents = std::fs::read_to_string(&candidate)?;
             let config: Config = toml::from_str(&contents)?;
@@ -327,7 +327,7 @@ impl Config {
 
         // Fallback to user-level config
         if let Some(config_dir) = dirs::config_dir() {
-            let user_config = config_dir.join("scrutin").join("scrutin.toml");
+            let user_config = config_dir.join("scrutin").join("config.toml");
             if user_config.is_file() {
                 let contents = std::fs::read_to_string(&user_config)?;
                 let config: Config = toml::from_str(&contents)?;
@@ -378,7 +378,7 @@ impl Config {
     /// as needed.
     ///
     /// Precedence: `--set` overlays the file-loaded config and loses only
-    /// to surviving CLI flags applied by the caller. `scrutin.toml` is the
+    /// to surviving CLI flags applied by the caller. `.scrutin/config.toml` is the
     /// only persistent source of truth — there are intentionally no
     /// `SCRUTIN_*` config env vars to layer in between.
     pub fn apply_set_overrides(&mut self, entries: &[String]) -> Result<()> {

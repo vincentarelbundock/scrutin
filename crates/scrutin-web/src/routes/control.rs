@@ -207,7 +207,7 @@ async fn open_editor(
     let hint = skipped_terminal_editor.map(|name| {
         format!(
             "$EDITOR={name} is a terminal editor and can't attach to the browser; \
-             fell back to the system default. Set [web].editor in scrutin.toml \
+             fell back to the system default. Set [web].editor in .scrutin/config.toml \
              (e.g. \"code\") to pick a GUI editor."
         )
     });

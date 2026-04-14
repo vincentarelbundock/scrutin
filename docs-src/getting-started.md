@@ -14,9 +14,30 @@ scrutin --set watch.enabled=false  # TUI, one-shot
 
 If your project uses both R and Python, all suites run concurrently in a single invocation.
 
+## Installation
+
+Prebuilt binaries are published with each [release](https://github.com/vincentarelbundock/scrutin/releases).
+
+Install the latest release via shell script (macOS, Linux):
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.sh | sh
+```
+
+Install the latest release via PowerShell (Windows):
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.ps1 | iex"
+```
+
 ## Supported tools
 
-Scrutin supports [testthat](tools/testthat.md), [tinytest](tools/tinytest.md), [pointblank](tools/pointblank.md), [validate](tools/validate.md), and [jarl](tools/jarl.md) for R, plus [pytest](tools/pytest.md) and [Great Expectations](tools/great-expectations.md) for Python. Each tool page includes a minimal example with directory structure and configuration. All matching tools activate automatically. See [Project Discovery](project-discovery.md) for the detection rules.
+Scrutin supports the following tools. Each tool page includes a minimal example with directory structure and configuration. All matching tools activate automatically. See [Project Discovery](project-discovery.md) for the detection rules.
+
+| Language | Unit tests | Data validation | Linter |
+| -------- | ---------- | --------------- | ------ |
+| R        | [testthat](tools/testthat.md), [tinytest](tools/tinytest.md) | [pointblank](tools/pointblank.md), [validate](tools/validate.md) | [jarl](tools/jarl.md) |
+| Python   | [pytest](tools/pytest.md) | [Great Expectations](tools/great-expectations.md) | [ruff](tools/ruff.md) |
 
 To restrict to one tool: `--set run.tool=testthat`.
 
@@ -28,4 +49,4 @@ Generate a config file and `.scrutin/` directory:
 scrutin init
 ```
 
-This creates a `scrutin.toml` with sensible defaults. You can customize workers, timeouts, filters, and more: see the [configuration reference](reference/configuration.md).
+This creates a `.scrutin/config.toml` with sensible defaults. You can customize workers, timeouts, filters, and more: see the [configuration reference](reference/configuration.md).

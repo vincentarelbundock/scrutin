@@ -2,7 +2,7 @@
 
 Filtering controls which test files are included in a run. All glob patterns match against test file **basenames** (not full paths) and are evaluated before files are dispatched to a worker.
 
-## scrutin.toml
+## .scrutin/config.toml
 
 The base filters live in `[filter]`:
 

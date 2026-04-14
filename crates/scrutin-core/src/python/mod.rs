@@ -47,7 +47,7 @@ const PATH_PY: &str = "python3";
 /// Locate a Python interpreter to spawn workers with.
 ///
 /// Resolution order:
-///   1. Explicit `venv_override` from `[python].venv` in scrutin.toml
+///   1. Explicit `venv_override` from `[python].venv` in .scrutin/config.toml
 ///   2. `$VIRTUAL_ENV` environment variable
 ///   3. `<root>/.venv` and `<root>/venv` directories
 ///   4. `$CONDA_PREFIX`

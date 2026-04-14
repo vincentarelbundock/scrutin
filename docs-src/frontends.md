@@ -88,4 +88,4 @@ A file that fails and then passes on rerun is marked **flaky**. Flaky results ap
 
 Scrutin records provenance for every run: version, OS, hostname, git SHA, branch, dirty state, and CI provider. This is written to JUnit XML and the local DuckDB history database.
 
-Add custom labels with `--set metadata.extra.key=value`. Disable provenance capture with `[metadata] enabled = false` in `scrutin.toml`.
+Add custom labels with `--set metadata.extra.key=value`. Disable provenance capture with `[metadata] enabled = false` in `.scrutin/config.toml`.

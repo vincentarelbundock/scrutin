@@ -15,7 +15,7 @@ make positron   # build + install into Positron
 
 The `scrutin` binary must be on `$PATH`, or set `scrutin.binaryPath` in VS Code settings.
 
-The extension activates automatically when it detects `scrutin.toml`, `DESCRIPTION`, or `pyproject.toml` in the workspace.
+The extension activates automatically when it detects `.scrutin/config.toml`, `DESCRIPTION`, or `pyproject.toml` in the workspace.
 
 ### Commands
 

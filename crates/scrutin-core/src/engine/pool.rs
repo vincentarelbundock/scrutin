@@ -23,7 +23,7 @@ const MIN_DEFAULT_WORKERS: usize = 2;
 
 /// Ceiling for `default_workers()`. Past 8, R/Python workers start to fight
 /// for cache and the per-worker memory cost dominates. Users who really
-/// want more can set `[run] workers` in scrutin.toml.
+/// want more can set `[run] workers` in .scrutin/config.toml.
 const MAX_DEFAULT_WORKERS: usize = 8;
 
 /// Shared cancellation state for an in-flight run. The pool checks the
@@ -360,7 +360,7 @@ impl ProcessPool {
         // Physical cores, not logical: R/Python tests are CPU-bound on real
         // cores; SMT/hyperthreads add little and fight for cache. The upper
         // cap limits per-worker memory and DB-lock contention; users can
-        // override via `[run] workers` in scrutin.toml.
+        // override via `[run] workers` in .scrutin/config.toml.
         std::thread::available_parallelism()
             .map(usize::from)
             .unwrap_or(MIN_DEFAULT_WORKERS)

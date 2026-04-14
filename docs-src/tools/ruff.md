@@ -62,7 +62,7 @@ Both invoke `ruff check --fix` once with every matching file (after include / ex
 
 No scrutin-specific configuration is required beyond the ruff config marker. ruff's own configuration (`ruff.toml`, `.ruff.toml`, or `[tool.ruff]` in `pyproject.toml`) controls which rules are enabled, excluded paths, and other linter settings.
 
-To override the default suite in `scrutin.toml`:
+To override the default suite in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]

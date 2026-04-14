@@ -135,7 +135,7 @@ CREATE INDEX idx_results_tool         ON results(tool);
 
 ### `extras`
 
-User-supplied key/value labels attached to a run. Populated from `[extras]` in `scrutin.toml` and `--set extras.KEY=VALUE` on the CLI.
+User-supplied key/value labels attached to a run. Populated from `[extras]` in `.scrutin/config.toml` and `--set extras.KEY=VALUE` on the CLI.
 
 ```sql
 CREATE TABLE extras (
@@ -292,7 +292,7 @@ SELECT test_file FROM dependencies WHERE source_file = 'R/math.R';
    - Populate `build_*` from CI env vars per the provider table.
    - Populate `os_release` / `os_version` / `os_arch`.
    - Keep the `labels` half of `RunMetadata` as-is; that's what flows into `extras`.
-6. **Config rename**: `[metadata.extra]` → `[extras]` in `scrutin.toml` parsing (`crates/scrutin-core/src/project/config.rs`). CLI override `--set metadata.extra.KEY=VALUE` → `--set extras.KEY=VALUE`. Update `crates/scrutin-bin/src/cli/init_template.toml`.
+6. **Config rename**: `[metadata.extra]` → `[extras]` in `.scrutin/config.toml` parsing (`crates/scrutin-core/src/project/config.rs`). CLI override `--set metadata.extra.KEY=VALUE` → `--set extras.KEY=VALUE`. Update `crates/scrutin-bin/src/cli/init_template.toml`.
 7. **Drop `rerun_flaky` logic** from `flaky_tests` query: compute flakiness as `retries > 0 AND outcome = 'pass'` aggregated cross-run.
 8. **Startup cleanup**: on `open()`, if any legacy artifact exists (`.scrutin/depmap.json`, `.scrutin/hashes.json`, or the old DuckDB-format `state.db`), delete it. Fresh DB is created from scratch.
 9. **Tests**: port the existing `json_cache` round-trip tests to the SQLite layer. Add a test that covers the full `record_run` insert path and the flaky-test query.

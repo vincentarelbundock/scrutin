@@ -121,7 +121,7 @@ impl RProcess {
         if let Some(port) = tcp_port {
             cmd.env("SCRUTIN_TCP_PORT", port.to_string());
         }
-        // [env] from scrutin.toml. Applied LAST so user vars win over both
+        // [env] from .scrutin/config.toml. Applied LAST so user vars win over both
         // inherited parent env (tokio's default) and scrutin's own injections
         // above. An empty value is intentional -- sets the var to empty.
         cmd.envs(pkg.env.iter());

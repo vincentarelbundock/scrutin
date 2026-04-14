@@ -14,7 +14,7 @@
   },
   "categories": ["Testing"],
   "activationEvents": [
-    "workspaceContains:**/scrutin.toml",
+    "workspaceContains:**/.scrutin/config.toml",
     "workspaceContains:**/DESCRIPTION",
     "workspaceContains:**/pyproject.toml"
   ],
