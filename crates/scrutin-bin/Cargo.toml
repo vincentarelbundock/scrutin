@@ -2,6 +2,14 @@
 name = "scrutin"
 version.workspace = true
 edition.workspace = true
+description.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [lib]
 name = "scrutin_lib"
@@ -12,9 +20,9 @@ name = "scrutin"
 path = "src/main.rs"
 
 [dependencies]
-scrutin-core = { path = "../scrutin-core" }
-scrutin-tui = { path = "../scrutin-tui" }
-scrutin-web = { path = "../scrutin-web" }
+scrutin-core.workspace = true
+scrutin-tui.workspace = true
+scrutin-web.workspace = true
 clap.workspace = true
 anyhow.workspace = true
 ratatui.workspace = true

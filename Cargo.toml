@@ -5,8 +5,23 @@ members = ["crates/scrutin-core", "crates/scrutin-tui", "crates/scrutin-web", "c
 [workspace.package]
 version = "0.0.1-alpha.1"
 edition = "2024"
+description = "Quality dashboard, file watcher, and parallel runner."
+license = "MIT"
+repository = "https://github.com/vincentarelbundock/scrutin"
+homepage = "https://vincentarelbundock.github.io/scrutin"
+authors = ["Vincent Arel-Bundock"]
+readme = "README.md"
+keywords = ["testing", "test-runner", "watch", "testthat", "pytest"]
+categories = ["development-tools::testing", "command-line-utilities"]
 
 [workspace.dependencies]
+# Internal crates. `path` is used for local builds; `version` is what ends up
+# on crates.io. Must be bumped in lockstep with `workspace.package.version`.
+scrutin-core = { path = "crates/scrutin-core", version = "0.0.1-alpha.1" }
+scrutin-tui  = { path = "crates/scrutin-tui",  version = "0.0.1-alpha.1" }
+scrutin-web  = { path = "crates/scrutin-web",  version = "0.0.1-alpha.1" }
+
+# External
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 clap = { version = "4", features = ["derive"] }
@@ -25,3 +40,20 @@ futures = "0.3"
 syntect = { version = "5", default-features = false, features = ["parsing", "default-syntaxes", "default-themes", "regex-fancy", "html"] }
 axum = { version = "0.8", features = ["tokio", "http1", "json", "macros"] }
 rusqlite = { version = "0.39", features = ["bundled"] }
+
+# -- cargo-dist ---------------------------------------------------------------
+# `dist` (formerly cargo-dist) builds prebuilt binaries and installers for
+# GitHub Releases. Run `dist init` locally to refresh the generated CI, or
+# `dist build` to build artifacts for the current host.
+
+[workspace.metadata.dist]
+cargo-dist-version = "0.28.0"
+ci = "github"
+installers = ["shell", "powershell"]
+targets = [
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-pc-windows-msvc",
+]
+pr-run-mode = "plan"

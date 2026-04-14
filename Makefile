@@ -1,7 +1,28 @@
-.PHONY: install demo tinytable watch depmap web sync-webview vscode positron rstudio editors docs docs-serve revert stage-docs
+.PHONY: install demo tinytable watch depmap web sync-webview vscode positron rstudio editors docs docs-serve revert stage-docs release release-draft version
+
+# Workspace version, parsed from the first `version = "..."` line in Cargo.toml.
+VERSION := $(shell awk -F'"' '/^version/ { print $$2; exit }' Cargo.toml)
 
 install:
 	cargo install --path crates/scrutin-bin
+
+version:
+	@echo $(VERSION)
+
+# Create a published GitHub Release for the current workspace version. This
+# triggers .github/workflows/release.yml, which builds binaries for every
+# target and publishes the crates to crates.io. Refuses to run on a dirty
+# tree so the tag actually reflects what's on disk.
+release:
+	@test -z "$$(git status --porcelain)" || { echo "working tree is dirty; commit or stash first"; exit 1; }
+	@echo "Creating release v$(VERSION) from $$(git rev-parse --short HEAD)"
+	gh release create v$(VERSION) --title "v$(VERSION)" --generate-notes
+
+# Same as `release` but leaves the release as a draft so you can review it
+# before publishing (publishing is what fires the workflow).
+release-draft:
+	@test -z "$$(git status --porcelain)" || { echo "working tree is dirty; commit or stash first"; exit 1; }
+	gh release create v$(VERSION) --title "v$(VERSION)" --generate-notes --draft
 
 demo:
 	uv run cargo run -- demo/

@@ -1,0 +1,126 @@
+name: Release
+
+# Triggered when a GitHub Release is published (draft, then publish in the UI
+# or via `gh release create v0.1.0 --generate-notes`). The workflow builds
+# scrutin binaries for every target in `[workspace.metadata.dist].targets`,
+# uploads them to the Release, then publishes the workspace crates to
+# crates.io in dependency order.
+#
+# Required repository secrets:
+#   CARGO_REGISTRY_TOKEN   crates.io token with publish rights.
+# The default GITHUB_TOKEN covers the release-asset upload.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Binaries: cargo-dist style matrix build, uploaded to the GitHub Release.
+  # ---------------------------------------------------------------------------
+  binaries:
+    name: build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-14,     target: aarch64-apple-darwin,     archive: tar.xz }
+          - { os: macos-13,     target: x86_64-apple-darwin,      archive: tar.xz }
+          - { os: ubuntu-24.04, target: x86_64-unknown-linux-gnu, archive: tar.xz }
+          - { os: windows-2022, target: x86_64-pc-windows-msvc,   archive: zip    }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.target }} -p scrutin
+
+      - name: Package
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ github.event.release.tag_name }}"
+          target="${{ matrix.target }}"
+          name="scrutin-${tag}-${target}"
+          out="dist/${name}"
+          mkdir -p "${out}"
+          if [[ "${target}" == *windows* ]]; then
+            cp "target/${target}/release/scrutin.exe" "${out}/"
+            bin_ext=".exe"
+          else
+            cp "target/${target}/release/scrutin" "${out}/"
+            bin_ext=""
+          fi
+          cp README.md LICENSE "${out}/"
+          if [[ "${{ matrix.archive }}" == "zip" ]]; then
+            (cd dist && 7z a "${name}.zip" "${name}" >/dev/null)
+            echo "artifact=dist/${name}.zip" >> "$GITHUB_OUTPUT"
+          else
+            (cd dist && tar -cJf "${name}.tar.xz" "${name}")
+            echo "artifact=dist/${name}.tar.xz" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.package.outputs.artifact }}
+
+  # ---------------------------------------------------------------------------
+  # crates.io: publish in dependency order. Each step waits for the index
+  # to propagate so the next crate can resolve its sibling dep.
+  # ---------------------------------------------------------------------------
+  publish-crates:
+    name: publish to crates.io
+    needs: binaries
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Publish scrutin-core
+        run: cargo publish -p scrutin-core --locked --token "${CARGO_REGISTRY_TOKEN}"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io index
+        run: sleep 45
+
+      # scrutin-tui and scrutin-web only depend on scrutin-core, so they can
+      # run in parallel after the index has updated.
+      - name: Publish scrutin-tui
+        run: cargo publish -p scrutin-tui --locked --token "${CARGO_REGISTRY_TOKEN}"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish scrutin-web
+        run: cargo publish -p scrutin-web --locked --token "${CARGO_REGISTRY_TOKEN}"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io index
+        run: sleep 45
+
+      - name: Publish scrutin
+        run: cargo publish -p scrutin --locked --token "${CARGO_REGISTRY_TOKEN}"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

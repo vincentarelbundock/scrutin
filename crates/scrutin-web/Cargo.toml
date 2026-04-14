@@ -2,9 +2,17 @@
 name = "scrutin-web"
 version.workspace = true
 edition.workspace = true
+description = "Browser dashboard for scrutin: axum server streaming live run state over SSE to an embedded vanilla frontend."
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
-scrutin-core = { path = "../scrutin-core" }
+scrutin-core.workspace = true
 
 serde.workspace = true
 serde_json.workspace = true

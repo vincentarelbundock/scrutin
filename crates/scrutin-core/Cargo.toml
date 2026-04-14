@@ -2,6 +2,14 @@
 name = "scrutin-core"
 version.workspace = true
 edition.workspace = true
+description = "Language-agnostic engine for scrutin: discovery, dep maps, NDJSON protocol, SQLite persistence."
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 serde.workspace = true
