@@ -1,10 +1,10 @@
 name: Release
 
 # Triggered when a GitHub Release is published (draft, then publish in the UI
-# or via `gh release create v0.1.0 --generate-notes`). The workflow builds
-# scrutin binaries for every target in `[workspace.metadata.dist].targets`,
-# uploads them to the Release, then publishes the workspace crates to
-# crates.io in dependency order.
+# or via `gh release create v0.1.0 --generate-notes` / `make release`). The
+# workflow builds scrutin binaries for every target in
+# `[workspace.metadata.dist].targets`, uploads them to the Release, then
+# publishes the workspace crates to crates.io in dependency order.
 #
 # Required repository secrets:
 #   CARGO_REGISTRY_TOKEN   crates.io token with publish rights.
@@ -63,10 +63,8 @@ jobs:
           mkdir -p "${out}"
           if [[ "${target}" == *windows* ]]; then
             cp "target/${target}/release/scrutin.exe" "${out}/"
-            bin_ext=".exe"
           else
             cp "target/${target}/release/scrutin" "${out}/"
-            bin_ext=""
           fi
           cp README.md LICENSE "${out}/"
           if [[ "${{ matrix.archive }}" == "zip" ]]; then
