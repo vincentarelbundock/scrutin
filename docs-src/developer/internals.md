@@ -65,8 +65,8 @@ Multi-suite projects get one pool per tool, all created and joined inside `run_e
 
 Two pool implementations live side by side in `engine/pool.rs`:
 
-- **`ForkPool`** (Unix default, `fork_workers: true`): one long-lived parent process per suite, forks a child per test file for full copy-on-write isolation.
-- **`ProcessPool`** (Windows fallback, or `fork_workers: false`): runs tests directly in the worker, killing and respawning the subprocess after each file.
+- **`ProcessPool`** (default everywhere, also the Windows-only option): runs tests directly in the worker, killing and respawning the subprocess after each file. Safe even when test code forks or uses threaded numerical libraries.
+- **`ForkPool`** (opt-in Unix only, `fork_workers: true`): one long-lived parent process per suite, forks a child per test file for full copy-on-write isolation. Faster startup, but unsafe when the test or any package it loads itself forks (`parallel::mclapply` in R, `multiprocessing` with `fork` start method in Python, BLAS/OpenMP-threaded code, etc.): forking an already-multithreaded parent can deadlock or crash the child, which is why it is no longer the default.
 
 **ForkPool flow** (`engine/pool.rs::ForkPool::run_tests`):
 

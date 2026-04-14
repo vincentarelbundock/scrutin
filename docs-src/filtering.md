@@ -35,7 +35,15 @@ tools   = ["pytest"]
 include = ["test_integration_*"]
 ```
 
-Groups are selected at runtime via `--set filter.active_group=<name>` (or any other suitable `-s` override into `filter`). When `tools` is non-empty, the group applies only to suites whose tool matches.
+Groups are selected at runtime with `-g/--group`:
+
+```bash
+scrutin -g fast
+scrutin -g fast,py_integration   # comma-separated (repeatable)
+scrutin --group fast --group py_integration
+```
+
+Selecting any group **replaces** the top-level `[filter]` include/exclude/tools entirely; the top-level lists apply only when no `-g` is passed. Multiple groups union their `include`, `exclude`, and `tools` lists (so `-g group1,group2` runs the union of both). A group with an empty `tools` list lifts the tool restriction for the whole selection. Unknown group names error out and list the known groups. `--set filter.include=[...]` remains available for one-off overrides that aren't worth naming.
 
 ## TUI filter
 
@@ -53,10 +61,12 @@ Filtering is applied **after** dependency resolution:
 
 ## Glob dialect
 
-A deliberately narrow shell-style glob, implemented in `scrutin_core::filter`:
+Filters use the `globset` matcher (same dialect as ripgrep / `.gitignore`):
 
-- `*` matches any (possibly empty) run of characters
-- `?` matches exactly one character
-- any other character matches literally
+- `*` matches any run of non-`/` characters
+- `?` matches exactly one non-`/` character
+- `[abc]` / `[!abc]` character classes
+- `{foo,bar}` alternation
+- `\` escapes a metacharacter
 
-There are no `**` recursive wildcards, no `[...]` character classes, and no escape sequences. Matching is anchored at both ends and runs against the **basename only** : patterns never see directory components. So `test-model*` matches `test-model-fits.R`; `*/snapshot/*` matches nothing because the filename has no `/` in it.
+Matching is anchored at both ends and runs against the **basename only**, so `/` in a pattern has no effect (the filename has no `/` in it). `test-model*` matches `test-model-fits.R`; `test-{model,plot}*.R` matches either prefix; `test-pkg-[!m]*.R` matches everything except the `m`-prefixed pkg suites. Invalid patterns (e.g. unclosed `[`) are treated as no-match rather than erroring.

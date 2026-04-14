@@ -191,12 +191,18 @@ pub struct RunConfig {
     /// Default "auto" detects all matching tools.
     pub tool: String,
     pub workers: Option<usize>,
-    /// Fork-based isolation (Linux/macOS only, default true). When true,
+    /// Fork-based isolation (Linux/macOS only, default false). When true,
     /// each worker loads the project once then fork()s per test file. Each
     /// child gets a COW copy of the warm interpreter state, providing both
-    /// fast startup and full process isolation. When false, workers are
-    /// killed and respawned after every file (slower but works on Windows).
+    /// fast startup and full process isolation. When false (the default),
+    /// workers are killed and respawned after every file: slower but safe.
     /// Automatically disabled on Windows where fork() is unavailable.
+    ///
+    /// Dangerous: if a test (or any package it loads) itself spawns forked
+    /// workers (e.g. R's `parallel::mclapply`, Python's `multiprocessing`
+    /// with the `fork` start method), forking an already-multithreaded
+    /// parent can deadlock or crash the child. Only enable when you are
+    /// confident no code under test forks on its own.
     pub fork_workers: bool,
     /// Stop after this many failing files (failed + errored). 0 = unlimited.
     pub max_fail: u32,
@@ -231,7 +237,7 @@ impl Default for RunConfig {
         Self {
             tool: "auto".to_string(),
             workers: None,
-            fork_workers: true,
+            fork_workers: false,
             max_fail: 0,
             color: true,
             shuffle: false,

@@ -40,6 +40,7 @@ futures = "0.3"
 syntect = { version = "5", default-features = false, features = ["parsing", "default-syntaxes", "default-themes", "regex-fancy", "html"] }
 axum = { version = "0.8", features = ["tokio", "http1", "json", "macros"] }
 rusqlite = { version = "0.39", features = ["bundled"] }
+globset = "0.4"
 
 # Config for 'dist'
 [workspace.metadata.dist]

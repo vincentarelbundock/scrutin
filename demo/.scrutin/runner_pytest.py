@@ -163,7 +163,7 @@ def run_test(path):
             "-p", "no:cacheprovider",
             "-p", "no:terminalreporter",
         ]
-        # User escape hatch: extra_args from scrutin.toml [pytest], JSON-encoded.
+        # User escape hatch: extra_args from .scrutin/config.toml [pytest], JSON-encoded.
         extra = os.environ.get("SCRUTIN_PYTEST_EXTRA_ARGS")
         if extra:
             try:

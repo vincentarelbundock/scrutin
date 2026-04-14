@@ -2,69 +2,46 @@
 //!
 //! ## Dialect
 //!
-//! A small, deliberately narrow shell-style glob:
+//! Powered by the `globset` crate (same matcher as ripgrep / `ignore`):
 //!
-//! - `*` matches any (possibly empty) sequence of characters
-//! - `?` matches exactly one character
-//! - all other characters match literally (no `[…]` ranges, no escape)
+//! - `*` matches any run of characters except `/`
+//! - `**` matches any run of characters including `/` (recursive)
+//! - `?` matches exactly one character except `/`
+//! - `[abc]` / `[!abc]` character classes
+//! - `{a,b}` alternation
+//! - backslash escapes a metacharacter
 //!
-//! Matching is anchored at both ends — the pattern must consume the whole
-//! input — and runs in O(p + t) via standard backtracking pointers (no
-//! recursion, no exponential worst case). Patterns are matched against
-//! file basenames, not full paths.
+//! Patterns are matched against file **basenames** (not full paths), so
+//! `/` in a pattern effectively never matches. That's intentional: scrutin's
+//! filters always scope to a single filename.
 
+use globset::{Glob, GlobSet, GlobSetBuilder};
 use std::path::PathBuf;
 
-/// Match `text` against a `*`/`?` glob pattern. Anchored at both ends.
+/// Match a basename against a single glob pattern. Anchored at both ends.
 ///
-/// Examples (verified by unit tests):
-/// - `glob_match("test_*", "test_foo.py")` → true
-/// - `glob_match("*slow*", "test_slow_db.py")` → true
-/// - `glob_match("test-?.R", "test-1.R")` → true
-/// - `glob_match("*ab*abc", "abababc")` → true (correct backtracking)
-pub fn glob_match(pattern: &str, text: &str) -> bool {
-    let p: Vec<char> = pattern.chars().collect();
-    let t: Vec<char> = text.chars().collect();
-
-    let (mut pi, mut ti) = (0usize, 0usize);
-    // When we hit a `*`, remember where it was and how much of `text` was
-    // consumed at that point. On a later mismatch we rewind to just-after
-    // the star and let it consume one more character. This is the standard
-    // linear-time glob algorithm — O(|p| + |t|) for typical inputs, with
-    // the worst case bounded by `|p| * |t|` (no exponential blowup).
-    let mut star: Option<usize> = None;
-    let mut match_ti: usize = 0;
-
-    while ti < t.len() {
-        if pi < p.len() && (p[pi] == '?' || p[pi] == t[ti]) {
-            pi += 1;
-            ti += 1;
-        } else if pi < p.len() && p[pi] == '*' {
-            star = Some(pi);
-            match_ti = ti;
-            pi += 1;
-        } else if let Some(s) = star {
-            pi = s + 1;
-            match_ti += 1;
-            ti = match_ti;
-        } else {
-            return false;
-        }
+/// Invalid patterns return `false` rather than erroring: filter patterns
+/// come from user config and a typo should not crash the runner.
+///
+/// Prefer `apply_include_exclude` when matching a whole list of files
+/// against many patterns: it compiles a `GlobSet` once and checks all
+/// patterns in one pass per file.
+pub fn matches_name(pattern: &str, name: &str) -> bool {
+    match Glob::new(pattern) {
+        Ok(g) => g.compile_matcher().is_match(name),
+        Err(_) => false,
     }
-    // Trailing stars in the pattern match the empty tail.
-    while pi < p.len() && p[pi] == '*' {
-        pi += 1;
-    }
-    pi == p.len()
 }
 
 /// Apply include + exclude filters in a single retain pass over `files`.
-/// Computes the basename once per path, instead of twice (which the
-/// previous `apply_filters` + `apply_excludes` pair did).
 ///
 /// - Empty `includes` means "include everything" (no positive filter).
 /// - A path is kept iff it matches *any* include pattern (or includes is
 ///   empty) AND matches *no* exclude pattern.
+///
+/// Compiles each list into a `GlobSet` once, then matches all patterns in
+/// one pass per file. Invalid patterns are silently skipped (same rationale
+/// as `matches_name`).
 pub fn apply_include_exclude(
     files: &mut Vec<PathBuf>,
     includes: &[String],
@@ -73,77 +50,88 @@ pub fn apply_include_exclude(
     if includes.is_empty() && excludes.is_empty() {
         return;
     }
+    let include_set = build_glob_set(includes);
+    let exclude_set = build_glob_set(excludes);
     files.retain(|f| {
         let name = f.file_name().unwrap_or_default().to_string_lossy();
-        let included = includes.is_empty() || includes.iter().any(|p| glob_match(p, &name));
+        let included = includes.is_empty() || include_set.is_match(name.as_ref());
         if !included {
             return false;
         }
-        !excludes.iter().any(|p| glob_match(p, &name))
+        !exclude_set.is_match(name.as_ref())
     });
 }
 
-/// Convenience for callers that have a single pattern and a basename
-/// already in hand (e.g. the TUI's active filter). Equivalent to
-/// `glob_match(pattern, name)` — exposed under a clearer name so the
-/// dialect's "match basenames" convention is enforced at one entry point.
-pub fn matches_name(pattern: &str, name: &str) -> bool {
-    glob_match(pattern, name)
+fn build_glob_set(patterns: &[String]) -> GlobSet {
+    let mut builder = GlobSetBuilder::new();
+    for p in patterns {
+        if let Ok(g) = Glob::new(p) {
+            builder.add(g);
+        }
+    }
+    builder.build().unwrap_or_else(|_| GlobSet::empty())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // ── glob_match basics ───────────────────────────────────────────────────
-
     #[test]
     fn literal_exact_match() {
-        assert!(glob_match("test_foo.py", "test_foo.py"));
-        assert!(!glob_match("test_foo.py", "test_bar.py"));
+        assert!(matches_name("test_foo.py", "test_foo.py"));
+        assert!(!matches_name("test_foo.py", "test_bar.py"));
     }
 
     #[test]
     fn star_anchors() {
-        assert!(glob_match("test_*", "test_foo.py"));
-        assert!(!glob_match("test_*", "atest_foo.py"));
-        assert!(glob_match("*foo*", "test_foo.py"));
-        assert!(glob_match("*.py", "test_foo.py"));
-        assert!(!glob_match("*.py", "test_foo.R"));
+        assert!(matches_name("test_*", "test_foo.py"));
+        assert!(!matches_name("test_*", "atest_foo.py"));
+        assert!(matches_name("*foo*", "test_foo.py"));
+        assert!(matches_name("*.py", "test_foo.py"));
+        assert!(!matches_name("*.py", "test_foo.R"));
     }
 
     #[test]
     fn star_matches_empty() {
-        assert!(glob_match("a*b", "ab"));
-        assert!(glob_match("*", ""));
-        assert!(glob_match("**", ""));
+        assert!(matches_name("a*b", "ab"));
+        assert!(matches_name("*", ""));
     }
 
     #[test]
     fn question_mark_matches_one() {
-        assert!(glob_match("test-?.R", "test-1.R"));
-        assert!(!glob_match("test-?.R", "test-12.R"));
-        assert!(!glob_match("test-?.R", "test-.R"));
+        assert!(matches_name("test-?.R", "test-1.R"));
+        assert!(!matches_name("test-?.R", "test-12.R"));
+        assert!(!matches_name("test-?.R", "test-.R"));
     }
 
     #[test]
     fn backtracking_works() {
-        // Regression: the old leftmost-find matcher returned false for
-        // these because the first `*` segment greedily consumed a prefix
-        // the later segment needed.
-        assert!(glob_match("*ab*abc", "abababc"));
-        assert!(glob_match("*a*a", "aa"));
-        assert!(glob_match("a*a*a", "aaaa"));
+        assert!(matches_name("*ab*abc", "abababc"));
+        assert!(matches_name("*a*a", "aa"));
+        assert!(matches_name("a*a*a", "aaaa"));
     }
 
     #[test]
     fn no_match_returns_false() {
-        assert!(!glob_match("a*b", "ba"));
-        assert!(!glob_match("foo", "foobar"));
-        assert!(!glob_match("foobar", "foo"));
+        assert!(!matches_name("a*b", "ba"));
+        assert!(!matches_name("foo", "foobar"));
+        assert!(!matches_name("foobar", "foo"));
     }
 
-    // ── apply_include_exclude ──────────────────────────────────────────────
+    #[test]
+    fn character_class_and_alternation() {
+        assert!(matches_name("test-[abc].R", "test-a.R"));
+        assert!(!matches_name("test-[abc].R", "test-d.R"));
+        assert!(matches_name("test-[!abc].R", "test-d.R"));
+        assert!(matches_name("test-{foo,bar}.R", "test-foo.R"));
+        assert!(matches_name("test-{foo,bar}.R", "test-bar.R"));
+        assert!(!matches_name("test-{foo,bar}.R", "test-baz.R"));
+    }
+
+    #[test]
+    fn invalid_pattern_returns_false() {
+        assert!(!matches_name("test-[abc.R", "test-a.R"));
+    }
 
     fn pb(s: &str) -> PathBuf {
         PathBuf::from(s)
@@ -172,16 +160,19 @@ mod tests {
 
     #[test]
     fn includes_and_excludes_compose() {
-        let mut files = vec![
-            pb("test_a.py"),
-            pb("test_slow.py"),
-            pb("conftest.py"),
-        ];
-        apply_include_exclude(
-            &mut files,
-            &["test_*".into()],
-            &["*slow*".into()],
-        );
+        let mut files = vec![pb("test_a.py"), pb("test_slow.py"), pb("conftest.py")];
+        apply_include_exclude(&mut files, &["test_*".into()], &["*slow*".into()]);
         assert_eq!(files, vec![pb("test_a.py")]);
+    }
+
+    #[test]
+    fn alternation_in_include() {
+        let mut files = vec![
+            pb("test_model.py"),
+            pb("test_plot.py"),
+            pb("test_slow.py"),
+        ];
+        apply_include_exclude(&mut files, &["test_{model,plot}.py".into()], &[]);
+        assert_eq!(files, vec![pb("test_model.py"), pb("test_plot.py")]);
     }
 }

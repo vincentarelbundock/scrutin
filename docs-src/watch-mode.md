@@ -36,4 +36,6 @@ ignore = [".git", "*.Rhistory", "renv/"]
 
 Scrutin keeps warm subprocesses with your project pre-loaded, so re-runs start instantly. The default pool size is `min(available_parallelism, 8)` with a minimum of 2. Each tool gets its own pool.
 
-On Linux/macOS (`[run] fork_workers = true`, the default), each suite has one long-lived parent that `fork()`s a copy-on-write child per test file, giving both fast startup and full process isolation. With `fork_workers = false` (or on Windows, which is auto-forced off), workers are killed and respawned after every file. Crashed workers are replaced automatically.
+By default (`[run] fork_workers = false`), workers are killed and respawned after every file. Crashed workers are replaced automatically. On Linux/macOS you can opt into `fork_workers = true`: each suite then keeps one long-lived parent that `fork()`s a copy-on-write child per test file, giving fast startup and full process isolation.
+
+Fork mode is dangerous when the code under test forks on its own: R's `parallel::mclapply` / `mcparallel`, Python's `multiprocessing` with the default `fork` start method, and any BLAS/OpenMP-threaded numerical library can deadlock or crash the child when forked from an already-multithreaded parent. Leave `fork_workers = false` unless you know none of your tests (or their dependencies) do that. Fork mode is auto-forced off on Windows.

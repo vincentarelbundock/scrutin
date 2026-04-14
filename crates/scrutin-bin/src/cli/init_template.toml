@@ -55,12 +55,19 @@
 #   semaphore width (how many children run in parallel); there is
 #   still exactly one parent process per suite.
 
-# fork_workers = true
-#   Worker isolation strategy. When true (default on Linux/macOS),
-#   each suite has one long-lived parent that fork()s a copy-on-write
-#   child per test file: fast startup + full process isolation. When
-#   false, workers are killed and respawned after every file. Fork
-#   mode is Unix-only; auto-disabled on Windows.
+# fork_workers = false
+#   Worker isolation strategy. When false (the default), workers are
+#   killed and respawned after every file: safe but pays startup cost
+#   per file. When true (Linux/macOS only), each suite has one
+#   long-lived parent that fork()s a copy-on-write child per test
+#   file: fast startup + full process isolation.
+#
+#   Dangerous: forking a process that is itself multithreaded or that
+#   spawns its own forked workers (R's parallel::mclapply, Python's
+#   multiprocessing with the fork start method, BLAS/OpenMP threads,
+#   etc.) can deadlock or crash the child. Only turn this on if you
+#   know no code under test forks on its own. Auto-disabled on Windows
+#   where fork() is unavailable.
 
 # max_fail = 0
 #   Stop after this many failing *files* (failed + errored). 0 (default)
@@ -131,8 +138,9 @@
 #   Glob patterns: skip test files matching any pattern. Applied
 #   after include.
 
-# Named filter groups, selectable at runtime via --group <name>.
-# A group overrides the top-level include/exclude for that invocation.
+# Named filter groups, selectable at runtime via -g/--group <name>.
+# Multiple groups can be selected (comma-separated or repeated) and
+# their include/exclude/tools lists are unioned on top of [filter].
 #
 # [filter.groups.fast]
 # tools   = ["pytest"]          # restrict to these tools (empty = all)

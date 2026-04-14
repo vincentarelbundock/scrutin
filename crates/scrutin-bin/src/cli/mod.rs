@@ -89,6 +89,16 @@ pub struct RunArgs {
     /// back to a bare string for unquoted values.
     #[arg(short = 's', long = "set", value_name = "KEY=VALUE")]
     pub set: Vec<String>,
+
+    /// Activate a named filter group defined under `[filter.groups.<name>]`
+    /// in .scrutin/config.toml. Repeatable and accepts comma-separated values
+    /// (e.g. `-g fast,py_integration`). Selecting any group replaces the
+    /// top-level `[filter]` include/exclude/tools entirely; multiple groups
+    /// union their `include`, `exclude`, and `tools` lists, and a group with
+    /// an empty `tools` list lifts the tool restriction for the whole
+    /// selection.
+    #[arg(short = 'g', long = "group", value_name = "NAME", value_delimiter = ',')]
+    pub groups: Vec<String>,
 }
 
 /// One output reporter. Stream reporters write to stderr / own the terminal;
@@ -317,7 +327,7 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
     print_header(&pkg, n_workers, reporter.is_plain());
 
     let mut test_files = pkg.test_files()?;
-    let filter = resolve_filter_args(&cfg);
+    let filter = resolve_filter_args(&cfg, &args.groups)?;
     // Tool filter: restrict to files owned by the named tools.
     if !filter.tools.is_empty() {
         test_files.retain(|f| {
@@ -750,18 +760,58 @@ fn print_header(pkg: &Package, n_workers: usize, ci: bool) {
 
 /// Resolved filter state: tool names to restrict to (empty = all),
 /// include globs, exclude globs.
+#[cfg_attr(test, derive(Debug))]
 struct ResolvedFilter {
     tools: Vec<String>,
     includes: Vec<String>,
     excludes: Vec<String>,
 }
 
-fn resolve_filter_args(cfg: &Config) -> ResolvedFilter {
-    ResolvedFilter {
-        tools: Vec::new(),
-        includes: cfg.filter.include.clone(),
-        excludes: cfg.filter.exclude.clone(),
+fn resolve_filter_args(cfg: &Config, groups: &[String]) -> Result<ResolvedFilter> {
+    // When any group is selected, its include/exclude/tools *replace* the
+    // top-level `[filter]`. With no groups, fall through to top-level.
+    let (mut includes, mut excludes) = if groups.iter().any(|g| !g.trim().is_empty()) {
+        (Vec::new(), Vec::new())
+    } else {
+        (cfg.filter.include.clone(), cfg.filter.exclude.clone())
+    };
+    let mut tools: Vec<String> = Vec::new();
+    let mut tools_unrestricted = false;
+    for name in groups {
+        let name = name.trim();
+        if name.is_empty() {
+            continue;
+        }
+        let g = cfg.filter.groups.get(name).ok_or_else(|| {
+            let mut known: Vec<&str> =
+                cfg.filter.groups.keys().map(String::as_str).collect();
+            known.sort_unstable();
+            let suffix = if known.is_empty() {
+                " (no [filter.groups.*] defined in .scrutin/config.toml)".to_string()
+            } else {
+                format!(" (known: {})", known.join(", "))
+            };
+            anyhow::anyhow!("unknown filter group '{}'{}", name, suffix)
+        })?;
+        includes.extend(g.include.iter().cloned());
+        excludes.extend(g.exclude.iter().cloned());
+        if g.tools.is_empty() {
+            tools_unrestricted = true;
+        } else {
+            tools.extend(g.tools.iter().cloned());
+        }
     }
+    if tools_unrestricted {
+        tools.clear();
+    } else {
+        tools.sort();
+        tools.dedup();
+    }
+    Ok(ResolvedFilter {
+        tools,
+        includes,
+        excludes,
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -909,5 +959,115 @@ mod tests {
     fn reporter_spec_from_str_unknown() {
         assert!("xml".parse::<ReporterSpec>().is_err());
         assert!("plain:foo".parse::<ReporterSpec>().is_err());
+    }
+
+    // ----- resolve_filter_args + -g/--group -----
+
+    fn cfg_with_groups() -> Config {
+        use scrutin_core::project::config::FilterGroup;
+        let mut cfg = Config::default();
+        cfg.filter.include = vec!["test-base*".into()];
+        cfg.filter.groups.insert(
+            "fast".into(),
+            FilterGroup {
+                tools: vec![],
+                include: vec!["test-unit*".into()],
+                exclude: vec!["test-slow*".into()],
+            },
+        );
+        cfg.filter.groups.insert(
+            "py_integration".into(),
+            FilterGroup {
+                tools: vec!["pytest".into()],
+                include: vec!["test_integration_*".into()],
+                exclude: vec![],
+            },
+        );
+        cfg.filter.groups.insert(
+            "r_only".into(),
+            FilterGroup {
+                tools: vec!["testthat".into(), "tinytest".into()],
+                include: vec![],
+                exclude: vec![],
+            },
+        );
+        cfg
+    }
+
+    #[test]
+    fn groups_empty_inherits_top_level_filter() {
+        let cfg = cfg_with_groups();
+        let f = resolve_filter_args(&cfg, &[]).unwrap();
+        assert_eq!(f.includes, vec!["test-base*".to_string()]);
+        assert!(f.excludes.is_empty());
+        assert!(f.tools.is_empty());
+    }
+
+    #[test]
+    fn single_group_replaces_top_level_filter() {
+        let cfg = cfg_with_groups();
+        let f = resolve_filter_args(&cfg, &["fast".into()]).unwrap();
+        assert_eq!(
+            f.includes,
+            vec!["test-unit*".to_string()],
+            "top-level test-base* is dropped when a group is selected"
+        );
+        assert_eq!(f.excludes, vec!["test-slow*".to_string()]);
+        assert!(f.tools.is_empty(), "fast has no tools restriction");
+    }
+
+    #[test]
+    fn multiple_groups_union_tools() {
+        let cfg = cfg_with_groups();
+        let f = resolve_filter_args(&cfg, &["py_integration".into(), "r_only".into()]).unwrap();
+        assert_eq!(
+            f.tools,
+            vec![
+                "pytest".to_string(),
+                "testthat".into(),
+                "tinytest".into()
+            ]
+        );
+    }
+
+    #[test]
+    fn unrestricted_group_lifts_tool_restriction() {
+        let cfg = cfg_with_groups();
+        let f = resolve_filter_args(&cfg, &["py_integration".into(), "fast".into()]).unwrap();
+        assert!(
+            f.tools.is_empty(),
+            "fast has no tools -> union becomes unrestricted"
+        );
+    }
+
+    #[test]
+    fn unknown_group_errors_with_known_list() {
+        let cfg = cfg_with_groups();
+        let err = resolve_filter_args(&cfg, &["bogus".into()]).unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("unknown filter group 'bogus'"));
+        assert!(msg.contains("fast"));
+    }
+
+    #[test]
+    fn group_cli_flag_accepts_comma_values() {
+        // clap value_delimiter = ','
+        let cli = Cli::try_parse_from(["scrutin", "-g", "fast,py_integration"]).unwrap();
+        let groups = match cli.command {
+            Some(Command::Run(a)) => a.groups,
+            _ => cli.run_args.groups,
+        };
+        assert_eq!(groups, vec!["fast".to_string(), "py_integration".into()]);
+    }
+
+    #[test]
+    fn group_cli_flag_repeatable() {
+        let cli = Cli::try_parse_from(["scrutin", "-g", "fast", "--group", "py_integration"])
+            .unwrap();
+        let groups = match cli.command {
+            Some(Command::Run(a)) => a.groups,
+            _ => cli.run_args.groups,
+        };
+        assert_eq!(groups, vec!["fast".to_string(), "py_integration".into()]);
     }
 }
