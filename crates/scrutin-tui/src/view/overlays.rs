@@ -185,21 +185,10 @@ pub(super) fn draw_help_overlay(f: &mut ratatui::Frame, state: &mut AppState) {
         }
     }
 
-    // Plugin actions.
-    let mut has_plugin_header = false;
-    for (suite, actions) in &state.suite_actions {
-        if actions.is_empty() { continue; }
-        if !has_plugin_header {
-            help_text.push(heading("Actions (a to open menu)"));
-            has_plugin_header = true;
-        }
-        for a in actions {
-            help_text.push(Line::from(format!("   {:<16} ({})", a.label, suite)));
-        }
-    }
-    if has_plugin_header {
-        help_text.push(Line::from(""));
-    }
+    // Plugin actions (jarl / ruff fix variants, typos fix, ...) are
+    // rendered as a numbered chip row inside the Detail view itself, so
+    // the user sees them in context with their numbers. They don't need
+    // to appear here.
 
     draw_text_overlay(f, &mut state.overlay, "Help", help_text, 70, 95);
 }

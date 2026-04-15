@@ -932,6 +932,30 @@ impl AppState {
                 let cur = if in_detail { self.nav.test_cursor } else { self.nav.file_cursor };
                 let next = bounded(cur, max);
                 if in_detail {
+                    // Spill across files on unit steps only (j/k, arrow keys).
+                    // At the last test of the current file, pressing down
+                    // advances to the first test of the next visible file;
+                    // symmetric for pressing up past the first test. Page
+                    // moves and top/bottom jumps stay file-scoped so the
+                    // user doesn't accidentally blow past a whole file.
+                    if delta == 1 && cur == max && n > 0 {
+                        let visible = self.visible_files();
+                        if self.nav.file_cursor + 1 < visible.len() {
+                            self.nav.file_cursor += 1;
+                            self.nav.test_cursor = 0;
+                            self.nav.test_scroll = 0;
+                            return;
+                        }
+                    } else if delta == -1 && cur == 0 && n > 0 && self.nav.file_cursor > 0 {
+                        self.nav.file_cursor -= 1;
+                        let prev_max = self
+                            .selected_file()
+                            .map(|f| f.tests.len().saturating_sub(1))
+                            .unwrap_or(0);
+                        self.nav.test_cursor = prev_max;
+                        self.nav.test_scroll = 0;
+                        return;
+                    }
                     self.nav.test_cursor = next;
                 } else {
                     self.nav.file_cursor = next;

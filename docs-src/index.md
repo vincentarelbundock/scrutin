@@ -25,9 +25,9 @@ hide:
 
 ## A Unified Dashboard and Orchestrator for Quality Checks
 
-<p class="hero-examples">Unit tests · Data validation · Linting · Spell check</p>
+<p class="hero-examples">Unit tests · Data validation · Linting · Spelling</p>
 
-Run every quality check on your project using a single command: unit tests, data validation, linters, spell checks. *Scrutin* watches for edits, figures out which checks are affected, and re-runs them in parallel. Drill into a failure to see the expected and actual values, as well as the relevant source code. Use quick keystrokes to fix linting and spelling issues, or to open files in your editor of choice.
+Run every quality check on your project using a single command: unit tests, data validation, linters, spell checkers. *Scrutin* watches for edits, figures out which checks are affected, and re-runs them in parallel. Drill into a failure to see the expected and actual values, as well as the relevant source code. Use quick keystrokes to fix linting and spelling issues, or to open files in your editor of choice.
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
 

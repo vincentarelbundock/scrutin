@@ -41,6 +41,33 @@ export function moveFileSelection(delta) {
 // ── Test cursor (Detail level) ─────────────────────────────────────────
 export function moveTestSelection(delta) {
   if (state.testFiltered.length === 0) return;
+  // Spill across files on unit steps (j/k/arrows) so the user can scroll
+  // through every test in the run without exiting Detail view. Down past
+  // the last test advances to the first test of the next visible file;
+  // up past the first test wraps to the last test of the previous file.
+  // Page/top/bottom jumps (±Infinity or larger deltas) stay file-scoped.
+  if (delta === 1 && state.testCursor === state.testFiltered.length - 1) {
+    const idx = state.filtered.indexOf(state.selected);
+    if (idx >= 0 && idx + 1 < state.filtered.length) {
+      selectFile(state.filtered[idx + 1]);
+      renderLeftPane();
+      const row = document.querySelector(`.test-row[data-idx="0"]`);
+      if (row) row.scrollIntoView({ block: "nearest" });
+      return;
+    }
+  }
+  if (delta === -1 && state.testCursor === 0) {
+    const idx = state.filtered.indexOf(state.selected);
+    if (idx > 0) {
+      selectFile(state.filtered[idx - 1]);
+      state.testCursor = Math.max(0, state.testFiltered.length - 1);
+      renderLeftPane();
+      renderRightPane();
+      const row = document.querySelector(`.test-row[data-idx="${state.testCursor}"]`);
+      if (row) row.scrollIntoView({ block: "nearest" });
+      return;
+    }
+  }
   let next = state.testCursor + delta;
   if (!Number.isFinite(delta)) next = delta > 0 ? state.testFiltered.length - 1 : 0;
   next = Math.max(0, Math.min(state.testFiltered.length - 1, next));

@@ -3,6 +3,23 @@
   visibility: hidden;
 }
 
+/* Extra header link (Docs) injected by overrides/partials/header.html. */
+.md-header__nav-link {
+  color: var(--md-primary-bg-color);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.2rem;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.md-header__nav-link:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* Navbar logo color */
 .md-header__button.md-logo svg {
   color: var(--md-primary-fg-color);
