@@ -89,10 +89,23 @@ impl RProcess {
         if argv.is_empty() {
             anyhow::bail!("tool {} returned empty subprocess command", plugin.name());
         }
+        // Plugins build argv with the runner as a relative path
+        // (`.scrutin/runner_<tool>.<ext>`) so default single-package
+        // projects can point at the project-root `.scrutin/`. In a
+        // monorepo the subprocess cwd is `suite.root`, which may be a
+        // subtree of the project, so the relative path would miss.
+        // Rewrite the runner argument to the absolute path we already
+        // computed and wrote to disk.
+        let relative_runner = format!(".scrutin/{}", plugin.runner_basename());
+        for arg in argv.iter_mut() {
+            if *arg == relative_runner {
+                *arg = runner_path.to_string_lossy().into_owned();
+            }
+        }
         // For Python plugins, replace the auto-detected interpreter with
         // the user's [python].interpreter or [python].venv override.
         if plugin.language() == "python" && !pkg.python_interpreter.is_empty() {
-            // argv is [interpreter, "-u", ".scrutin/runner.py", ...]
+            // argv is [interpreter, "-u", "<runner path>", ...]
             // Replace just the first element with the override tokens.
             let tail: Vec<String> = argv.drain(1..).collect();
             argv = pkg.python_interpreter.clone();

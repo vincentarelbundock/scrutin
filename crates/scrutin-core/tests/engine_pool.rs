@@ -650,3 +650,72 @@ async fn pool_cancel_all_stops_remaining_files() {
         "never more events than files queued"
     );
 }
+
+/// Regression: monorepo layouts where a suite's `root` is a subtree of
+/// the project root must still find their runner scripts.
+///
+/// The engine writes runner scripts to `<pkg.root>/.scrutin/`, but
+/// each subprocess runs with `cwd = suite.root`. Plugins historically
+/// built argv with a relative `.scrutin/<runner>` path, which resolves
+/// against cwd rather than `pkg.root`: in a monorepo this means the
+/// subprocess looks for `<pkg.root>/<subdir>/.scrutin/<runner>` and
+/// crashes with ENOENT. The fix rewrites that argv element to the
+/// absolute runner path before spawning.
+///
+/// This test captures that invariant: a suite rooted at
+/// `<pkg.root>/subdir` must run to completion with Outcome::Pass.
+#[tokio::test]
+async fn pool_finds_runner_when_suite_root_differs_from_pkg_root() {
+    if !python3_available() {
+        eprintln!("skipping: python3 not available");
+        return;
+    }
+    let tmp = tempfile::tempdir().unwrap();
+    let pkg_root = tmp.path();
+    let suite_root = pkg_root.join("subdir");
+    write_empty(&suite_root.join("tests/fake_pass.py"));
+
+    let plugin: Arc<dyn Plugin> = Arc::new(FakePlugin);
+    let suite = TestSuite::new(
+        plugin,
+        suite_root.clone(),
+        vec!["tests/**/fake_*.py".into()],
+        vec!["src/**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
+    let pkg = Package {
+        name: "fake".into(),
+        root: pkg_root.to_path_buf(),
+        test_suites: vec![suite],
+        pytest_extra_args: Vec::new(),
+        skyspell_extra_args: Vec::new(),
+        skyspell_add_args: Vec::new(),
+        python_interpreter: Vec::new(),
+        env: BTreeMap::new(),
+    };
+
+    let files = vec![suite_root.join("tests/fake_pass.py")];
+    let results = collect_results(&pkg, files, 1, Duration::from_secs(10)).await;
+
+    assert_eq!(results.len(), 1, "the single file must complete");
+    let outcomes: Vec<_> = results[0]
+        .messages
+        .iter()
+        .filter_map(|m| match m {
+            scrutin_core::engine::protocol::Message::Event(e) => Some(e.outcome),
+            _ => None,
+        })
+        .collect();
+    use scrutin_core::engine::protocol::Outcome;
+    assert_eq!(
+        outcomes,
+        vec![Outcome::Pass],
+        "suite with root={} under pkg.root={} must still find its runner at \
+         <pkg.root>/.scrutin/; got outcomes {:?}",
+        suite_root.display(),
+        pkg_root.display(),
+        outcomes,
+    );
+}
