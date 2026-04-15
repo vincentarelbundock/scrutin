@@ -111,7 +111,7 @@ async fn run_command(
     log: Option<&LogBuffer>,
 ) -> Vec<Message> {
     let plugin = &suite.plugin;
-    let spec = match plugin.command_spec(&pkg.root) {
+    let spec = match plugin.command_spec(&suite.root) {
         Some(s) => s,
         None => {
             return vec![Message::Event(Event::engine_error(
@@ -124,12 +124,12 @@ async fn run_command(
     let mut cmd = tokio::process::Command::new(&spec.argv[0]);
     cmd.args(&spec.argv[1..]);
     cmd.arg(test_file);
-    cmd.current_dir(&pkg.root);
+    cmd.current_dir(&suite.root);
     cmd.stdout(Stdio::piped());
     cmd.stderr(Stdio::piped());
     cmd.kill_on_drop(true);
 
-    for (k, v) in plugin.env_vars(&pkg.root) {
+    for (k, v) in plugin.env_vars(&suite.root) {
         cmd.env(k, v);
     }
     // User [env] from .scrutin/config.toml, applied last so user vars win.

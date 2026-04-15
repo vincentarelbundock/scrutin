@@ -14,9 +14,8 @@
 //! directly and this module parses the JSON output in Rust. No Rscript
 //! subprocess needed.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use anyhow::Result;
 use serde::Deserialize;
 
 use crate::analysis::walk;
@@ -62,19 +61,11 @@ impl Plugin for JarlPlugin {
         // jarl is an external CLI binary, not an R package. Query the CLI.
         jarl_cli_version()
     }
-    fn source_dirs(&self) -> Vec<&'static str> {
-        vec![]
+    fn default_run(&self) -> Vec<String> {
+        vec![format!("{}/**/*.R", super::LINT_DIR), format!("{}/**/*.r", super::LINT_DIR)]
     }
-    fn test_dirs(&self) -> Vec<&'static str> {
-        vec![super::LINT_DIR]
-    }
-    fn discover_test_files(&self, _root: &Path, test_dir: &Path) -> Result<Vec<PathBuf>> {
-        if !test_dir.is_dir() {
-            return Ok(Vec::new());
-        }
-        Ok(walk::collect_files(test_dir, |p| {
-            walk::has_extension(p, &["r"])
-        }))
+    fn default_watch(&self) -> Vec<String> {
+        Vec::new()
     }
     fn is_test_file(&self, path: &Path) -> bool {
         walk::has_extension(path, &["r"])

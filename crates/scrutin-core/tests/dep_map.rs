@@ -30,16 +30,28 @@ fn write(path: &Path, contents: &str) {
 /// `test_dirs` is `[root/tests]` to match scrutin's default discovery.
 fn pytest_package(root: &Path) -> Package {
     let plugin = plugin_by_name("pytest").expect("pytest plugin must be registered");
+    let suite = TestSuite::new(
+        plugin,
+        root.to_path_buf(),
+        vec![
+            "tests/**/test_*.py".into(),
+            "tests/**/*_test.py".into(),
+        ],
+        // Mirror the pytest plugin default: src/, lib/, plus a flat-layout
+        // fallback that catches `pkg/` at the project root.
+        vec![
+            "src/**/*.py".into(),
+            "lib/**/*.py".into(),
+            "**/*.py".into(),
+        ],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
     Package {
         name: "demo".into(),
         root: root.to_path_buf(),
-        test_suites: vec![TestSuite {
-            plugin,
-            test_dirs: vec![root.join("tests")],
-            source_dir_names: vec!["src".into(), "lib".into()],
-            worker_hooks: WorkerHookPaths::default(),
-            runner_override: None,
-        }],
+        test_suites: vec![suite],
         pytest_extra_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
@@ -491,25 +503,31 @@ fn unified_dep_map_merges_r_cache_and_python_imports() {
     // the unified builder to load the cache) and a pytest suite.
     let r_plugin = plugin_by_name("testthat").expect("testthat plugin must be registered");
     let py_plugin = plugin_by_name("pytest").expect("pytest plugin must be registered");
+    let r_suite = TestSuite::new(
+        r_plugin,
+        root.to_path_buf(),
+        vec!["tests/testthat/**/test-*.R".into()],
+        vec!["R/**/*.R".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
+    let py_suite = TestSuite::new(
+        py_plugin,
+        root.to_path_buf(),
+        vec![
+            "tests/**/test_*.py".into(),
+            "tests/**/*_test.py".into(),
+        ],
+        vec!["src/**/*.py".into(), "lib/**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
     let pkg = Package {
         name: "demo".into(),
         root: root.to_path_buf(),
-        test_suites: vec![
-            TestSuite {
-                plugin: r_plugin,
-                test_dirs: vec![root.join("tests/testthat")],
-                source_dir_names: vec!["R".into()],
-                worker_hooks: WorkerHookPaths::default(),
-                runner_override: None,
-            },
-            TestSuite {
-                plugin: py_plugin,
-                test_dirs: vec![root.join("tests")],
-                source_dir_names: vec!["src".into(), "lib".into()],
-                worker_hooks: WorkerHookPaths::default(),
-                runner_override: None,
-            },
-        ],
+        test_suites: vec![r_suite, py_suite],
         pytest_extra_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),

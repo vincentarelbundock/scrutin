@@ -35,8 +35,35 @@ use crate::project::package::Package;
 /// Build the reverse dep map for `pkg`. Keys are source-file paths relative
 /// to `pkg.root`; values are test-file *basenames* (to match the existing
 /// dep-map format consumed by `deps::resolve_tests`).
+///
+/// Multi-suite aware: in a monorepo with an R suite rooted at `r/` and a
+/// Python suite rooted at `python/`, only the Python suite's `watch`
+/// dir-prefixes are scanned (so R files do not leak into the Python import
+/// graph and vice versa).
 pub fn build_import_map(pkg: &Package) -> HashMap<String, Vec<String>> {
-    let py_files = walk::collect_files(&pkg.root, |p| walk::has_extension(p, &["py"]));
+    // Gather .py files from every Python suite's watch + run dir-prefixes
+    // so the walker stays bounded by what Python actually cares about.
+    let mut py_files: Vec<PathBuf> = Vec::new();
+    let mut seen_py: HashSet<PathBuf> = HashSet::new();
+    for suite in &pkg.test_suites {
+        if suite.plugin.language() != "python" {
+            continue;
+        }
+        let dirs = suite
+            .watch_search_dirs()
+            .into_iter()
+            .chain(suite.run_search_dirs());
+        for dir in dirs {
+            if !dir.is_dir() {
+                continue;
+            }
+            for f in walk::collect_files(&dir, |p| walk::has_extension(p, &["py"])) {
+                if seen_py.insert(f.clone()) {
+                    py_files.push(f);
+                }
+            }
+        }
+    }
     let test_set: HashSet<PathBuf> = pkg.test_files().unwrap_or_default().into_iter().collect();
 
     // Module-name → source-file index. Best-effort: handles flat layout

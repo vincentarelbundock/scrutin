@@ -9,7 +9,6 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use crate::analysis::walk;
 use crate::project::plugin::Plugin;
 
 pub mod great_expectations;
@@ -161,16 +160,6 @@ pub(crate) fn py_module_version(root: &Path, module: &str) -> Option<String> {
     } else {
         Some(trimmed.to_string())
     }
-}
-
-/// Walk `dir` recursively for pytest-style test files. Routes through
-/// `analysis::walk::collect_files`, so the shared ignore list (`.venv`,
-/// `__pycache__`, `.git`, …) applies automatically.
-pub(crate) fn py_walk_tests(dir: &Path) -> Vec<PathBuf> {
-    if !dir.is_dir() {
-        return Vec::new();
-    }
-    walk::collect_files(dir, |p| py_is_test_path(p))
 }
 
 /// Is this a pytest-style test filename? `test_*.py` or `*_test.py`.

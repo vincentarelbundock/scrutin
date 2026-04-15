@@ -85,7 +85,7 @@ impl RProcess {
             std::fs::write(&runner_path, plugin.runner_script())?;
         }
 
-        let mut argv = plugin.subprocess_cmd(&pkg.root);
+        let mut argv = plugin.subprocess_cmd(&suite.root);
         if argv.is_empty() {
             anyhow::bail!("tool {} returned empty subprocess command", plugin.name());
         }
@@ -100,7 +100,7 @@ impl RProcess {
         }
         let mut cmd = Command::new(&argv[0]);
         cmd.args(&argv[1..]);
-        for (k, v) in plugin.env_vars(&pkg.root) {
+        for (k, v) in plugin.env_vars(&suite.root) {
             cmd.env(k, v);
         }
         if let Some(p) = &suite.worker_hooks.startup {
@@ -129,7 +129,7 @@ impl RProcess {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            .current_dir(&pkg.root)
+            .current_dir(&suite.root)
             .kill_on_drop(true)
             .spawn()
             .with_context(|| {

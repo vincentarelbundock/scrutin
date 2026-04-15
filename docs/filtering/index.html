@@ -184,6 +184,16 @@
     
     <div class="md-header__source">
       
+        <a href="https://github.com/vincentarelbundock/scrutin" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vincentarelbundock/scrutin
+  </div>
+</a>
+      
     </div>
   </nav>
   
@@ -228,6 +238,18 @@
     </a>
     scrutin
   </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/vincentarelbundock/scrutin" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vincentarelbundock/scrutin
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -1126,6 +1148,9 @@
               <article class="md-content__inner md-typeset">
                 
                   
+  
+  
+
 
 <h1 id="test-filtering">Test Filtering<a class="headerlink" href="#test-filtering" title="Permanent link">&para;</a></h1>
 <p>Filtering controls which test files are included in a run. All glob patterns match against test file <strong>basenames</strong> (not full paths) and are evaluated before files are dispatched to a worker.</p>
@@ -1153,7 +1178,12 @@
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">tools</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;pytest&quot;</span><span class="p">]</span>
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">include</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;test_integration_*&quot;</span><span class="p">]</span>
 </span></code></pre></div>
-<p>Groups are selected at runtime via <code>--set filter.active_group=&lt;name&gt;</code> (or any other suitable <code>-s</code> override into <code>filter</code>). When <code>tools</code> is non-empty, the group applies only to suites whose tool matches.</p>
+<p>Groups are selected at runtime with <code>-g/--group</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>scrutin<span class="w"> </span>-g<span class="w"> </span>fast
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>scrutin<span class="w"> </span>-g<span class="w"> </span>fast,py_integration<span class="w">   </span><span class="c1"># comma-separated (repeatable)</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>scrutin<span class="w"> </span>--group<span class="w"> </span>fast<span class="w"> </span>--group<span class="w"> </span>py_integration
+</span></code></pre></div>
+<p>Selecting any group <strong>replaces</strong> the top-level <code>[filter]</code> include/exclude/tools entirely; the top-level lists apply only when no <code>-g</code> is passed. Multiple groups union their <code>include</code>, <code>exclude</code>, and <code>tools</code> lists (so <code>-g group1,group2</code> runs the union of both). A group with an empty <code>tools</code> list lifts the tool restriction for the whole selection. Unknown group names error out and list the known groups. <code>--set filter.include=[...]</code> remains available for one-off overrides that aren't worth naming.</p>
 <h2 id="tui-filter">TUI filter<a class="headerlink" href="#tui-filter" title="Permanent link">&para;</a></h2>
 <p>Press <code>/</code> to open the filter palette. The file list narrows as you type. Enter confirms, Esc cancels. The TUI filter is session-only and stacks with any <code>[filter]</code> rules from config.</p>
 <p><code>t</code> / <code>T</code> cycles the status filter (all → failures → errors → passes → ...). <code>p</code> / <code>P</code> cycles the suite filter when a project has more than one tool.</p>
@@ -1165,13 +1195,15 @@
 <li>Only the intersection runs.</li>
 </ol>
 <h2 id="glob-dialect">Glob dialect<a class="headerlink" href="#glob-dialect" title="Permanent link">&para;</a></h2>
-<p>A deliberately narrow shell-style glob, implemented in <code>scrutin_core::filter</code>:</p>
+<p>Filters use the <code>globset</code> matcher (same dialect as ripgrep / <code>.gitignore</code>):</p>
 <ul>
-<li><code>*</code> matches any (possibly empty) run of characters</li>
-<li><code>?</code> matches exactly one character</li>
-<li>any other character matches literally</li>
+<li><code>*</code> matches any run of non-<code>/</code> characters</li>
+<li><code>?</code> matches exactly one non-<code>/</code> character</li>
+<li><code>[abc]</code> / <code>[!abc]</code> character classes</li>
+<li><code>{foo,bar}</code> alternation</li>
+<li><code>\</code> escapes a metacharacter</li>
 </ul>
-<p>There are no <code>**</code> recursive wildcards, no <code>[...]</code> character classes, and no escape sequences. Matching is anchored at both ends and runs against the <strong>basename only</strong> : patterns never see directory components. So <code>test-model*</code> matches <code>test-model-fits.R</code>; <code>*/snapshot/*</code> matches nothing because the filename has no <code>/</code> in it.</p>
+<p>Matching is anchored at both ends and runs against the <strong>basename only</strong>, so <code>/</code> in a pattern has no effect (the filename has no <code>/</code> in it). <code>test-model*</code> matches <code>test-model-fits.R</code>; <code>test-{model,plot}*.R</code> matches either prefix; <code>test-pkg-[!m]*.R</code> matches everything except the <code>m</code>-prefixed pkg suites. Invalid patterns (e.g. unclosed <code>[</code>) are treated as no-match rather than erroring.</p>
 
 
 

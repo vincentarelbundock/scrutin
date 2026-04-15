@@ -496,7 +496,7 @@ pub(crate) fn build_result_rows(
     // `r.file` is a basename (see `file_display_name`). To recover the
     // owning suite we look up the full path via `pkg.test_files()`, which
     // returns the canonical absolute paths of every test file, then
-    // `suite_for` can apply the `test_dirs`-aware predicate. This avoids
+    // `suite_for` can apply the `run`-glob-aware predicate. This avoids
     // false positives when two plugins accept the same basename pattern
     // (e.g. testthat owns `tests/testthat/test-*.R` while tinytest owns
     // `inst/tinytest/test_*.R`, but the extension alone is ambiguous).
@@ -522,10 +522,10 @@ pub(crate) fn build_result_rows(
         let name = suite.plugin.name().to_string();
         tool_versions
             .entry(name.clone())
-            .or_insert_with(|| suite.plugin.tool_version(&pkg.root));
+            .or_insert_with(|| suite.plugin.tool_version(&suite.root));
         app_versions
             .entry(name)
-            .or_insert_with(|| suite.plugin.project_version(&pkg.root));
+            .or_insert_with(|| suite.plugin.project_version(&suite.root));
     }
 
     all_results

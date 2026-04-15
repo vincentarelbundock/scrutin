@@ -279,7 +279,7 @@ fn package_of(state: &AppState) -> WirePackage {
                 name: s.plugin.name().to_string(),
                 language: s.plugin.language().to_string(),
                 test_dirs: s
-                    .test_dirs
+                    .run_search_dirs()
                     .iter()
                     .map(|td| {
                         td.strip_prefix(&state.pkg.root)
@@ -288,7 +288,15 @@ fn package_of(state: &AppState) -> WirePackage {
                             .to_string()
                     })
                     .collect(),
-                source_dir: s.plugin.source_dirs().first().map(|d| d.to_string()),
+                source_dir: s
+                    .watch_search_dirs()
+                    .first()
+                    .map(|d| {
+                        d.strip_prefix(&state.pkg.root)
+                            .unwrap_or(d)
+                            .to_string_lossy()
+                            .to_string()
+                    }),
                 file_count: 0,
                 actions,
             }

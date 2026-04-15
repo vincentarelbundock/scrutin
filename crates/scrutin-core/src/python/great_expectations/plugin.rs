@@ -7,15 +7,13 @@
 //! outcome vocabulary it can emit (`xfail` via `meta.expected_to_fail`,
 //! no `skip` or `warn`).
 
-use std::path::{Path, PathBuf};
-
-use anyhow::Result;
+use std::path::Path;
 
 use crate::engine::protocol::Outcome;
 use crate::project::plugin::Plugin;
 use crate::python::{
     py_env_vars, py_is_source_path, py_is_test_path, py_module_version, py_parse_pyproject_name,
-    py_parse_pyproject_version, py_subprocess_cmd, py_walk_tests,
+    py_parse_pyproject_version, py_subprocess_cmd,
 };
 
 const GE_RUNNER: &str = include_str!("runner.py");
@@ -55,20 +53,23 @@ impl Plugin for GreatExpectationsPlugin {
                 .to_string()
         })
     }
+    fn project_module_name(&self, root: &Path) -> Option<String> {
+        py_parse_pyproject_name(root).map(|n| n.replace('-', "_"))
+    }
     fn project_version(&self, root: &Path) -> Option<String> {
         py_parse_pyproject_version(root)
     }
     fn tool_version(&self, root: &Path) -> Option<String> {
         py_module_version(root, "great_expectations")
     }
-    fn source_dirs(&self) -> Vec<&'static str> {
-        vec!["src", "lib"]
+    fn default_run(&self) -> Vec<String> {
+        vec![
+            format!("{}/**/test_*.py", super::TEST_DIR),
+            format!("{}/**/*_test.py", super::TEST_DIR),
+        ]
     }
-    fn test_dirs(&self) -> Vec<&'static str> {
-        vec![super::TEST_DIR]
-    }
-    fn discover_test_files(&self, _root: &Path, test_dir: &Path) -> Result<Vec<PathBuf>> {
-        Ok(py_walk_tests(test_dir))
+    fn default_watch(&self) -> Vec<String> {
+        vec!["src/**/*.py".into(), "lib/**/*.py".into(), "**/*.py".into()]
     }
     fn is_test_file(&self, path: &Path) -> bool {
         py_is_test_path(path)

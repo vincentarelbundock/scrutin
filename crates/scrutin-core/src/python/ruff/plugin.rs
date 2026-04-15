@@ -17,9 +17,8 @@
 //!
 //! Modeled on `r/jarl/plugin.rs`.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use anyhow::Result;
 use serde::Deserialize;
 
 use crate::analysis::walk;
@@ -67,20 +66,13 @@ impl Plugin for RuffPlugin {
     fn tool_version(&self, _root: &Path) -> Option<String> {
         ruff_cli_version()
     }
-    fn source_dirs(&self) -> Vec<&'static str> {
-        vec![]
+    fn default_run(&self) -> Vec<String> {
+        // Lint every .py under the suite root; ruff's own config handles
+        // exclusions.
+        vec!["**/*.py".into()]
     }
-    fn test_dirs(&self) -> Vec<&'static str> {
-        // Lint the project root; ruff's own config handles exclusions.
-        vec!["."]
-    }
-    fn discover_test_files(&self, _root: &Path, test_dir: &Path) -> Result<Vec<PathBuf>> {
-        if !test_dir.is_dir() {
-            return Ok(Vec::new());
-        }
-        Ok(walk::collect_files(test_dir, |p| {
-            walk::has_extension(p, &["py"])
-        }))
+    fn default_watch(&self) -> Vec<String> {
+        Vec::new()
     }
     fn is_test_file(&self, path: &Path) -> bool {
         walk::has_extension(path, &["py"])

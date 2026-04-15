@@ -23,6 +23,7 @@ pub struct Config {
     pub web: WebConfig,
     pub hooks: HooksConfig,
     pub metadata: MetadataConfig,
+    pub preflight: PreflightConfig,
     /// User-supplied key/value labels attached to every run. Populated from
     /// `[extras]` in `.scrutin/config.toml` and `--set extras.KEY=VALUE` on the CLI.
     /// Values may be any TOML scalar (string, int, float, bool) and are
@@ -103,6 +104,46 @@ pub struct PythonConfig {
     pub venv: Option<PathBuf>,
 }
 
+/// Startup pre-flight checks. These run *before* any test worker
+/// spawns and surface common setup mistakes (missing package install,
+/// missing CLI tool, typo in `[[suite]] root`, empty `run` glob list,
+/// missing R `pkgload`) as one clean actionable error instead of
+/// per-file noise mid-run.
+///
+/// Disable with `[preflight] enabled = false` if a check is wrong for
+/// your project.
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(default)]
+pub struct PreflightConfig {
+    /// Master switch. When false, no pre-flight checks run.
+    pub enabled: bool,
+    /// Verify each suite's `root` resolves to an existing directory.
+    pub suite_roots: bool,
+    /// Verify each suite's `run` globs match at least one file.
+    pub run_globs: bool,
+    /// Verify command-mode plugins (jarl, ruff) have their CLI tool on PATH.
+    pub command_tools: bool,
+    /// Verify Python suites' project module imports cleanly via the
+    /// resolved interpreter (catches missing `pip install -e .`).
+    pub python_imports: bool,
+    /// Verify R suites have `pkgload` installed (the default runner
+    /// requires it for `load_all`).
+    pub r_pkgload: bool,
+}
+
+impl Default for PreflightConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            suite_roots: true,
+            run_globs: true,
+            command_tools: true,
+            python_imports: true,
+            r_pkgload: true,
+        }
+    }
+}
+
 impl PythonConfig {
     /// Resolve the interpreter override to an argv prefix. Returns an empty
     /// vec when no override is configured (auto-detection applies).
@@ -166,21 +207,34 @@ pub struct WebConfig {
 /// of tables in .scrutin/config.toml. When at least one suite is declared,
 /// auto-detection is skipped.
 #[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct SuiteConfig {
     /// Tool name: "testthat", "tinytest", "pointblank", "jarl",
-    /// "pytest", or "great_expectations".
+    /// "pytest", "great_expectations", "ruff", or "validate".
     pub tool: String,
-    /// Test directories relative to the project root. All entries are
-    /// walked for test files.
-    pub test_dirs: Vec<String>,
-    /// Source directories relative to the project root. Only needed for
-    /// watch-mode dependency tracking. Default: empty.
+    /// Suite root: the directory this suite's tool runs from. Drives the
+    /// subprocess CWD and the `SCRUTIN_PKG_DIR` env var. Relative paths
+    /// are joined with the project root; absolute paths are taken verbatim.
+    /// Default: `.` (the project root).
+    #[serde(default = "default_suite_root")]
+    pub root: PathBuf,
+    /// Glob patterns for files the tool operates on (tests to execute,
+    /// files to lint). Relative to `root` unless absolute. Empty = plugin
+    /// defaults.
     #[serde(default)]
-    pub source_dirs: Vec<String>,
+    pub run: Vec<String>,
+    /// Glob patterns for files watched to trigger reruns. Relative to
+    /// `root`. Empty = plugin default (which for linters equals `run`).
+    #[serde(default)]
+    pub watch: Vec<String>,
     /// Custom runner script, relative to the project root. When set,
     /// the engine reads this file instead of the embedded default.
     #[serde(default)]
     pub runner: Option<PathBuf>,
+}
+
+fn default_suite_root() -> PathBuf {
+    PathBuf::from(".")
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

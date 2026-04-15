@@ -41,10 +41,17 @@ fn unique_state_file(tag: &str) -> PathBuf {
 
 /// Write a pyproject.toml marker file so the pytest plugin detects
 /// the project. The [project] table is the minimum pytest needs.
+/// Also writes a `.scrutin/config.toml` opting out of pre-flight,
+/// since these synthetic fixtures don't define an importable `fixture`
+/// module.
 fn write_pyproject(root: &Path) {
     write(
         &root.join("pyproject.toml"),
         "[project]\nname = \"fixture\"\nversion = \"0.0.0\"\n",
+    );
+    write(
+        &root.join(".scrutin/config.toml"),
+        "[preflight]\nenabled = false\n",
     );
 }
 

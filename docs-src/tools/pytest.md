@@ -47,19 +47,18 @@ No configuration is required. To override defaults in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]
-tool        = "pytest"
-test_dirs = ["tests"]
-source_dirs = ["src"]
+tool = "pytest"
+# defaults pick up tests/**/test_*.py and watch src/**/*.py + lib/**/*.py
 ```
 
 ## Virtual environment
 
-Scrutin auto-detects your Python virtual environment. Detection order:
+Scrutin auto-detects your Python virtual environment per suite. Detection order:
 
 1. `[python].interpreter` in `.scrutin/config.toml`
 2. `[python].venv` in `.scrutin/config.toml`
 3. `$VIRTUAL_ENV` environment variable
-4. `.venv/` or `venv/` in the project root
+4. `.venv/` or `venv/` under the **suite root** (which equals the project root for single-package layouts; in a monorepo with `[[suite]] root = "python"`, this finds `python/.venv`)
 5. `$CONDA_PREFIX` environment variable
 6. `python3` on `$PATH` (or `python` on Windows)
 
@@ -92,7 +91,6 @@ or
 
 ```toml
 [[suite]]
-tool        = "pytest"
-test_dirs = ["tests"]
-runner    = ".scrutin/pytest/runner.py"
+tool   = "pytest"
+runner = ".scrutin/pytest/runner.py"
 ```

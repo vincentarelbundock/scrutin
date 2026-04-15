@@ -377,14 +377,11 @@ worker_teardown = "scripts/py_pytest_td.py"
             fn project_name(&self, _: &Path) -> String {
                 "fake".into()
             }
-            fn source_dirs(&self) -> Vec<&'static str> {
+            fn default_run(&self) -> Vec<String> {
                 Vec::new()
             }
-            fn test_dirs(&self) -> Vec<&'static str> {
+            fn default_watch(&self) -> Vec<String> {
                 Vec::new()
-            }
-            fn discover_test_files(&self, _: &Path, _: &Path) -> Result<Vec<PathBuf>> {
-                Ok(Vec::new())
             }
             fn is_test_file(&self, _: &Path) -> bool {
                 false

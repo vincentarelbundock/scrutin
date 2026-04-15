@@ -257,9 +257,8 @@ pub trait Plugin: Send + Sync {
 
     // File discovery + classification
     fn project_name(&self, root: &Path) -> String;
-    fn source_dirs(&self) -> Vec<&'static str>;
-    fn test_dirs(&self) -> Vec<&'static str>;
-    fn discover_test_files(&self, root: &Path, test_dir: &Path) -> Result<Vec<PathBuf>>;
+    fn default_run(&self) -> Vec<String>;     // glob patterns relative to suite.root
+    fn default_watch(&self) -> Vec<String>;   // empty = "watch what you run" (linter default)
     fn is_test_file(&self, path: &Path) -> bool;
     fn is_source_file(&self, path: &Path) -> bool;
     fn test_file_candidates(&self, source_stem: &str) -> Vec<String>;

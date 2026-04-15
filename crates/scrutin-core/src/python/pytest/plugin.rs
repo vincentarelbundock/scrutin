@@ -1,14 +1,12 @@
 //! Pytest plugin: any project with pyproject.toml / setup.py / setup.cfg
 //! and a `tests/`, `test/`, or top-level `test_*.py`.
 
-use std::path::{Path, PathBuf};
-
-use anyhow::Result;
+use std::path::Path;
 
 use crate::project::plugin::Plugin;
 use crate::python::{
     py_env_vars, py_is_source_path, py_is_test_filename, py_is_test_path, py_module_version,
-    py_parse_pyproject_name, py_parse_pyproject_version, py_subprocess_cmd, py_walk_tests,
+    py_parse_pyproject_name, py_parse_pyproject_version, py_subprocess_cmd,
 };
 
 const PYTEST_RUNNER: &str = include_str!("runner.py");
@@ -63,34 +61,28 @@ impl Plugin for PytestPlugin {
                 .to_string()
         })
     }
+    fn project_module_name(&self, root: &Path) -> Option<String> {
+        // Mirror runner.py::_warm_up: project name with `-` → `_`.
+        py_parse_pyproject_name(root).map(|n| n.replace('-', "_"))
+    }
     fn project_version(&self, root: &Path) -> Option<String> {
         py_parse_pyproject_version(root)
     }
     fn tool_version(&self, root: &Path) -> Option<String> {
         py_module_version(root, "pytest")
     }
-    fn source_dirs(&self) -> Vec<&'static str> {
-        vec!["src", "lib"]
+    fn default_run(&self) -> Vec<String> {
+        vec![
+            format!("{}/**/test_*.py", super::TEST_DIR),
+            format!("{}/**/*_test.py", super::TEST_DIR),
+            "test/**/test_*.py".into(),
+            "test/**/*_test.py".into(),
+            "test_*.py".into(),
+            "*_test.py".into(),
+        ]
     }
-    fn test_dirs(&self) -> Vec<&'static str> {
-        vec![super::TEST_DIR, "test"]
-    }
-    fn discover_test_files(&self, root: &Path, test_dir: &Path) -> Result<Vec<PathBuf>> {
-        let mut out = py_walk_tests(test_dir);
-        // Also pick up top-level test_*.py at the project root, regardless
-        // of which test_dir was chosen — pytest's own discovery does the
-        // same thing.
-        if let Ok(entries) = std::fs::read_dir(root) {
-            for entry in entries.flatten() {
-                let path = entry.path();
-                if path.is_file() && py_is_test_path(&path) {
-                    out.push(path);
-                }
-            }
-        }
-        out.sort();
-        out.dedup();
-        Ok(out)
+    fn default_watch(&self) -> Vec<String> {
+        vec!["src/**/*.py".into(), "lib/**/*.py".into(), "**/*.py".into()]
     }
     fn is_test_file(&self, path: &Path) -> bool {
         py_is_test_path(path)

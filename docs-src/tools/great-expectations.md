@@ -55,9 +55,8 @@ No configuration is required. To override defaults in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]
-tool        = "great_expectations"
-test_dirs = ["tests/great_expectations"]
-source_dirs = ["src"]
+tool = "great_expectations"
+# defaults pick up tests/great_expectations/**/test_*.py and watch src/**/*.py + lib/**/*.py
 ```
 
 ## Dependencies

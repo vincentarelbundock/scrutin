@@ -10,10 +10,8 @@
 //! scripts (`trace()` on package functions). The `depmap` module loads the
 //! cached map; it is populated incrementally by the engine as tests run.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Arc;
-
-use anyhow::Result;
 
 use crate::analysis::walk;
 use crate::engine::protocol::Outcome;
@@ -127,14 +125,15 @@ impl Plugin for RPlugin {
     fn tool_version(&self, root: &Path) -> Option<String> {
         r_package_version(root, self.name)
     }
-    fn source_dirs(&self) -> Vec<&'static str> {
-        vec!["R"]
+    fn default_run(&self) -> Vec<String> {
+        vec![
+            format!("{}/**/test-*.R", self.test_dir),
+            format!("{}/**/test_*.R", self.test_dir),
+            format!("{}/**/test-*.r", self.test_dir),
+        ]
     }
-    fn test_dirs(&self) -> Vec<&'static str> {
-        vec![self.test_dir]
-    }
-    fn discover_test_files(&self, _root: &Path, test_dir: &Path) -> Result<Vec<PathBuf>> {
-        list_r_test_files(test_dir)
+    fn default_watch(&self) -> Vec<String> {
+        vec!["R/**/*.R".into(), "R/**/*.r".into()]
     }
     fn is_test_file(&self, path: &Path) -> bool {
         is_r_test_path(path)
@@ -274,12 +273,3 @@ pub(crate) fn r_subprocess_cmd(runner_basename: &str) -> Vec<String> {
     ]
 }
 
-/// List R test files under `dir`, recursively. Routes through the shared
-/// walker so the same ignore list (`.git`, `__pycache__`, ...) applies, and
-/// nested helper directories under `inst/tinytest/` are picked up.
-pub(crate) fn list_r_test_files(dir: &std::path::Path) -> anyhow::Result<Vec<std::path::PathBuf>> {
-    if !dir.is_dir() {
-        return Ok(Vec::new());
-    }
-    Ok(walk::collect_files(dir, |p| is_r_test_path(p)))
-}

@@ -21,23 +21,57 @@
 # When at least one [[suite]] entry is present, auto-detection is skipped
 # entirely: you control exactly which tools run and where their
 # files live. When absent (the default), scrutin auto-detects from
-# marker files (DESCRIPTION, pyproject.toml, jarl.toml, ...).
+# marker files (DESCRIPTION, pyproject.toml, jarl.toml, ...) at the
+# *project root* (this directory).
 # Detected at `scrutin init` time: {{DETECTED}}
+#
+# Terminology:
+#   - project root: where this .scrutin/config.toml lives. Anchors
+#     shared state (.scrutin/state.db, runner scripts, hooks).
+#   - suite root:   the directory each suite's tool runs from. Drives
+#     the subprocess CWD and the SCRUTIN_PKG_DIR env var, so
+#     pkgload::load_all() / pytest find the right DESCRIPTION /
+#     pyproject.toml / .venv / ruff.toml / jarl.toml.
 #
 # Supported `tool` values: "testthat", "tinytest", "pointblank",
 # "validate", "jarl", "pytest", "ruff", "great_expectations".
 #
-# [[suite]]
-# tool        = "testthat"             # tool name (required)
-# test_dirs   = ["tests/testthat"]     # directories walked for test files (required)
-# source_dirs = ["R"]                  # directories watched in -w mode (optional)
-# # runner    = ".scrutin/testthat/runner.R"  # custom runner script (optional)
+# Fields per [[suite]]:
+#   tool   (required)  tool name
+#   root   (optional)  suite root, relative to project root (default ".")
+#                      Absolute paths allowed.
+#   run    (optional)  glob patterns for files the tool operates on
+#                      (tests to execute, files to lint). Always globs,
+#                      anchored under `root`. Default: plugin-provided.
+#   watch  (optional)  glob patterns for files watched to trigger
+#                      reruns. Default: plugin-provided (or `run` for
+#                      linters, which re-check what they operate on).
+#   runner (optional)  path to a custom runner script, relative to
+#                      the project root.
+#
+# Single-package project (default shape):
 #
 # [[suite]]
-# tool        = "pytest"
-# test_dirs   = ["tests"]
-# source_dirs = ["src"]
-# # runner    = ".scrutin/pytest/runner.py"
+# tool = "testthat"
+# # root / run / watch omitted → plugin defaults under project root
+#
+# Monorepo: two sibling packages under one scrutin invocation:
+#
+# [[suite]]
+# tool = "testthat"
+# root = "r"
+#
+# [[suite]]
+# tool = "pytest"
+# root = "python"
+#
+# Custom globs:
+#
+# [[suite]]
+# tool  = "pytest"
+# root  = "python"
+# run   = ["tests/**/test_*.py"]
+# watch = ["marginaleffects/**/*.py"]
 
 
 # ---------------------------------------------------------------------------
@@ -106,6 +140,23 @@
 # reruns_delay = 0
 #   Milliseconds to wait between rerun attempts. Useful for flakes
 #   caused by external rate limits or eventual consistency in fixtures.
+
+
+# ---------------------------------------------------------------------------
+# [preflight]: startup checks that fail fast with actionable errors
+# ---------------------------------------------------------------------------
+# Each check runs once at scrutin startup, before any test worker
+# spawns. Failures surface as a single clean error instead of per-file
+# noise mid-run. Disable individual checks if they are wrong for your
+# project, or set [preflight] enabled = false to skip them all.
+#
+# [preflight]
+# enabled        = true   # master switch
+# suite_roots    = true   # each [[suite]] root resolves to an existing dir
+# run_globs      = true   # each suite's `run` matches at least one file
+# command_tools  = true   # jarl / ruff are on PATH
+# python_imports = true   # `import <project>` works in the resolved venv
+# r_pkgload      = true   # R `pkgload` package is installed
 
 
 # ---------------------------------------------------------------------------

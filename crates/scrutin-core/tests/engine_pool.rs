@@ -22,7 +22,6 @@ use std::process::Command;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::Result;
 
 use scrutin_core::engine::run_events::{start_run, RunEvent};
 use scrutin_core::project::package::{Package, TestSuite, WorkerHookPaths};
@@ -111,24 +110,11 @@ impl Plugin for FakePlugin {
     fn project_name(&self, _root: &Path) -> String {
         "fake".into()
     }
-    fn source_dirs(&self) -> Vec<&'static str> {
-        vec!["src"]
+    fn default_run(&self) -> Vec<String> {
+        vec!["tests/**/fake_*.py".into()]
     }
-    fn test_dirs(&self) -> Vec<&'static str> {
-        vec!["tests"]
-    }
-    fn discover_test_files(&self, _root: &Path, test_dir: &Path) -> Result<Vec<PathBuf>> {
-        let mut out = Vec::new();
-        if let Ok(rd) = fs::read_dir(test_dir) {
-            for entry in rd.flatten() {
-                let p = entry.path();
-                if self.is_test_file(&p) {
-                    out.push(p);
-                }
-            }
-        }
-        out.sort();
-        Ok(out)
+    fn default_watch(&self) -> Vec<String> {
+        vec!["src/**/*.py".into()]
     }
     fn is_test_file(&self, path: &Path) -> bool {
         path.extension().and_then(|s| s.to_str()) == Some("py")
@@ -161,16 +147,19 @@ fn python3_available() -> bool {
 /// the run. This helper does not create the `tests/` dir.
 fn fake_package(root: &Path) -> Package {
     let plugin: Arc<dyn Plugin> = Arc::new(FakePlugin);
+    let suite = TestSuite::new(
+        plugin,
+        root.to_path_buf(),
+        vec!["tests/**/fake_*.py".into()],
+        vec!["src/**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
     Package {
         name: "fake".into(),
         root: root.to_path_buf(),
-        test_suites: vec![TestSuite {
-            plugin,
-            test_dirs: vec![root.join("tests")],
-            source_dir_names: vec!["src".into()],
-            worker_hooks: WorkerHookPaths::default(),
-            runner_override: None,
-        }],
+        test_suites: vec![suite],
         pytest_extra_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
@@ -304,17 +293,19 @@ async fn pool_honors_worker_concurrency_cap() {
     // any fake_*.py anywhere under the root. For this test, give it
     // multiple test_dirs.
     let plugin: Arc<dyn Plugin> = Arc::new(FakePlugin);
-    let test_dirs: Vec<PathBuf> = (0..4).map(|i| root.join(format!("tests/a{i}"))).collect();
+    let suite = TestSuite::new(
+        plugin,
+        root.to_path_buf(),
+        vec!["tests/**/fake_*.py".into()],
+        vec!["src/**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
     let pkg = Package {
         name: "fake".into(),
         root: root.to_path_buf(),
-        test_suites: vec![TestSuite {
-            plugin,
-            test_dirs,
-            source_dir_names: vec!["src".into()],
-            worker_hooks: WorkerHookPaths::default(),
-            runner_override: None,
-        }],
+        test_suites: vec![suite],
         pytest_extra_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
@@ -452,25 +443,28 @@ async fn pool_multi_suite_fan_out_runs_concurrently() {
 
     let plugin_a: Arc<dyn Plugin> = Arc::new(FakePlugin);
     let plugin_b: Arc<dyn Plugin> = Arc::new(FakePlugin);
+    let suite_a = TestSuite::new(
+        plugin_a,
+        root.to_path_buf(),
+        vec!["tests/alpha/**/fake_*.py".into()],
+        vec!["src/**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
+    let suite_b = TestSuite::new(
+        plugin_b,
+        root.to_path_buf(),
+        vec!["tests/beta/**/fake_*.py".into()],
+        vec!["src/**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
     let pkg = Package {
         name: "fake".into(),
         root: root.to_path_buf(),
-        test_suites: vec![
-            TestSuite {
-                plugin: plugin_a,
-                test_dirs: vec![root.join("tests/alpha")],
-                source_dir_names: vec!["src".into()],
-                worker_hooks: WorkerHookPaths::default(),
-                runner_override: None,
-            },
-            TestSuite {
-                plugin: plugin_b,
-                test_dirs: vec![root.join("tests/beta")],
-                source_dir_names: vec!["src".into()],
-                worker_hooks: WorkerHookPaths::default(),
-                runner_override: None,
-            },
-        ],
+        test_suites: vec![suite_a, suite_b],
         pytest_extra_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
@@ -510,25 +504,28 @@ async fn pool_shared_cancel_handle_cancels_all_suites() {
 
     let plugin_a: Arc<dyn Plugin> = Arc::new(FakePlugin);
     let plugin_b: Arc<dyn Plugin> = Arc::new(FakePlugin);
+    let suite_a = TestSuite::new(
+        plugin_a,
+        root.to_path_buf(),
+        vec!["tests/alpha/**/fake_*.py".into()],
+        vec!["src/**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
+    let suite_b = TestSuite::new(
+        plugin_b,
+        root.to_path_buf(),
+        vec!["tests/beta/**/fake_*.py".into()],
+        vec!["src/**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
     let pkg = Package {
         name: "fake".into(),
         root: root.to_path_buf(),
-        test_suites: vec![
-            TestSuite {
-                plugin: plugin_a,
-                test_dirs: vec![root.join("tests/alpha")],
-                source_dir_names: vec!["src".into()],
-                worker_hooks: WorkerHookPaths::default(),
-                runner_override: None,
-            },
-            TestSuite {
-                plugin: plugin_b,
-                test_dirs: vec![root.join("tests/beta")],
-                source_dir_names: vec!["src".into()],
-                worker_hooks: WorkerHookPaths::default(),
-                runner_override: None,
-            },
-        ],
+        test_suites: vec![suite_a, suite_b],
         pytest_extra_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
@@ -578,26 +575,27 @@ async fn pool_cancel_all_stops_remaining_files() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();
     let plugin: Arc<dyn Plugin> = Arc::new(FakePlugin);
-    let mut test_dirs: Vec<PathBuf> = Vec::new();
     let mut files: Vec<PathBuf> = Vec::new();
     for i in 0..6 {
         let dir = root.join(format!("tests/b{i}"));
         fs::create_dir_all(&dir).unwrap();
         let f = dir.join("fake_sleep_500.py");
         fs::write(&f, "").unwrap();
-        test_dirs.push(dir);
         files.push(f);
     }
+    let suite = TestSuite::new(
+        plugin,
+        root.to_path_buf(),
+        vec!["tests/**/fake_*.py".into()],
+        vec!["src/**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
     let pkg = Package {
         name: "fake".into(),
         root: root.to_path_buf(),
-        test_suites: vec![TestSuite {
-            plugin,
-            test_dirs,
-            source_dir_names: vec!["src".into()],
-            worker_hooks: WorkerHookPaths::default(),
-            runner_override: None,
-        }],
+        test_suites: vec![suite],
         pytest_extra_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),

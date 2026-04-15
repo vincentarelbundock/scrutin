@@ -184,6 +184,16 @@
     
     <div class="md-header__source">
       
+        <a href="https://github.com/vincentarelbundock/scrutin" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vincentarelbundock/scrutin
+  </div>
+</a>
+      
     </div>
   </nav>
   
@@ -228,6 +238,18 @@
     </a>
     scrutin
   </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/vincentarelbundock/scrutin" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vincentarelbundock/scrutin
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -353,6 +375,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#project-root-vs-suite-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project root vs suite root
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#explicit-suites" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -360,6 +393,45 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Explicit suites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#monorepo-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monorepo layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-globs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom globs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scattered-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scattered files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -375,10 +447,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#project-root" class="md-nav__link">
+  <a href="#project-root-on-the-cli" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project root
+        Project root on the CLI
       
     </span>
   </a>
@@ -386,22 +458,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#source-and-test-directories" class="md-nav__link">
+  <a href="#default-globs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Source and test directories
+        Default globs
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Source and test directories">
+    <nav class="md-nav" aria-label="Default globs">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#test-directories" class="md-nav__link">
+  <a href="#run-inputs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test directories
+        run (inputs)
       
     </span>
   </a>
@@ -409,10 +481,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#source-directories" class="md-nav__link">
+  <a href="#watch-dep-map-triggers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Source directories
+        watch (dep-map triggers)
       
     </span>
   </a>
@@ -1108,6 +1180,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#project-root-vs-suite-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project root vs suite root
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#explicit-suites" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1115,6 +1198,45 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Explicit suites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#monorepo-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monorepo layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-globs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom globs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scattered-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scattered files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1130,10 +1252,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#project-root" class="md-nav__link">
+  <a href="#project-root-on-the-cli" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project root
+        Project root on the CLI
       
     </span>
   </a>
@@ -1141,22 +1263,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#source-and-test-directories" class="md-nav__link">
+  <a href="#default-globs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Source and test directories
+        Default globs
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Source and test directories">
+    <nav class="md-nav" aria-label="Default globs">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#test-directories" class="md-nav__link">
+  <a href="#run-inputs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test directories
+        run (inputs)
       
     </span>
   </a>
@@ -1164,10 +1286,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#source-directories" class="md-nav__link">
+  <a href="#watch-dep-map-triggers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Source directories
+        watch (dep-map triggers)
       
     </span>
   </a>
@@ -1226,24 +1348,30 @@
               <article class="md-content__inner md-typeset">
                 
                   
+  
+  
+
 
 <h1 id="project-discovery">Project Discovery<a class="headerlink" href="#project-discovery" title="Permanent link">&para;</a></h1>
-<p>Scrutin needs to know two things: which tools to run, and where the test files live. There are two ways to tell it.</p>
+<p>Scrutin needs to know three things: which tools to run, where each tool should run from, and which files it should operate on. There are two ways to tell it.</p>
 <p><strong>Tool</strong>: a test runner or other utility that scrutin knows how to drive (testthat, pytest, jarl, etc.). Each tool is compiled into the binary as a plugin.</p>
-<p><strong>Suite</strong>: a configured instance of a tool, pointing at specific directories in your project. A project can have multiple suites, even multiple suites using the same tool with different directories.</p>
+<p><strong>Suite</strong>: a configured instance of a tool, with its own working directory and file patterns. A project can have multiple suites, even multiple suites using the same tool.</p>
+<h2 id="project-root-vs-suite-root">Project root vs suite root<a class="headerlink" href="#project-root-vs-suite-root" title="Permanent link">&para;</a></h2>
+<p>Two distinct concepts, used throughout the docs:</p>
+<ul>
+<li><strong>Project root</strong>: where <code>.scrutin/config.toml</code> lives. Anchors shared state: <code>.scrutin/state.db</code>, runner scripts under <code>.scrutin/</code>, startup/teardown hooks, <code>.gitignore</code> entries, git metadata. This is the address you pass on the command line.</li>
+<li><strong>Suite root</strong>: the directory one suite's tool runs from. Every suite has one. In a single-package project (or under auto-detection) it equals the project root; in a monorepo with an R package at <code>r/</code> and a Python package at <code>python/</code>, each suite points at its own subtree.</li>
+</ul>
+<p>Setting a suite's <code>root</code> is what makes <code>pkgload::load_all()</code> find the right <code>DESCRIPTION</code>, pytest find the right <code>pyproject.toml</code> and <code>.venv</code>, and ruff/jarl find the right config file: the engine spawns the tool with <code>cwd = suite.root</code> and sets <code>SCRUTIN_PKG_DIR = suite.root</code>.</p>
 <h2 id="explicit-suites">Explicit suites<a class="headerlink" href="#explicit-suites" title="Permanent link">&para;</a></h2>
 <p>Declare <code>[[suite]]</code> entries in <code>.scrutin/config.toml</code> to control exactly what runs. When at least one <code>[[suite]]</code> is present, auto-detection is skipped entirely.</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">[[suite]]</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">tool</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;testthat&quot;</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">test_dirs</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;tests/testthat&quot;</span><span class="p">]</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">source_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">]</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">[[suite]]</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">tool</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pytest&quot;</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">test_dirs</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">]</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">source_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">]</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;testthat&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">[[suite]]</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pytest&quot;</span>
 </span></code></pre></div>
-<p>Each suite requires two fields:</p>
+<p>Each suite takes the following fields:</p>
 <table>
 <thead>
 <tr>
@@ -1261,32 +1389,70 @@
 <td>Tool name (see table below).</td>
 </tr>
 <tr>
-<td><code>test_dirs</code></td>
-<td>array of strings</td>
-<td>yes</td>
-<td>Directories containing test files, relative to the project root.</td>
+<td><code>root</code></td>
+<td>string</td>
+<td>no</td>
+<td>Suite root, relative to the project root (or absolute). Default: <code>.</code> (the project root).</td>
 </tr>
 <tr>
-<td><code>source_dirs</code></td>
-<td>array of strings</td>
+<td><code>run</code></td>
+<td>array of glob patterns</td>
 <td>no</td>
-<td>Source directories for watch-mode dependency tracking.</td>
+<td>Files the tool operates on (tests to execute, files to lint). Relative to <code>root</code>. Default: plugin-provided globs.</td>
+</tr>
+<tr>
+<td><code>watch</code></td>
+<td>array of glob patterns</td>
+<td>no</td>
+<td>Files watched to trigger reruns. Default: plugin-provided (or same as <code>run</code> for linters).</td>
 </tr>
 <tr>
 <td><code>runner</code></td>
 <td>string</td>
 <td>no</td>
-<td>Path to a custom runner script (replaces the built-in default).</td>
+<td>Path to a custom runner script (replaces the built-in default), relative to the project root.</td>
 </tr>
 </tbody>
 </table>
-<p>A suite can list multiple test directories. This is useful for linters that scan several locations:</p>
+<p>Unknown keys are a hard error, so typos surface immediately.</p>
+<h3 id="monorepo-layout">Monorepo layout<a class="headerlink" href="#monorepo-layout" title="Permanent link">&para;</a></h3>
+<p>When sibling packages live in different subdirectories, give each suite its own <code>root</code>:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[[suite]]</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">tool</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;jarl&quot;</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">test_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;scripts&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;inst/examples&quot;</span><span class="p">]</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;testthat&quot;</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;r&quot;</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">[[suite]]</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;tinytest&quot;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;r&quot;</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">[[suite]]</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pytest&quot;</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;python&quot;</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="k">[[suite]]</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ruff&quot;</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;python&quot;</span>
 </span></code></pre></div>
+<p>Each suite's subprocess runs with <code>cwd = &lt;root&gt;</code>. Relative file I/O inside tests (<code>read.csv("inst/extdata/foo.csv")</code>, <code>open("tests/fixtures/x.txt")</code>) resolves against that subtree.</p>
+<h3 id="custom-globs">Custom globs<a class="headerlink" href="#custom-globs" title="Permanent link">&para;</a></h3>
+<p><code>run</code> and <code>watch</code> accept glob patterns in the <code>globset</code> dialect (<code>*</code>, <code>**</code>, <code>?</code>, <code>[abc]</code>, <code>{a,b}</code>). Literal file paths are valid globs (they match exactly themselves).</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[[suite]]</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">tool</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;pytest&quot;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">root</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;python&quot;</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">run</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;tests/**/test_*.py&quot;</span><span class="p">]</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">watch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;marginaleffects/**/*.py&quot;</span><span class="p">]</span>
+</span></code></pre></div>
+<p>Relative patterns are anchored under <code>root</code>; absolute patterns are used verbatim. There is no directory-recursion shortcut: <code>run = ["tests"]</code> matches the literal path <code>tests</code>, not files under it. Write <code>tests/**/*.py</code> for recursion.</p>
+<h3 id="scattered-files">Scattered files<a class="headerlink" href="#scattered-files" title="Permanent link">&para;</a></h3>
+<p>Because <code>run</code> is a glob list, files can live in unrelated directories:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[[suite]]</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;testthat&quot;</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/home/me/sketch&quot;</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">run</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;foo_test.R&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;../misc/bar_test.R&quot;</span><span class="p">]</span>
+</span></code></pre></div>
+<p>No shared-ancestor requirement: routing is per-glob match.</p>
 <h2 id="auto-detection">Auto-detection<a class="headerlink" href="#auto-detection" title="Permanent link">&para;</a></h2>
-<p>When no <code>[[suite]]</code> entries exist, scrutin scans the project root for marker files and activates every matching tool:</p>
+<p>When no <code>[[suite]]</code> entries exist, scrutin scans the project root for marker files and activates every matching tool. Every auto-detected suite gets <code>root = pkg.root</code> (the project root).</p>
 <table>
 <thead>
 <tr>
@@ -1330,19 +1496,19 @@
 </tbody>
 </table>
 <p>All matching tools activate. A project with both <code>tests/testthat/</code> and <code>inst/tinytest/</code> gets both suites.</p>
+<p>Auto-detection only scans the project root. Monorepos with packages in subdirectories must use explicit <code>[[suite]]</code> declarations (subdirectory names are arbitrary, so there is no safe heuristic).</p>
 <p>To restrict auto-detection to a single tool:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>scrutin<span class="w"> </span>--set<span class="w"> </span>run.tool<span class="o">=</span>testthat
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>scrutin<span class="w"> </span>--set<span class="w"> </span>run.tool<span class="o">=</span>testthat
 </span></code></pre></div>
-<h2 id="project-root">Project root<a class="headerlink" href="#project-root" title="Permanent link">&para;</a></h2>
+<h2 id="project-root-on-the-cli">Project root on the CLI<a class="headerlink" href="#project-root-on-the-cli" title="Permanent link">&para;</a></h2>
 <p>The CLI path argument is the project root. If you don't pass one, scrutin uses the current directory.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>scrutin<span class="w">                     </span><span class="c1"># root is .</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>scrutin<span class="w"> </span>path/to/myproject<span class="w">   </span><span class="c1"># root is path/to/myproject</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>scrutin<span class="w">                     </span><span class="c1"># project root is .</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>scrutin<span class="w"> </span>path/to/myproject<span class="w">   </span><span class="c1"># project root is path/to/myproject</span>
 </span></code></pre></div>
-<p>All paths in <code>.scrutin/config.toml</code> (test_dirs, source_dirs, runner, hooks) are relative to this root.</p>
-<p>Scrutin does not walk up to find a parent project. If you run <code>scrutin</code> from inside <code>tests/testthat/</code>, it looks for tools in <code>tests/testthat/</code>, not in the parent R package. Run it from the project root or pass the path explicitly.</p>
-<h2 id="source-and-test-directories">Source and test directories<a class="headerlink" href="#source-and-test-directories" title="Permanent link">&para;</a></h2>
-<p>In auto-detection mode, each tool has default directories:</p>
-<h3 id="test-directories">Test directories<a class="headerlink" href="#test-directories" title="Permanent link">&para;</a></h3>
+<p>Scrutin does not walk up to find a parent project. If you run <code>scrutin</code> from inside <code>tests/testthat/</code>, it looks for tools in <code>tests/testthat/</code>. Run it from the project root or pass the path explicitly.</p>
+<h2 id="default-globs">Default globs<a class="headerlink" href="#default-globs" title="Permanent link">&para;</a></h2>
+<p>In auto-detection mode (and when <code>run</code>/<code>watch</code> are omitted in an explicit <code>[[suite]]</code>), each plugin provides its own default patterns.</p>
+<h3 id="run-inputs"><code>run</code> (inputs)<a class="headerlink" href="#run-inputs" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -1353,40 +1519,39 @@
 <tbody>
 <tr>
 <td>testthat</td>
-<td><code>tests/testthat</code></td>
+<td><code>tests/testthat/**/test-*.R</code>, <code>test_*.R</code>, <code>test-*.r</code></td>
 </tr>
 <tr>
 <td>tinytest</td>
-<td><code>inst/tinytest</code></td>
+<td><code>inst/tinytest/**/test-*.R</code>, <code>test_*.R</code>, <code>test-*.r</code></td>
 </tr>
 <tr>
 <td>pointblank</td>
-<td><code>tests/pointblank</code></td>
+<td><code>tests/pointblank/**/test-*.R</code>, <code>test_*.R</code>, <code>test-*.r</code></td>
 </tr>
 <tr>
 <td>validate</td>
-<td><code>tests/validate</code></td>
+<td><code>tests/validate/**/test-*.R</code>, <code>test_*.R</code>, <code>test-*.r</code></td>
 </tr>
 <tr>
 <td>jarl</td>
-<td><code>R</code></td>
-</tr>
-<tr>
-<td>ruff</td>
-<td><code>.</code> (project root; ruff's own config handles exclusions)</td>
+<td><code>R/**/*.R</code>, <code>R/**/*.r</code></td>
 </tr>
 <tr>
 <td>pytest</td>
-<td><code>tests</code>, <code>test</code></td>
+<td><code>tests/**/test_*.py</code>, <code>tests/**/*_test.py</code>, <code>test/**/test_*.py</code>, <code>test/**/*_test.py</code>, <code>test_*.py</code>, <code>*_test.py</code></td>
+</tr>
+<tr>
+<td>ruff</td>
+<td><code>**/*.py</code></td>
 </tr>
 <tr>
 <td>Great Expectations</td>
-<td><code>tests/great_expectations</code></td>
+<td><code>tests/great_expectations/**/test_*.py</code>, <code>tests/great_expectations/**/*_test.py</code></td>
 </tr>
 </tbody>
 </table>
-<p>Pytest also discovers <code>test_*.py</code> files at the project root, regardless of which test directory is active.</p>
-<h3 id="source-directories">Source directories<a class="headerlink" href="#source-directories" title="Permanent link">&para;</a></h3>
+<h3 id="watch-dep-map-triggers"><code>watch</code> (dep-map triggers)<a class="headerlink" href="#watch-dep-map-triggers" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -1397,41 +1562,44 @@
 <tbody>
 <tr>
 <td>testthat, tinytest, pointblank, validate</td>
-<td><code>R</code></td>
-</tr>
-<tr>
-<td>jarl, ruff</td>
-<td>(none)</td>
+<td><code>R/**/*.R</code>, <code>R/**/*.r</code></td>
 </tr>
 <tr>
 <td>pytest, Great Expectations</td>
-<td><code>src</code>, <code>lib</code></td>
+<td><code>src/**/*.py</code>, <code>lib/**/*.py</code>, <code>**/*.py</code></td>
+</tr>
+<tr>
+<td>jarl, ruff</td>
+<td>(empty: falls back to <code>run</code>)</td>
 </tr>
 </tbody>
 </table>
-<p>Source directories are used for dependency tracking in watch mode and for the file watcher.</p>
+<p>Watch globs are consulted by the file watcher and the dep-map staleness check. Editing a file matching a <code>watch</code> pattern triggers reruns of tests that depend on it (for runners) or re-checking that file (for linters).</p>
 <h2 id="config-file">Config file<a class="headerlink" href="#config-file" title="Permanent link">&para;</a></h2>
 <p>Scrutin looks for <code>.scrutin/config.toml</code> in the project root directory. If none is found, it falls back to <code>~/.config/scrutin/config.toml</code>. See the <a href="../reference/configuration/">configuration reference</a> for the full schema.</p>
 <h2 id="virtual-environment-detection-python">Virtual environment detection (Python)<a class="headerlink" href="#virtual-environment-detection-python" title="Permanent link">&para;</a></h2>
-<p>For Python projects, scrutin resolves the interpreter in this order:</p>
+<p>For Python projects, scrutin resolves the interpreter per suite. Resolution uses the suite's root as the anchor, not the project root:</p>
 <ol>
-<li><code>[python].interpreter</code> in <code>.scrutin/config.toml</code></li>
-<li><code>[python].venv</code> in <code>.scrutin/config.toml</code> (path to a virtualenv directory)</li>
+<li><code>[python].interpreter</code> in <code>.scrutin/config.toml</code> (project-wide override)</li>
+<li><code>[python].venv</code> in <code>.scrutin/config.toml</code> (path to a virtualenv directory, relative to project root or absolute)</li>
 <li><code>$VIRTUAL_ENV</code> environment variable</li>
-<li><code>.venv/</code> or <code>venv/</code> in the project root</li>
+<li><code>.venv/</code> or <code>venv/</code> under the <strong>suite root</strong></li>
 <li><code>$CONDA_PREFIX</code> environment variable</li>
 <li><code>python3</code> on <code>$PATH</code> (or <code>python</code> on Windows)</li>
 </ol>
+<p>In a monorepo with <code>[[suite]] tool = "pytest" root = "python"</code>, step 4 finds <code>/repo/python/.venv/bin/python</code> — the venv that belongs to that package. If you have a single shared venv for the whole repo, set <code>[python].venv</code> explicitly.</p>
 <p>Override in config:</p>
-<div class="language-toml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">[python]</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">venv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_env&quot;</span><span class="w">           </span><span class="c1"># relative to project root, or absolute</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">interpreter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;python3.12&quot;</span><span class="w"> </span><span class="c1"># skip venv detection entirely</span>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">[python]</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">venv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_env&quot;</span><span class="w">           </span><span class="c1"># relative to project root, or absolute</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">interpreter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;python3.12&quot;</span><span class="w"> </span><span class="c1"># skip venv detection entirely</span>
 </span></code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <p><strong>"No test tools detected"</strong>: scrutin found no marker files in the directory you pointed it at. Either run from the project root, pass the root path explicitly, or add <code>[[suite]]</code> entries to <code>.scrutin/config.toml</code>.</p>
 <p><strong>Wrong tool detected</strong>: use <code>--set run.tool=pytest</code> to restrict auto-detection, or switch to explicit <code>[[suite]]</code> entries.</p>
 <p><strong>Tests not found</strong>: run <code>scrutin -r list</code> to see which test files scrutin discovers. If the list is empty, check that your test directory matches the defaults above, or declare the directory explicitly with <code>[[suite]]</code>.</p>
 <p><strong>Non-standard layout</strong>: declare your suites explicitly. Explicit <code>[[suite]]</code> entries bypass all auto-detection and let you point scrutin at any directory structure.</p>
+<p><strong>Monorepo (R + Python in sibling subdirs)</strong>: explicit <code>[[suite]]</code> entries with <code>root</code> per suite. See the monorepo section above.</p>
+<p><strong>Tests can't find their fixtures</strong>: subprocess CWD is the suite's root, not the project root. A test doing <code>read.csv("data/foo.csv")</code> looks for <code>&lt;suite.root&gt;/data/foo.csv</code>. Either set <code>root</code> correctly or use absolute paths in the test.</p>
 
 
 

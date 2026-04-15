@@ -344,16 +344,17 @@ async fn suite_action(
         return Err(bad("path escapes project root"));
     }
 
-    let plugin_action = state
+    let owning_suite = state
         .pkg
         .suite_for(&abs)
-        .and_then(|s| {
-            s.plugin
-                .actions()
-                .into_iter()
-                .find(|a| a.name == body.action)
-        })
+        .ok_or_else(|| bad(&format!("no suite owns file {}", rel_path)))?;
+    let plugin_action = owning_suite
+        .plugin
+        .actions()
+        .into_iter()
+        .find(|a| a.name == body.action)
         .ok_or_else(|| bad(&format!("unknown action {:?} for suite {:?}", body.action, suite_name)))?;
+    let action_cwd = owning_suite.root.clone();
 
     use scrutin_core::project::plugin::ActionScope;
 
@@ -378,7 +379,8 @@ async fn suite_action(
     for rp in &rel_paths {
         cmd.arg(state.pkg.root.join(rp));
     }
-    cmd.stdin(std::process::Stdio::null())
+    cmd.current_dir(&action_cwd)
+        .stdin(std::process::Stdio::null())
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null());
     let status = cmd

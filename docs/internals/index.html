@@ -184,6 +184,16 @@
     
     <div class="md-header__source">
       
+        <a href="https://github.com/vincentarelbundock/scrutin" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vincentarelbundock/scrutin
+  </div>
+</a>
+      
     </div>
   </nav>
   
@@ -228,6 +238,18 @@
     </a>
     scrutin
   </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/vincentarelbundock/scrutin" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vincentarelbundock/scrutin
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -1204,6 +1226,9 @@
               <article class="md-content__inner md-typeset">
                 
                   
+  
+  
+
 
 <h1 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h1>
 <p>Scrutin is a single Rust binary that orchestrates test execution across R and Python. It handles file watching, dependency resolution, process management, and result presentation. The actual test execution happens in language-specific subprocesses driven by embedded runner scripts.</p>
@@ -1252,10 +1277,11 @@
 <p>Workers are long-lived processes that keep your project loaded in memory. When a test file needs to run, scrutin sends the file path to an idle worker over stdin.</p>
 <ul>
 <li><strong>Startup</strong>: the worker starts the language interpreter, runs an embedded runner script, and loads the project (<code>pkgload::load_all()</code> for R, <code>import</code> for Python). It then waits for file paths on stdin.</li>
-<li><strong>Fork isolation</strong>: by default (<code>fork_workers: true</code>), workers stay alive and fork() per test file. Each child gets a copy-on-write clone of the warm interpreter state, runs the test, and exits. This provides both fast startup (the project is loaded once) and full process isolation (no state leakage between files). Set <code>fork_workers: false</code> to kill and respawn the worker after every file instead. Fork mode is Linux/macOS only and is automatically disabled on Windows.</li>
-<li><strong>Crashes</strong>: if a worker crashes mid-test, the error is recorded and the worker is automatically replaced. One crash never takes down the rest of the run.</li>
-<li><strong>Timeouts</strong>: each test file has a 60-second timeout by default (<code>timeout_file_ms</code> in config). If a test hangs, the worker is killed and replaced.</li>
+<li><strong>Fork isolation</strong> (opt-in): by default (<code>fork_workers: false</code>), workers are killed and respawned after every file. This is the safe choice but pays the project-load cost on every file. Set <code>fork_workers: true</code> to keep workers alive and <code>fork()</code> a copy-on-write child per file: the project loads once, each child runs the test in an isolated COW clone, and exits. Fork mode is Linux/macOS only and is automatically disabled on Windows.</li>
 </ul>
+<p><strong>Why fork mode is opt-in</strong>: forking a process that is already multithreaded, or whose test code itself spawns forked workers, can deadlock or crash the child. Common offenders are R's <code>parallel::mclapply</code> / <code>parallel::mcparallel</code>, Python's <code>multiprocessing</code> with the default <code>fork</code> start method, and BLAS/OpenMP-backed numerical libraries that hold internal thread pools. POSIX is explicit that only async-signal-safe code is legal between <code>fork()</code> and <code>exec()</code> in a multithreaded process; most R/Python packages do not respect that, so the safe default is to spawn fresh.
+- <strong>Crashes</strong>: if a worker crashes mid-test, the error is recorded and the worker is automatically replaced. One crash never takes down the rest of the run.
+- <strong>Timeouts</strong>: per-file timeouts are disabled by default. Set <code>timeout_file_ms</code> in config to any positive value to kill and replace workers that don't return within that many milliseconds.</p>
 <h3 id="outcome-taxonomy">Outcome taxonomy<a class="headerlink" href="#outcome-taxonomy" title="Permanent link">&para;</a></h3>
 <p>Every test result is classified into one of six outcomes:</p>
 <table>

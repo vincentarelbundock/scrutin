@@ -46,9 +46,8 @@ No configuration is required. To override defaults in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]
-tool        = "tinytest"
-test_dirs = ["inst/tinytest"]
-source_dirs = ["R"]
+tool = "tinytest"
+# defaults pick up inst/tinytest/**/test-*.R and watch R/**/*.R
 ```
 
 ## Custom runner
@@ -64,7 +63,6 @@ or
 
 ```toml
 [[suite]]
-tool        = "tinytest"
-test_dirs = ["inst/tinytest"]
-runner    = ".scrutin/tinytest/runner.R"
+tool   = "tinytest"
+runner = ".scrutin/tinytest/runner.R"
 ```

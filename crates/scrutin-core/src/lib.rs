@@ -14,6 +14,7 @@ pub mod git;
 pub mod keymap;
 pub mod logbuf;
 pub mod metadata;
+pub mod preflight;
 pub mod project;
 pub mod python;
 pub mod r;

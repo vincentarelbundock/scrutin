@@ -54,8 +54,10 @@ No configuration is required beyond the `jarl.toml` marker file. To override def
 
 ```toml
 [[suite]]
-tool        = "jarl"
-test_dirs = ["R"]
+tool = "jarl"
+# default `run` lints R/**/*.R; `watch` defaults to `run` (linters re-check what they operate on).
+# Override to lint a different tree:
+# run = ["scripts/**/*.R", "inst/examples/**/*.R"]
 ```
 
-jarl has no source directories (it lints the files directly, it does not track dependencies).
+jarl has no separate source/watch list (it lints files directly and does not track dependencies between them).

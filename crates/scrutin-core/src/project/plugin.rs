@@ -4,7 +4,7 @@
 //! whose `detect()` matches the project root: scrutin now happily runs
 //! multiple tools side-by-side in the same directory.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Arc;
 
 use anyhow::{Result, bail};
@@ -36,6 +36,20 @@ pub trait Plugin: Send + Sync {
 
     /// Does this plugin apply to the given project root?
     fn detect(&self, root: &Path) -> bool;
+
+    /// For language plugins that import the project under test at run
+    /// time (e.g. pytest's `__import__("mypkg")` warm-up), return the
+    /// importable module/package name. `None` means the plugin doesn't
+    /// need a pre-flight import check (linters like ruff/jarl don't
+    /// import anything).
+    ///
+    /// The engine uses this at startup to verify the venv / package is
+    /// set up correctly *before* running any tests, so users see an
+    /// actionable error ("install editable: pip install -e .") instead
+    /// of a per-file ModuleNotFoundError.
+    fn project_module_name(&self, _root: &Path) -> Option<String> {
+        None
+    }
 
     /// Subprocess command to spawn (argv-style). The first element is the binary.
     fn subprocess_cmd(&self, root: &Path) -> Vec<String>;
@@ -74,15 +88,15 @@ pub trait Plugin: Send + Sync {
         None
     }
 
-    /// Source directories (relative to root) that watcher should monitor.
-    fn source_dirs(&self) -> Vec<&'static str>;
+    /// Default glob patterns for this plugin's `run` list — files the tool
+    /// operates on (tests to execute, files to lint). Relative to the
+    /// suite root. Used when the user's `[[suite]].run` is empty.
+    fn default_run(&self) -> Vec<String>;
 
-    /// Test directories (relative to root). The first one that exists on
-    /// disk is used as the suite's `test_dir`.
-    fn test_dirs(&self) -> Vec<&'static str>;
-
-    /// Discover test files under the given test directory.
-    fn discover_test_files(&self, root: &Path, test_dir: &Path) -> Result<Vec<PathBuf>>;
+    /// Default glob patterns for this plugin's `watch` list — files watched
+    /// for dep-map reruns. Relative to the suite root. Returning an empty
+    /// vec means "watch the same files you run" (linter default).
+    fn default_watch(&self) -> Vec<String>;
 
     /// Is this path a test file? (used by watcher to route changes)
     fn is_test_file(&self, path: &Path) -> bool;

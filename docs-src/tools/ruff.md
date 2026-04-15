@@ -66,8 +66,10 @@ To override the default suite in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]
-tool        = "ruff"
-test_dirs = ["."]
+tool = "ruff"
+# default `run` lints **/*.py under the suite root; `watch` defaults to `run`.
+# Override to scope:
+# run = ["src/**/*.py", "tests/**/*.py"]
 ```
 
-ruff lints from the project root by default. It has no source directories (each file is checked independently, no dependency tracking).
+ruff runs with `cwd = suite.root` so it picks up the local `pyproject.toml` / `ruff.toml`. Each file is checked independently, no dependency tracking.

@@ -86,7 +86,9 @@ export class ScrutinProcess {
       this.child?.on("exit", (code) => {
         clearTimeout(timeout);
         stderr.removeListener("data", onData);
-        reject(new Error(`scrutin exited with code ${code} before ready`));
+        const tail = buf.trim().split("\n").slice(-5).join("\n");
+        const detail = tail ? `: ${tail}` : "";
+        reject(new Error(`scrutin exited with code ${code} before ready${detail}`));
       });
     });
   }

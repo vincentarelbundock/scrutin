@@ -324,6 +324,13 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
     };
     let n_workers = cfg.run.workers.unwrap_or_else(ProcessPool::default_workers);
 
+    // Startup pre-flight: verify suite roots exist, run globs match
+    // files, command-mode tools are on PATH, Python project module
+    // imports cleanly, R `pkgload` is installed. Each check fails fast
+    // with an actionable error instead of producing per-file noise
+    // mid-run. Disable with `[preflight] enabled = false`.
+    scrutin_core::preflight::run_all(&pkg, &cfg.preflight)?;
+
     print_header(&pkg, n_workers, reporter.is_plain());
 
     let mut test_files = pkg.test_files()?;

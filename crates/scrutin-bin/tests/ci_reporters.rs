@@ -31,6 +31,10 @@ fn write_pyproject(root: &Path) {
         &root.join("pyproject.toml"),
         "[project]\nname = \"fixture\"\nversion = \"0.0.0\"\n",
     );
+    write(
+        &root.join(".scrutin/config.toml"),
+        "[preflight]\nenabled = false\n",
+    );
 }
 
 /// Write a project with three test files: one passing, two failing.

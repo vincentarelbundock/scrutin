@@ -46,14 +46,17 @@ No configuration is required. To override defaults in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]
-tool        = "testthat"
-test_dirs = ["tests/testthat"]
-source_dirs = ["R"]
+tool = "testthat"
+# defaults pick up tests/testthat/**/test-*.R and watch R/**/*.R
+
+# Override explicitly if needed:
+# run   = ["tests/testthat/**/test-*.R"]
+# watch = ["R/**/*.R"]
 ```
 
 ## Working directory
 
-Scrutin runs workers from the **project root**, not from `tests/testthat/`. Use `testthat::test_path()` to build paths to fixture files:
+Scrutin runs workers from the **suite root** (the directory containing `DESCRIPTION`, which in a single-package project equals the project root; in a monorepo use `[[suite]] root = "r"` or similar). The subprocess CWD is the suite root. `testthat::test_path()` is the portable way to build paths to fixture files:
 
 ```r
 test_that("reads fixture data", {
@@ -62,7 +65,7 @@ test_that("reads fixture data", {
 })
 ```
 
-Bare relative paths like `"fixtures/data.csv"` will not resolve correctly.
+Bare relative paths like `"inst/extdata/data.csv"` resolve against the suite root, which makes them portable between scrutin and interactive `devtools::load_all()` sessions.
 
 ## Package loading
 
@@ -81,7 +84,6 @@ or
 
 ```toml
 [[suite]]
-tool        = "testthat"
-test_dirs = ["tests/testthat"]
-runner    = ".scrutin/testthat/runner.R"
+tool   = "testthat"
+runner = ".scrutin/testthat/runner.R"
 ```

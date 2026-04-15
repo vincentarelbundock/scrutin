@@ -44,7 +44,6 @@ No configuration is required. To override defaults in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]
-tool        = "validate"
-test_dirs = ["tests/validate"]
-source_dirs = ["R"]
+tool = "validate"
+# defaults pick up tests/validate/**/test-*.R and watch R/**/*.R
 ```

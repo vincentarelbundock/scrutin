@@ -98,7 +98,7 @@ pub fn resolve_tests(
         if let Some(test_names) = map.get(&relative) {
             for name in test_names {
                 'suite: for suite in &pkg.test_suites {
-                    for td in &suite.test_dirs {
+                    for td in suite.run_search_dirs() {
                         let p = td.join(name);
                         if p.exists() && !out.contains(&p) {
                             out.push(p);

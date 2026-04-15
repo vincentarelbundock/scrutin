@@ -849,30 +849,28 @@ fn handle_action_menu_key(
         KeyCode::Enter => {
             let sel = st.overlay.cursor_pos();
             // Look up the action by index from the selected file's suite.
-            let action_and_paths = st.selected_plugin_actions().and_then(|actions| {
+            let action_paths_cwd = st.selected_plugin_actions().and_then(|actions| {
                 actions.get(sel).cloned()
             }).and_then(|pa| {
                 use scrutin_core::project::plugin::ActionScope;
-                match pa.scope {
-                    ActionScope::File => {
-                        st.selected_file().map(|f| (pa, vec![f.path.clone()]))
-                    }
-                    ActionScope::All => {
-                        st.selected_file().map(|f| {
-                            let suite = &f.suite;
-                            let paths: Vec<PathBuf> = st.files.iter()
-                                .filter(|fe| fe.suite == *suite)
-                                .map(|fe| fe.path.clone())
-                                .collect();
-                            (pa, paths)
-                        })
-                    }
-                }
+                let file = st.selected_file()?;
+                let suite = file.suite.clone();
+                let cwd = st.suite_root(&suite);
+                let paths: Vec<PathBuf> = match pa.scope {
+                    ActionScope::File => vec![file.path.clone()],
+                    ActionScope::All => st
+                        .files
+                        .iter()
+                        .filter(|fe| fe.suite == suite)
+                        .map(|fe| fe.path.clone())
+                        .collect(),
+                };
+                Some((pa, paths, cwd))
             });
             st.pop_mode();
             drop(st);
-            if let Some((pa, paths)) = action_and_paths {
-                let _ = run_plugin_action(&pa, &paths, state, event_tx, terminal);
+            if let Some((pa, paths, cwd)) = action_paths_cwd {
+                let _ = run_plugin_action(&pa, &paths, &cwd, state, event_tx, terminal);
             }
             return;
         }
@@ -1184,6 +1182,7 @@ fn suspend_tui(
 fn run_plugin_action(
     action: &scrutin_core::project::plugin::PluginAction,
     file_paths: &[PathBuf],
+    cwd: &Path,
     state: &Arc<Mutex<AppState>>,
     event_tx: &tokio::sync::mpsc::UnboundedSender<TuiEvent>,
     _terminal: &mut Terminal<CrosstermBackend<io::Stderr>>,
@@ -1199,7 +1198,8 @@ fn run_plugin_action(
     let rerun = action.rerun;
     let rerun_paths = file_paths.to_vec();
 
-    cmd.stdin(std::process::Stdio::null())
+    cmd.current_dir(cwd)
+        .stdin(std::process::Stdio::null())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped());
 

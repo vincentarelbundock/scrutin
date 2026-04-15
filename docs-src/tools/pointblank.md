@@ -47,7 +47,6 @@ No configuration is required. To override defaults in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]
-tool        = "pointblank"
-test_dirs = ["tests/pointblank"]
-source_dirs = ["R"]
+tool = "pointblank"
+# defaults pick up tests/pointblank/**/test-*.R and watch R/**/*.R
 ```

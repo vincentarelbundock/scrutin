@@ -692,6 +692,12 @@ pub(super) struct AppState {
     /// from `Plugin::actions()`. The TUI checks the selected file's suite
     /// to decide which plugin keys are active.
     pub(super) suite_actions: HashMap<String, Vec<scrutin_core::project::plugin::PluginAction>>,
+
+    /// Per-suite working directory, keyed by suite name. Used as the CWD
+    /// when a plugin action is spawned so tool-specific configs
+    /// (`ruff.toml`, `jarl.toml`, `pyproject.toml`) resolve against the
+    /// right subtree in a monorepo.
+    pub(super) suite_roots: HashMap<String, PathBuf>,
 }
 
 /// Per-frame snapshot of which pane occupies which screen rectangle. All
@@ -762,6 +768,7 @@ impl AppState {
         > = std::collections::HashSet::new();
         let mut suite_actions: HashMap<String, Vec<scrutin_core::project::plugin::PluginAction>> =
             HashMap::new();
+        let mut suite_roots: HashMap<String, PathBuf> = HashMap::new();
         for suite in &pkg.test_suites {
             for o in suite.plugin.supported_outcomes() {
                 supported_outcomes.insert(*o);
@@ -770,6 +777,7 @@ impl AppState {
             if !actions.is_empty() {
                 suite_actions.insert(suite.plugin.name().to_string(), actions);
             }
+            suite_roots.insert(suite.plugin.name().to_string(), suite.root.clone());
         }
 
         AppState {
@@ -801,6 +809,7 @@ impl AppState {
             overlay: OverlayState::default(),
             pane_rects: PaneRects::default(),
             suite_actions,
+            suite_roots,
         }
     }
 
@@ -1182,6 +1191,16 @@ impl AppState {
     ) -> Option<&[scrutin_core::project::plugin::PluginAction]> {
         let file = self.selected_file()?;
         self.suite_actions.get(&file.suite).map(|v| v.as_slice())
+    }
+
+    /// Working directory for the given suite name. Falls back to the
+    /// project root when a suite has no registered root (shouldn't
+    /// happen; every suite contributes to `suite_roots` at init time).
+    pub(super) fn suite_root(&self, suite: &str) -> PathBuf {
+        self.suite_roots
+            .get(suite)
+            .cloned()
+            .unwrap_or_else(|| self.pkg_root.clone())
     }
 }
 
