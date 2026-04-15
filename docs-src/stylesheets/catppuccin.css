@@ -5,10 +5,13 @@
  * the web dashboard). This file only covers the Material-specific
  * mappings (primary / accent / default surfaces / code / links).
  *
- * Color discipline: Catppuccin teal is the *brand* color, used only for
- * logos and links. Peach is the accent (hovers, card borders). Every
+ * Color discipline: teal is the single brand color. Both
+ * `--md-primary-fg-color` (logos, links at rest) and
+ * `--md-accent-fg-color` (link hover, sidebar active, clipboard toast,
+ * scrollbar thumb hover, card hover, ...) point at Catppuccin teal, so
+ * every place Material reaches for an accent gets teal for free. Every
  * other surface is a neutral Catppuccin token (base / mantle / crust /
- * surface / text). No teal leaks anywhere but logos + links.
+ * surface / text).
  */
 
 [data-md-color-scheme="default"] {
@@ -18,8 +21,8 @@
   --md-primary-bg-color:          var(--ctp-base);
   --md-primary-bg-color--light:   var(--ctp-mantle);
 
-  --md-accent-fg-color:           var(--ctp-peach);
-  --md-accent-fg-color--transparent: rgba(254, 100, 11, 0.12);
+  --md-accent-fg-color:           var(--ctp-teal);
+  --md-accent-fg-color--transparent: rgba(23, 146, 153, 0.12);
   --md-accent-bg-color:           var(--ctp-base);
   --md-accent-bg-color--light:    var(--ctp-mantle);
 
@@ -42,8 +45,8 @@
   --md-primary-bg-color:          var(--ctp-crust);
   --md-primary-bg-color--light:   var(--ctp-mantle);
 
-  --md-accent-fg-color:           var(--ctp-peach);
-  --md-accent-fg-color--transparent: rgba(250, 179, 135, 0.12);
+  --md-accent-fg-color:           var(--ctp-teal);
+  --md-accent-fg-color--transparent: rgba(148, 226, 213, 0.12);
   --md-accent-bg-color:           var(--ctp-crust);
   --md-accent-bg-color--light:    var(--ctp-mantle);
 
@@ -59,9 +62,7 @@
   --md-typeset-a-color:           var(--ctp-teal);
 }
 
-/* Header: Catppuccin-native mantle bar. The logo is the only teal
- * element on the page; everything else (nav links, buttons, hovers)
- * uses text / peach. */
+/* Header: Catppuccin-native mantle bar. */
 .md-header {
   background-color: var(--ctp-mantle);
   color: var(--ctp-text);
@@ -75,50 +76,21 @@
 .md-header__button {
   color: var(--ctp-text);
 }
-.md-header__button:hover {
-  color: var(--ctp-teal);
-}
 .md-header__nav-link {
   color: var(--ctp-text);
 }
 .md-header__nav-link:hover {
-  color: var(--ctp-teal);
   background: transparent;
 }
 
-/* Body links: teal at rest AND on hover/focus. Material's default pulls
- * hover color from `--md-accent-fg-color` (peach), which we override
- * back to teal here so teal-for-links is consistent across states. */
-.md-typeset a:hover,
-.md-typeset a:focus {
-  color: var(--ctp-teal);
-}
-.md-typeset a:focus code,
-.md-typeset a:hover code {
-  background-color: transparent;
-  color: var(--ctp-teal);
-}
-
-/* Sidebar nav items are links: hover + active stay teal, with a neutral
- * surface tint for the active-item background (never peach). Selectors
- * mirror Material's own specificity (`.md-nav--primary .md-nav__item
- * .md-nav__link--active` = 3 classes) so they win the cascade. */
-.md-nav--primary .md-nav__item .md-nav__link--active,
-.md-nav--primary .md-nav__item .md-nav__link--active code,
-.md-nav__item .md-nav__link--active,
-.md-nav__item .md-nav__link--active code {
-  color: var(--ctp-teal);
+/* Sidebar active item gets a neutral surface tint behind the teal text.
+ * Material's default `--md-accent-fg-color--transparent` background
+ * already reads as a faint teal wash through the accent variable, but
+ * `surface0` gives a more solid "you are here" affordance without
+ * adding a second color to the palette. Selectors mirror Material's
+ * own specificity so they win the cascade without !important. */
+.md-nav--primary .md-nav__item .md-nav__link--active {
   background-color: var(--ctp-surface0);
-}
-.md-nav--primary .md-nav__link[href]:focus:not(.md-nav__link--active),
-.md-nav--primary .md-nav__link[href]:hover:not(.md-nav__link--active),
-.md-nav--secondary .md-nav__link[href]:hover,
-.md-nav__link[href]:focus {
-  color: var(--ctp-teal);
-  background-color: var(--ctp-surface0);
-}
-.md-nav__link.focus-visible {
-  outline-color: var(--ctp-teal);
 }
 
 /* Tabs bar (if navigation.tabs is enabled) tracks the header. */

@@ -13,18 +13,18 @@ nav = [
   {"Projects and Files" = "project-discovery.md"},
 {"Tools" = [
   {"Unit Tests" = [
-    {"testthat (R)" = "tools/testthat.md"},
-    {"tinytest (R)" = "tools/tinytest.md"},
-    {"pytest (Python)" = "tools/pytest.md"},
+    {"testthat (.R)" = "tools/testthat.md"},
+    {"tinytest (.R)" = "tools/tinytest.md"},
+    {"pytest (.py)" = "tools/pytest.md"},
   ]},
   {"Data Validation" = [
-    {"pointblank (R)" = "tools/pointblank.md"},
-    {"validate (R)" = "tools/validate.md"},
-    {"Great Expectations (Python)" = "tools/great-expectations.md"},
+    {"pointblank (.R)" = "tools/pointblank.md"},
+    {"validate (.R)" = "tools/validate.md"},
+    {"Great Expectations (.py)" = "tools/great-expectations.md"},
   ]},
   {"Linters" = [
-    {"jarl (R)" = "tools/jarl.md"},
-    {"ruff (Python)" = "tools/ruff.md"},
+    {"jarl (.R)" = "tools/jarl.md"},
+    {"ruff (.py)" = "tools/ruff.md"},
   ]},
   {"Spell Check" = [
     {"skyspell" = "tools/skyspell.md"},
@@ -52,20 +52,22 @@ font.text = "Inter"
 font.code = "JetBrains Mono"
 features = ["content.code.copy"]
 
-# Material palette keyword picks the base defaults before our
-# `catppuccin.css` overrides kick in. `teal` matches the Catppuccin teal
-# we map `--md-primary-fg-color` onto; that color is reserved for logos
-# and links. Accent (`deep-orange` → Catppuccin peach) drives hovers.
+# Material palette keywords match the Catppuccin tokens we route into
+# `--md-primary-fg-color` and `--md-accent-fg-color` via catppuccin.css,
+# so Material's defaults already line up before our overrides apply.
+# Both primary and accent are teal: teal is the single brand color for
+# logos, links, hovers, and the clipboard toast. Catppuccin neutrals
+# (base / mantle / surface / text) handle everything else.
 [[project.theme.palette]]
 scheme = "default"
 primary = "teal"
-accent = "deep-orange"
+accent = "teal"
 toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
 
 [[project.theme.palette]]
 scheme = "slate"
 primary = "teal"
-accent = "deep-orange"
+accent = "teal"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
