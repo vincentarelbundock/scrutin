@@ -33,15 +33,15 @@ nav = [
   ]},
   {"Frontends" = "frontends.md"},
   {"Reporters" = "reporters.md"},
+  {"Filter" = "filtering.md"},
   {"Watch" = "watch-mode.md"},
   {"Parallelism" = "parallelism.md"},
-  {"Filter" = "filtering.md"},
   {"Keybindings" = "keybindings.md"},
-  {"History" = "history.md"},
   {"Configuration" = "reference/configuration.md"},
   {"Command-Line" = "reference/cli.md"},
-  {"Roadmap" = "roadmap.md"},
+  {"History" = "history.md"},
   {"How It Works" = "internals.md"},
+  {"Roadmap" = "roadmap.md"},
 ]
 
 [project.theme]

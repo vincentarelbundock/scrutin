@@ -353,10 +353,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+  <a href="#install" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation
+        Install
       
     </span>
   </a>
@@ -364,10 +364,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#external-tool-dependencies" class="md-nav__link">
+  <a href="#first-run" class="md-nav__link">
     <span class="md-ellipsis">
       
-        External tool dependencies
+        First run
       
     </span>
   </a>
@@ -375,10 +375,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#supported-tools" class="md-nav__link">
+  <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Supported tools
+        Configuration
       
     </span>
   </a>
@@ -386,10 +386,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-setup" class="md-nav__link">
+  <a href="#external-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick setup
+        External tools
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
       
     </span>
   </a>
@@ -1046,6 +1057,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../filtering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../watch-mode/" class="md-nav__link">
         
   
@@ -1100,33 +1138,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../filtering/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Filter
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../keybindings/" class="md-nav__link">
         
   
@@ -1135,33 +1146,6 @@
     
   
     Keybindings
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../history/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    History
   
 
     
@@ -1235,14 +1219,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../roadmap/" class="md-nav__link">
+      <a href="../history/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Roadmap
+    History
   
 
     
@@ -1270,6 +1254,33 @@
     
   
     How It Works
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
   
 
     
@@ -1323,10 +1334,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+  <a href="#install" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation
+        Install
       
     </span>
   </a>
@@ -1334,10 +1345,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#external-tool-dependencies" class="md-nav__link">
+  <a href="#first-run" class="md-nav__link">
     <span class="md-ellipsis">
       
-        External tool dependencies
+        First run
       
     </span>
   </a>
@@ -1345,10 +1356,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#supported-tools" class="md-nav__link">
+  <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Supported tools
+        Configuration
       
     </span>
   </a>
@@ -1356,10 +1367,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-setup" class="md-nav__link">
+  <a href="#external-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick setup
+        External tools
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
       
     </span>
   </a>
@@ -1389,166 +1411,62 @@
 <p class="admonition-title">Alpha software</p>
 <p><em>Scrutin</em> is alpha software under active development. Expect bugs, breaking changes, and rough edges. Please report issues at <a href="https://github.com/vincentarelbundock/scrutin">github.com/vincentarelbundock/scrutin</a>.</p>
 </div>
-<p>Point <em>Scrutin</em> at your project and it figures out the rest. It detects which test tools are present, discovers test files, and runs them in parallel.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>scrutin<span class="w">                          </span><span class="c1"># auto-detect, launch TUI (watch on by default)</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>scrutin<span class="w"> </span>-r<span class="w"> </span>plain<span class="w">                 </span><span class="c1"># one-shot run, text output</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>scrutin<span class="w"> </span>-r<span class="w"> </span>web<span class="w">                   </span><span class="c1"># browser dashboard</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>scrutin<span class="w"> </span>--set<span class="w"> </span>watch.enabled<span class="o">=</span><span class="nb">false</span><span class="w">  </span><span class="c1"># TUI, one-shot</span>
-</span></code></pre></div>
-<p>If your project uses both R and Python, <em>Scrutin</em> runs every active tool in a single invocation. Within each tool, files run in parallel; across tools, they run one after another so the interpreter only has to warm up once per tool. See <a href="../parallelism/">Parallelism</a> for the tradeoffs and the opt-in fork mode that removes the warm-up cost.</p>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
 <p>Prebuilt binaries are published with each <a href="https://github.com/vincentarelbundock/scrutin/releases">release</a>.</p>
-<p>Install the latest release via shell script (macOS, Linux):</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>--proto<span class="w"> </span><span class="s1">&#39;=https&#39;</span><span class="w"> </span>--tlsv1.2<span class="w"> </span>-LsSf<span class="w"> </span>https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">macOS / Linux</label><label for="__tabbed_1_2">Windows</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>--proto<span class="w"> </span><span class="s1">&#39;=https&#39;</span><span class="w"> </span>--tlsv1.2<span class="w"> </span>-LsSf<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
 </span></code></pre></div>
-<p>Install the latest release via PowerShell (Windows):</p>
-<div class="language-powershell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">powershell</span> <span class="n">-ExecutionPolicy</span> <span class="n">Bypass</span> <span class="n">-c</span> <span class="s2">&quot;irm https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.ps1 | iex&quot;</span>
+</div>
+<div class="tabbed-block">
+<div class="language-powershell highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">powershell</span> <span class="n">-ExecutionPolicy</span> <span class="n">Bypass</span> <span class="n">-c</span> <span class="p">\</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  <span class="s2">&quot;irm https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.ps1 | iex&quot;</span>
 </span></code></pre></div>
-<h2 id="external-tool-dependencies">External tool dependencies<a class="headerlink" href="#external-tool-dependencies" title="Permanent link">&para;</a></h2>
-<p><em>Scrutin</em> orchestrates third-party tools but does not ship them. Follow each tool's own install instructions on its project page:</p>
-<table>
-<thead>
-<tr>
-<th>Tool</th>
-<th>Kind</th>
-<th>Homepage</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>testthat</td>
-<td>R package</td>
-<td><a href="https://testthat.r-lib.org/">https://testthat.r-lib.org/</a></td>
-</tr>
-<tr>
-<td>tinytest</td>
-<td>R package</td>
-<td><a href="https://cran.r-project.org/package=tinytest">https://cran.r-project.org/package=tinytest</a></td>
-</tr>
-<tr>
-<td>pointblank</td>
-<td>R package</td>
-<td><a href="https://rstudio.github.io/pointblank/">https://rstudio.github.io/pointblank/</a></td>
-</tr>
-<tr>
-<td>validate</td>
-<td>R package</td>
-<td><a href="https://cran.r-project.org/package=validate">https://cran.r-project.org/package=validate</a></td>
-</tr>
-<tr>
-<td>jarl</td>
-<td>Rust binary</td>
-<td><a href="https://github.com/vincentarelbundock/jarl">https://github.com/vincentarelbundock/jarl</a></td>
-</tr>
-<tr>
-<td>pytest</td>
-<td>Python package</td>
-<td><a href="https://docs.pytest.org/">https://docs.pytest.org/</a></td>
-</tr>
-<tr>
-<td>Great Expectations</td>
-<td>Python package</td>
-<td><a href="https://greatexpectations.io/">https://greatexpectations.io/</a></td>
-</tr>
-<tr>
-<td>ruff</td>
-<td>Rust binary</td>
-<td><a href="https://docs.astral.sh/ruff/">https://docs.astral.sh/ruff/</a></td>
-</tr>
-<tr>
-<td>skyspell</td>
-<td>Rust binary</td>
-<td><a href="https://codeberg.org/your-tools/skyspell">https://codeberg.org/your-tools/skyspell</a></td>
-</tr>
-<tr>
-<td>typos</td>
-<td>Rust binary</td>
-<td><a href="https://github.com/crate-ci/typos">https://github.com/crate-ci/typos</a></td>
-</tr>
-</tbody>
-</table>
-<p>Test and data-validation tools (testthat, tinytest, pointblank, validate, pytest, Great Expectations) run inside an R or Python interpreter, so they must be installed as importable packages in the language environment <em>Scrutin</em> uses for that suite (the active R library, or the suite's resolved Python virtualenv). Linters and spell checkers (jarl, ruff, skyspell, typos) are standalone binaries: just put them on <code>PATH</code>.</p>
-<p><em>Scrutin</em> checks for the required binaries at startup and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Turn that preflight off with <code>[preflight] command_tools = false</code> if you have a reason to bypass it.</p>
-<h2 id="supported-tools">Supported tools<a class="headerlink" href="#supported-tools" title="Permanent link">&para;</a></h2>
-<p>Each tool page includes a minimal example with directory structure and configuration. Test and data-validation tools activate automatically when their marker files are present; linters and spell checkers are opt-in via an explicit <code>[[suite]]</code> entry. See <a href="../project-discovery/">Projects and Files</a> for the detection rules.</p>
-<table>
-<thead>
-<tr>
-<th>Tool</th>
-<th>Language</th>
-<th>Category</th>
-<th style="text-align: center;">Auto-detect</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="../tools/testthat/">testthat</a></td>
-<td>R</td>
-<td>Unit tests</td>
-<td style="text-align: center;">yes</td>
-</tr>
-<tr>
-<td><a href="../tools/tinytest/">tinytest</a></td>
-<td>R</td>
-<td>Unit tests</td>
-<td style="text-align: center;">yes</td>
-</tr>
-<tr>
-<td><a href="../tools/pointblank/">pointblank</a></td>
-<td>R</td>
-<td>Data validation</td>
-<td style="text-align: center;">yes</td>
-</tr>
-<tr>
-<td><a href="../tools/validate/">validate</a></td>
-<td>R</td>
-<td>Data validation</td>
-<td style="text-align: center;">yes</td>
-</tr>
-<tr>
-<td><a href="../tools/pytest/">pytest</a></td>
-<td>Python</td>
-<td>Unit tests</td>
-<td style="text-align: center;">yes</td>
-</tr>
-<tr>
-<td><a href="../tools/great-expectations/">Great Expectations</a></td>
-<td>Python</td>
-<td>Data validation</td>
-<td style="text-align: center;">yes</td>
-</tr>
-<tr>
-<td><a href="../tools/jarl/">jarl</a></td>
-<td>R</td>
-<td>Linter</td>
-<td style="text-align: center;">opt-in</td>
-</tr>
-<tr>
-<td><a href="../tools/ruff/">ruff</a></td>
-<td>Python</td>
-<td>Linter</td>
-<td style="text-align: center;">opt-in</td>
-</tr>
-<tr>
-<td><a href="../tools/skyspell/">skyspell</a></td>
-<td>Prose</td>
-<td>Spell check</td>
-<td style="text-align: center;">opt-in</td>
-</tr>
-<tr>
-<td><a href="../tools/typos/">typos</a></td>
-<td>Any</td>
-<td>Spell check</td>
-<td style="text-align: center;">opt-in</td>
-</tr>
-</tbody>
-</table>
-<p>To restrict to one tool: <code>scrutin --tool testthat</code> (short form <code>-t</code>).</p>
-<h2 id="quick-setup">Quick setup<a class="headerlink" href="#quick-setup" title="Permanent link">&para;</a></h2>
-<p>Generate a config file and <code>.scrutin/</code> directory:</p>
+</div>
+</div>
+</div>
+<h2 id="first-run">First run<a class="headerlink" href="#first-run" title="Permanent link">&para;</a></h2>
+<p><em>Scrutin</em> can run <a href="../frontends/#terminal-ui">in a terminal</a>, as a <a href="../frontends/#web-dashboard">web dashboard</a>, or <a href="../frontends/#vs-code">inside an editor</a> like VS Code or RStudio using one of the official extensions. All of these frontends auto-detect your test framework, run every test file in parallel, and stream results as they arrive.</p>
+<p>Users interested in a specific frontend should click the links above for setup details. In the simplest case, all you need to do is <code>cd</code> to the directory and run:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>scrutin<span class="w">           </span><span class="c1"># terminal UI (default)</span>
+</span></code></pre></div>
+<p><img alt="Terminal UI" class="screenshot" src="../assets/screenshot_tui_normal_mode.png" /></p>
+<p>In the terminal UI:</p>
+<ul>
+<li>Each file is one row in the list; the counts bar at the bottom summarizes the run.</li>
+<li><code>↑</code> / <code>↓</code> move the cursor</li>
+<li><code>→</code> drills into a file</li>
+<li><code>←</code> goes back</li>
+<li><code>r</code> opens the run menu</li>
+<li><code>x</code> / <code>X</code> cancels runs</li>
+<li><code>q</code> quits</li>
+<li><code>?</code> shows the full keymap</li>
+<li>See <a href="../keybindings/">Keybindings</a> for a full list, including vim-style alternatives.</li>
+</ul>
+<p>If no tests are detected, see <a href="../project-discovery/">Projects and Files</a> for how detection works.</p>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p>Most projects need no config: auto-detection covers the common cases. When you do want to tune something (workers, timeouts, filters, per-tool options), generate a starter file at the project root:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>scrutin<span class="w"> </span>init
 </span></code></pre></div>
-<p>This creates a <code>.scrutin/config.toml</code> with sensible defaults. You can customize workers, timeouts, filters, and more: see the <a href="../reference/configuration/">configuration reference</a>.</p>
+<p>That writes <code>.scrutin/config.toml</code> with commented-out defaults. The full set of knobs is in the <a href="../reference/configuration/">configuration reference</a>.</p>
+<h2 id="external-tools">External tools<a class="headerlink" href="#external-tools" title="Permanent link">&para;</a></h2>
+<p>Test frameworks auto-detect; linters and spell-checkers are opt-in so a stray <code>.py</code> file in an R project doesn't suddenly start failing on style. Declare the tools you want via <code>[[suite]]</code> entries in <code>.scrutin/config.toml</code>:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">[[suite]]</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ruff&quot;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">[[suite]]</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;skyspell&quot;</span>
+</span></code></pre></div>
+<p>See each tool's page for details: <a href="../tools/jarl/">jarl</a>, <a href="../tools/ruff/">ruff</a>, <a href="../tools/skyspell/">skyspell</a>, <a href="../tools/typos/">typos</a>.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<p><em>Scrutin</em> orchestrates third-party tools but doesn't ship them. Install the ones your project uses through their usual channels:</p>
+<ul>
+<li><strong>Test and data-validation tools</strong> (testthat, tinytest, pointblank, validate, pytest, Great Expectations) run inside an R or Python interpreter. Install them as importable packages in the environment <em>Scrutin</em> uses for that suite (the active R library, or the suite's resolved Python virtualenv).</li>
+<li><strong>Linters and spell-checkers</strong> (jarl, ruff, skyspell, typos) are standalone binaries. Put them on <code>PATH</code>.</li>
+</ul>
+<p>At startup <em>Scrutin</em> checks that every required binary is reachable and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Set <code>[preflight] command_tools = false</code> to bypass the check.</p>
 
 
 

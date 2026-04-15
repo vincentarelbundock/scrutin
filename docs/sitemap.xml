@@ -46,19 +46,16 @@
         <loc>https://scrutin.dev/reporters/</loc>
       </url>
       <url>
+        <loc>https://scrutin.dev/filtering/</loc>
+      </url>
+      <url>
         <loc>https://scrutin.dev/watch-mode/</loc>
       </url>
       <url>
         <loc>https://scrutin.dev/parallelism/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/filtering/</loc>
-      </url>
-      <url>
         <loc>https://scrutin.dev/keybindings/</loc>
-      </url>
-      <url>
-        <loc>https://scrutin.dev/history/</loc>
       </url>
       <url>
         <loc>https://scrutin.dev/reference/configuration/</loc>
@@ -67,9 +64,12 @@
         <loc>https://scrutin.dev/reference/cli/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/roadmap/</loc>
+        <loc>https://scrutin.dev/history/</loc>
       </url>
       <url>
         <loc>https://scrutin.dev/internals/</loc>
+      </url>
+      <url>
+        <loc>https://scrutin.dev/roadmap/</loc>
       </url>
 </urlset>

@@ -3,79 +3,77 @@
 !!! warning "Alpha software"
     *Scrutin* is alpha software under active development. Expect bugs, breaking changes, and rough edges. Please report issues at [github.com/vincentarelbundock/scrutin](https://github.com/vincentarelbundock/scrutin).
 
-Point *Scrutin* at your project and it figures out the rest. It detects which test tools are present, discovers test files, and runs them in parallel.
-
-```bash
-scrutin                          # auto-detect, launch TUI (watch on by default)
-scrutin -r plain                 # one-shot run, text output
-scrutin -r web                   # browser dashboard
-scrutin --set watch.enabled=false  # TUI, one-shot
-```
-
-If your project uses both R and Python, *Scrutin* runs every active tool in a single invocation. Within each tool, files run in parallel; across tools, they run one after another so the interpreter only has to warm up once per tool. See [Parallelism](parallelism.md) for the tradeoffs and the opt-in fork mode that removes the warm-up cost.
-
-## Installation
+## Install
 
 Prebuilt binaries are published with each [release](https://github.com/vincentarelbundock/scrutin/releases).
 
-Install the latest release via shell script (macOS, Linux):
+=== "macOS / Linux"
+    ```bash
+    curl --proto '=https' --tlsv1.2 -LsSf \
+      https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.sh | sh
+    ```
+
+=== "Windows"
+    ```powershell
+    powershell -ExecutionPolicy Bypass -c \
+      "irm https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.ps1 | iex"
+    ```
+
+## First run
+
+*Scrutin* can run [in a terminal](frontends.md#terminal-ui), as a [web dashboard](frontends.md#web-dashboard), or [inside an editor](frontends.md#vs-code) like VS Code or RStudio using one of the official extensions. All of these frontends auto-detect your test framework, run every test file in parallel, and stream results as they arrive.
+
+Users interested in a specific frontend should click the links above for setup details. In the simplest case, all you need to do is `cd` to the directory and run:
 
 ```bash
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.sh | sh
+scrutin           # terminal UI (default)
 ```
 
-Install the latest release via PowerShell (Windows):
+![Terminal UI](assets/screenshot_tui_normal_mode.png){ .screenshot }
 
-```powershell
-powershell -ExecutionPolicy Bypass -c "irm https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.ps1 | iex"
-```
+In the terminal UI:
 
-## External tool dependencies
+- Each file is one row in the list; the counts bar at the bottom summarizes the run.
+- `↑` / `↓` move the cursor
+- `→` drills into a file
+- `←` goes back
+- `r` opens the run menu
+- `x` / `X` cancels runs
+- `q` quits
+- `?` shows the full keymap
+- See [Keybindings](keybindings.md) for a full list, including vim-style alternatives.
 
-*Scrutin* orchestrates third-party tools but does not ship them. Follow each tool's own install instructions on its project page:
+If no tests are detected, see [Projects and Files](project-discovery.md) for how detection works.
 
-| Tool | Kind | Homepage |
-| ---- | ---- | -------- |
-| testthat | R package | <https://testthat.r-lib.org/> |
-| tinytest | R package | <https://cran.r-project.org/package=tinytest> |
-| pointblank | R package | <https://rstudio.github.io/pointblank/> |
-| validate | R package | <https://cran.r-project.org/package=validate> |
-| jarl | Rust binary | <https://github.com/vincentarelbundock/jarl> |
-| pytest | Python package | <https://docs.pytest.org/> |
-| Great Expectations | Python package | <https://greatexpectations.io/> |
-| ruff | Rust binary | <https://docs.astral.sh/ruff/> |
-| skyspell | Rust binary | <https://codeberg.org/your-tools/skyspell> |
-| typos | Rust binary | <https://github.com/crate-ci/typos> |
+## Configuration
 
-Test and data-validation tools (testthat, tinytest, pointblank, validate, pytest, Great Expectations) run inside an R or Python interpreter, so they must be installed as importable packages in the language environment *Scrutin* uses for that suite (the active R library, or the suite's resolved Python virtualenv). Linters and spell checkers (jarl, ruff, skyspell, typos) are standalone binaries: just put them on `PATH`.
-
-*Scrutin* checks for the required binaries at startup and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Turn that preflight off with `[preflight] command_tools = false` if you have a reason to bypass it.
-
-## Supported tools
-
-Each tool page includes a minimal example with directory structure and configuration. Test and data-validation tools activate automatically when their marker files are present; linters and spell checkers are opt-in via an explicit `[[suite]]` entry. See [Projects and Files](project-discovery.md) for the detection rules.
-
-| Tool | Language | Category | Auto-detect |
-| ---- | -------- | -------- | :---------: |
-| [testthat](tools/testthat.md) | R | Unit tests | yes |
-| [tinytest](tools/tinytest.md) | R | Unit tests | yes |
-| [pointblank](tools/pointblank.md) | R | Data validation | yes |
-| [validate](tools/validate.md) | R | Data validation | yes |
-| [pytest](tools/pytest.md) | Python | Unit tests | yes |
-| [Great Expectations](tools/great-expectations.md) | Python | Data validation | yes |
-| [jarl](tools/jarl.md) | R | Linter | opt-in |
-| [ruff](tools/ruff.md) | Python | Linter | opt-in |
-| [skyspell](tools/skyspell.md) | Prose | Spell check | opt-in |
-| [typos](tools/typos.md) | Any | Spell check | opt-in |
-
-To restrict to one tool: `scrutin --tool testthat` (short form `-t`).
-
-## Quick setup
-
-Generate a config file and `.scrutin/` directory:
+Most projects need no config: auto-detection covers the common cases. When you do want to tune something (workers, timeouts, filters, per-tool options), generate a starter file at the project root:
 
 ```bash
 scrutin init
 ```
 
-This creates a `.scrutin/config.toml` with sensible defaults. You can customize workers, timeouts, filters, and more: see the [configuration reference](reference/configuration.md).
+That writes `.scrutin/config.toml` with commented-out defaults. The full set of knobs is in the [configuration reference](reference/configuration.md).
+
+## External tools
+
+Test frameworks auto-detect; linters and spell-checkers are opt-in so a stray `.py` file in an R project doesn't suddenly start failing on style. Declare the tools you want via `[[suite]]` entries in `.scrutin/config.toml`:
+
+```toml
+[[suite]]
+tool = "ruff"
+
+[[suite]]
+tool = "skyspell"
+```
+
+See each tool's page for details: [jarl](tools/jarl.md), [ruff](tools/ruff.md), [skyspell](tools/skyspell.md), [typos](tools/typos.md).
+
+## Requirements
+
+*Scrutin* orchestrates third-party tools but doesn't ship them. Install the ones your project uses through their usual channels:
+
+- **Test and data-validation tools** (testthat, tinytest, pointblank, validate, pytest, Great Expectations) run inside an R or Python interpreter. Install them as importable packages in the environment *Scrutin* uses for that suite (the active R library, or the suite's resolved Python virtualenv).
+- **Linters and spell-checkers** (jarl, ruff, skyspell, typos) are standalone binaries. Put them on `PATH`.
+
+At startup *Scrutin* checks that every required binary is reachable and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Set `[preflight] command_tools = false` to bypass the check.

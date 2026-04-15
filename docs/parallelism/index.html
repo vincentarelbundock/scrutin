@@ -16,7 +16,7 @@
         <link rel="prev" href="../watch-mode/">
       
       
-        <link rel="next" href="../filtering/">
+        <link rel="next" href="../keybindings/">
       
       
         
@@ -954,6 +954,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../filtering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../watch-mode/" class="md-nav__link">
         
   
@@ -1042,10 +1069,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#spawn-mode-default-safe" class="md-nav__link">
+  <a href="#spawn" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Spawn mode (default, safe)
+        Spawn
       
     </span>
   </a>
@@ -1053,10 +1080,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#fork-mode-opt-in-faster-but-risky" class="md-nav__link">
+  <a href="#fork" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fork mode (opt-in, faster but risky)
+        Fork
       
     </span>
   </a>
@@ -1078,33 +1105,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../filtering/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Filter
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../keybindings/" class="md-nav__link">
         
   
@@ -1113,33 +1113,6 @@
     
   
     Keybindings
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../history/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    History
   
 
     
@@ -1213,14 +1186,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../roadmap/" class="md-nav__link">
+      <a href="../history/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Roadmap
+    History
   
 
     
@@ -1248,6 +1221,33 @@
     
   
     How It Works
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
   
 
     
@@ -1301,10 +1301,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#spawn-mode-default-safe" class="md-nav__link">
+  <a href="#spawn" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Spawn mode (default, safe)
+        Spawn
       
     </span>
   </a>
@@ -1312,10 +1312,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#fork-mode-opt-in-faster-but-risky" class="md-nav__link">
+  <a href="#fork" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fork mode (opt-in, faster but risky)
+        Fork
       
     </span>
   </a>
@@ -1342,10 +1342,10 @@
 
 <h1 id="parallelism">Parallelism<a class="headerlink" href="#parallelism" title="Permanent link">&para;</a></h1>
 <p><em>Scrutin</em> runs test files concurrently across a pool of worker subprocesses. The default pool size is <code>min(available_parallelism, 8)</code> with a minimum of 2. Each tool gets its own pool, but the pools run <strong>sequentially</strong>: one suite's workers start, chew through all its files in parallel, and shut down before the next suite's pool spins up. Running pools concurrently would mean paying the interpreter warm-up cost (<code>pkgload::load_all()</code>, <code>import mypkg</code>, ...) <code>workers × suites</code> times instead of <code>workers</code> times. Within any one suite every file still runs in parallel up to the pool size.</p>
-<h2 id="spawn-mode-default-safe">Spawn mode (default, safe)<a class="headerlink" href="#spawn-mode-default-safe" title="Permanent link">&para;</a></h2>
+<h2 id="spawn">Spawn<a class="headerlink" href="#spawn" title="Permanent link">&para;</a></h2>
 <p>By default (<code>[run] fork_workers = false</code>), every test file runs in a fresh subprocess. The worker loads your project, runs one file, exits, and is replaced by a new one for the next file. This is the safest choice: process isolation is absolute, and nothing a test does (leaked threads, monkey-patched globals, loaded C libraries) can affect the next file.</p>
 <p>The tradeoff is that you pay the project-load cost (<code>pkgload::load_all()</code>, <code>import mypkg</code>, etc.) on every file. For small projects this is invisible; for large ones it adds up.</p>
-<h2 id="fork-mode-opt-in-faster-but-risky">Fork mode (opt-in, faster but risky)<a class="headerlink" href="#fork-mode-opt-in-faster-but-risky" title="Permanent link">&para;</a></h2>
+<h2 id="fork">Fork<a class="headerlink" href="#fork" title="Permanent link">&para;</a></h2>
 <p>On Linux and macOS, set <code>[run] fork_workers = true</code> to trade some safety for speed. Each suite keeps one long-lived parent process with your project pre-loaded, and <code>fork()</code>s a copy-on-write child for each test file. The project loads once per worker, each child runs in an isolated COW clone, and exits. Re-runs on save are near-instant because no reload happens.</p>
 <p>Fork mode is dangerous when the code under test forks on its own: R's <code>parallel::mclapply</code> / <code>mcparallel</code>, Python's <code>multiprocessing</code> with the default <code>fork</code> start method, and any BLAS/OpenMP-threaded numerical library can deadlock or crash the child when forked from an already-multithreaded parent. Leave <code>fork_workers = false</code> unless you are confident none of your tests (or their dependencies) do that. Fork mode is auto-forced off on Windows, where <code>fork()</code> is unavailable.</p>
 
