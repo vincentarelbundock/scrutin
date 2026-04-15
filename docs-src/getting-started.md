@@ -26,7 +26,7 @@ Prebuilt binaries are published with each [release](https://github.com/vincentar
 Users interested in a specific frontend should click the links above for setup details. In the simplest case, all you need to do is `cd` to the directory and run:
 
 ```bash
-scrutin           # terminal UI (default)
+scrutin
 ```
 
 ![Terminal UI](assets/screenshot_tui_normal_mode.png){ .screenshot }

@@ -117,6 +117,21 @@ h1#__skip {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   width: 100%;
   height: auto;
+  cursor: zoom-in;
+}
+
+/* Medium-zoom overlay: use Catppuccin crust for the backdrop so the
+ * lightbox feels part of the theme rather than a black modal. */
+.medium-zoom-overlay {
+  background: var(--ctp-crust) !important;
+}
+
+/* Cap zoomed screenshots so they don't fill the entire viewport on
+ * wide monitors. medium-zoom otherwise scales to 90% of viewport,
+ * which is oversized for wide screenshots. */
+.medium-zoom-image--opened {
+  max-width: 70vw !important;
+  max-height: 80vh !important;
 }
 
 /* Screenshot card (image + label stacked) */

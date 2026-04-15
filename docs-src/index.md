@@ -120,23 +120,23 @@ Pick where to see your results: a live [terminal UI](frontends.md#terminal-ui), 
 <div class="screenshot-row three" markdown>
 
 <div class="screenshot-card" markdown>
-[![VS Code](assets/screenshot_editor_vscode.png){ .screenshot }](frontends.md#vs-code)
+![VS Code](assets/screenshot_editor_vscode.png){ .screenshot }
 
-**VS Code**
+[**VS Code**](frontends.md#vs-code)
 { .screenshot-label }
 </div>
 
 <div class="screenshot-card" markdown>
-[![Positron](assets/screenshot_editor_positron.png){ .screenshot }](frontends.md#positron)
+![Positron](assets/screenshot_editor_positron.png){ .screenshot }
 
-**Positron**
+[**Positron**](frontends.md#positron)
 { .screenshot-label }
 </div>
 
 <div class="screenshot-card" markdown>
-[![RStudio](assets/screenshot_editor_rstudio.png){ .screenshot }](frontends.md#rstudio)
+![RStudio](assets/screenshot_editor_rstudio.png){ .screenshot }
 
-**RStudio**
+[**RStudio**](frontends.md#rstudio)
 { .screenshot-label }
 </div>
 

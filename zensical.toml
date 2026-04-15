@@ -7,6 +7,10 @@ site_url = "https://scrutin.dev"
 repo_url = "https://github.com/vincentarelbundock/scrutin"
 repo_name = "vincentarelbundock/scrutin"
 extra_css = ["stylesheets/home.css", "stylesheets/catppuccin-palette.css", "stylesheets/catppuccin.css"]
+# Lightbox for screenshots: medium-zoom library + init script. Both are
+# served locally (no CDN dependency). Applied to any image with the
+# `.screenshot` class; see `js/lightbox.js`.
+extra_javascript = ["js/medium-zoom.min.js", "js/lightbox.js"]
 nav = [
   {"Home" = "index.md"},
   {"Getting Started" = "getting-started.md"},
