@@ -19,6 +19,7 @@ pub fn get(path: &str) -> Option<EmbeddedFile> {
         "index.html"              => include_bytes!("../frontend/index.html"),
         "app.js"                  => include_bytes!("../frontend/app.js"),
         "style.css"               => include_bytes!("../frontend/style.css"),
+        "catppuccin-palette.css"  => include_bytes!("../frontend/catppuccin-palette.css"),
         "modules/state.js"        => include_bytes!("../frontend/modules/state.js"),
         "modules/util.js"         => include_bytes!("../frontend/modules/util.js"),
         "modules/api.js"          => include_bytes!("../frontend/modules/api.js"),
@@ -36,7 +37,7 @@ pub fn get(path: &str) -> Option<EmbeddedFile> {
     };
     let mime = match path {
         "index.html" => "text/html; charset=utf-8",
-        "style.css"  => "text/css; charset=utf-8",
+        "style.css" | "catppuccin-palette.css" => "text/css; charset=utf-8",
         _            => JS,
     };
     Some(EmbeddedFile { data, mime })

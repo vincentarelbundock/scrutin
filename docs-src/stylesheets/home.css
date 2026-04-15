@@ -3,9 +3,10 @@
   visibility: hidden;
 }
 
-/* Extra header link (Docs) injected by overrides/partials/header.html. */
+/* Extra header link (Docs) injected by overrides/partials/header.html.
+ * Color / hover come from catppuccin.css; only the link-specific layout
+ * (sizing, padding, rounded corners) lives here. */
 .md-header__nav-link {
-  color: var(--md-primary-bg-color);
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 500;
@@ -17,12 +18,6 @@
 
 .md-header__nav-link:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Navbar logo color */
-.md-header__button.md-logo svg {
-  color: var(--md-primary-fg-color);
 }
 
 /* Hide the page title on the home page */
@@ -162,7 +157,7 @@ h1#__skip {
 }
 
 .grid.cards > ul > li:hover {
-  border-color: var(--md-primary-fg-color);
+  border-color: var(--md-accent-fg-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 

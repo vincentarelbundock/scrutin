@@ -23,3 +23,8 @@ uv.lock
 docs-src/reference/cli.md
 docs-src/reference/configuration.md
 docs-src/history.md
+
+# Copy of the shared Catppuccin palette. Source of truth is
+# crates/scrutin-web/frontend/catppuccin-palette.css. `make inject-docs`
+# mirrors it here so zensical can pick it up via extra_css.
+docs-src/stylesheets/catppuccin-palette.css

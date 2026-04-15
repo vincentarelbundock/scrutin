@@ -1,41 +1,27 @@
-:root, :root[data-theme="dark"] {
-  --bg: #0f1115;
-  --bg-2: #151821;
-  --bg-3: #1c2030;
-  --fg: #e6e6e6;
-  --fg-dim: #8a8f9e;
-  --border: #2a2f3d;
-  --accent: #00d1b2;
-  --pass: #4caf50;
-  --fail: #e53935;
-  --error: #c62828;
-  --warn: #ffb300;
-  --skip: #607d8b;
-  --xfail: #9575cd;
-  --pending: #546e7a;
-  --running: #29b6f6;
-  --gutter-bg: #161a24;
-  --highlight-bg: #2a2030;
-}
-
+/* Semantic theme tokens are aliased onto the shared Catppuccin palette
+ * (see catppuccin-palette.css, which is the single source of truth shared
+ * with the docs site). Both themes use identical aliases; the palette
+ * file swaps the `--ctp-*` hex values per `[data-theme]` selector. */
+:root,
+:root[data-theme="dark"],
 :root[data-theme="light"] {
-  --bg: #fafafa;
-  --bg-2: #f0f2f5;
-  --bg-3: #e2e6ec;
-  --fg: #1a1d24;
-  --fg-dim: #5f6773;
-  --border: #d1d6de;
-  --accent: #0e9488;
-  --pass: #2e7d32;
-  --fail: #c62828;
-  --error: #b71c1c;
-  --warn: #ef6c00;
-  --skip: #546e7a;
-  --xfail: #6a1b9a;
-  --pending: #78909c;
-  --running: #0277bd;
-  --gutter-bg: #eaecf0;
-  --highlight-bg: #fff3e0;
+  --bg:           var(--ctp-base);
+  --bg-2:         var(--ctp-mantle);
+  --bg-3:         var(--ctp-surface0);
+  --fg:           var(--ctp-text);
+  --fg-dim:       var(--ctp-subtext0);
+  --border:       var(--ctp-surface1);
+  --accent:       var(--ctp-teal);
+  --pass:         var(--ctp-green);
+  --fail:         var(--ctp-red);
+  --error:        var(--ctp-maroon);
+  --warn:         var(--ctp-yellow);
+  --skip:         var(--ctp-overlay1);
+  --xfail:        var(--ctp-mauve);
+  --pending:      var(--ctp-overlay0);
+  --running:      var(--ctp-sky);
+  --gutter-bg:    var(--ctp-mantle);
+  --highlight-bg: var(--ctp-surface0);
 }
 
 * { box-sizing: border-box; }

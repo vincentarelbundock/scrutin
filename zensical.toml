@@ -6,7 +6,7 @@ site_description = "Fast watch-mode test runner for R and Python"
 site_url = "https://scrutin.dev"
 repo_url = "https://github.com/vincentarelbundock/scrutin"
 repo_name = "vincentarelbundock/scrutin"
-extra_css = ["stylesheets/home.css"]
+extra_css = ["stylesheets/home.css", "stylesheets/catppuccin-palette.css", "stylesheets/catppuccin.css"]
 nav = [
   {"Home" = "index.md"},
   {"Getting Started" = "getting-started.md"},
@@ -52,6 +52,10 @@ font.text = "Inter"
 font.code = "JetBrains Mono"
 features = ["content.code.copy"]
 
+# Material palette keyword picks the base defaults before our
+# `catppuccin.css` overrides kick in. `teal` matches the Catppuccin teal
+# we map `--md-primary-fg-color` onto; that color is reserved for logos
+# and links. Accent (`deep-orange` → Catppuccin peach) drives hovers.
 [[project.theme.palette]]
 scheme = "default"
 primary = "teal"

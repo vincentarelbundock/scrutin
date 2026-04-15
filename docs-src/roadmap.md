@@ -1,27 +1,31 @@
 # Roadmap
 
-Planned features that are not yet implemented. For smaller in-progress items, see `TODO.md` in the repository.
-
-## Server/IDE socket mode (headless NDJSON)
-
-Run *Scrutin* as a long-lived background process that editor extensions connect to over a socket (Unix domain socket or loopback TCP), instead of re-spawning the binary for every action.
-
-Motivation: editor extensions (VS Code, Positron, RStudio) currently shell out per run, losing warm R and Python worker subprocesses between invocations. A persistent socket keeps the pool hot and lets the editor subscribe to live events the same way the web SSE endpoint does, without HTTP overhead or browser-specific assumptions.
-
-Shape:
-
-- New reporter variant (e.g. `-r socket:/tmp/scrutin.sock`) that runs headless: no TUI, no web UI, no plain text output.
-- The socket streams NDJSON events from `scrutin-core::engine::run_events` (FileFinished, Complete, cancellation, watch state).
-- Clients send NDJSON commands back: run, rerun, rerun-failing, cancel, apply plugin action, toggle watch. Same verbs as the web's control routes.
-- Wire format reuses `scrutin-web::wire` so editor clients and the browser dashboard stay schema-compatible.
+Planned features that are not yet implemented.
 
 ## CTRF reporter
 
-Emit [Common Test Report Format](https://ctrf.io) (CTRF) output via a new reporter variant (`-r ctrf:PATH`). CTRF is a JSON schema for test results with growing adoption in the JS/TS ecosystem (Playwright, Jest, Cypress reporters) but no existing pytest or R producer, so this is a producer-angle opportunity rather than an ingest one.
+Emit [Common Test Report Format](https://ctrf.io) output via a new `-r ctrf:PATH` reporter, giving the R and Python ecosystems a producer for a schema that so far has traction only in JS/TS tooling.
 
-Shape:
+## History dashboard
 
-- New file in `scrutin-bin/src/cli/reporter/`, enum variant in `cli/mod.rs`, one match arm. Same pattern as the JUnit and GitHub reporters.
-- Six-outcome mapping uses CTRF's `rawStatus` field to preserve *Scrutin*'s finer taxonomy: `pass→passed`, `fail→failed+rawStatus=fail`, `error→failed+rawStatus=error`, `skip→skipped`, `xfail→skipped+rawStatus=xfail`, `warn→other+rawStatus=warn`.
-- File-level granularity (one CTRF `test` per *Scrutin* file) for consistency with `max_fail`; per-expectation detail goes in `extra`.
-- Multi-suite runs either emit one CTRF file per suite or list siblings in `extra`: decide at implementation time.
+Turn `scrutin stats` into a history view over the SQLite database: pass/fail/flaky rates, average and p95 durations, retry-prone files, and a "what changed since last run" diff against a baseline run. The data is already captured on every run, so this is a query and presentation layer, not new instrumentation.
+
+## Test coverage helpers
+
+Dispatch to [covr](https://covr.r-lib.org) for R and [coverage.py](https://coverage.readthedocs.io) for pytest, aggregate the results across suites, and emit a unified summary with `term`, `html`, or `lcov` output configurable under `[coverage]`.
+
+## Group-based filtering
+
+Add a `-g GROUP` flag so tests can be grouped by user-defined labels (slow, integration, flaky, ...) and runs can target one group at a time. Companions extract group annotations from each tool's native mechanism (pytest markers, testthat tags, tinytest comments), scrutin filters the file list before dispatch.
+
+## Doc tests
+
+Treat runnable examples in documentation as first-class test files: roxygen `@examples` blocks on the R side, [doctest](https://docs.python.org/3/library/doctest.html) (or `pytest --doctest-modules`) on the Python side. Each doc-test source becomes a synthetic file in the run with the same six-outcome taxonomy as regular tests.
+
+## Expand internal test suite
+
+Broaden *Scrutin*'s own `cargo test` coverage: more end-to-end runs against the `demo/` fixture across every plugin and every outcome in the six-value taxonomy, plus targeted tests for the engine seams (multi-suite fan-out, cancellation, rerun, watch-mode dep-map invalidation).
+
+## More tool plugins
+
+Extend the plugin registry to cover more of the R and Python validation ecosystem. Each tool drops into its language directory (`r/<tool>/` or `python/<tool>/`) with a `plugin.rs` and, where applicable, a runner companion, following the pattern already used by pointblank, validate, and great_expectations. Candidates: [pandera](https://pandera.readthedocs.io) and [pydantic](https://docs.pydantic.dev) on the Python side; further R data-validation packages as they appear.

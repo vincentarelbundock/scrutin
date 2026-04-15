@@ -60,6 +60,10 @@
     
       <link rel="stylesheet" href="../stylesheets/home.css">
     
+      <link rel="stylesheet" href="../stylesheets/catppuccin-palette.css">
+    
+      <link rel="stylesheet" href="../stylesheets/catppuccin.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,a=__md_scope)=>JSON.parse(t.getItem(a.pathname+"."+e)),__md_set=(e,t,a=localStorage,_=__md_scope)=>{try{a.setItem(_.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
     
       
@@ -1200,10 +1204,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#serveride-socket-mode-headless-ndjson" class="md-nav__link">
+  <a href="#ctrf-reporter" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Server/IDE socket mode (headless NDJSON)
+        CTRF reporter
       
     </span>
   </a>
@@ -1211,10 +1215,65 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ctrf-reporter" class="md-nav__link">
+  <a href="#history-dashboard" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CTRF reporter
+        History dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-coverage-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test coverage helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#group-based-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Group-based filtering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#doc-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Doc tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expand-internal-test-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expand internal test suite
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-tool-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More tool plugins
       
     </span>
   </a>
@@ -1297,10 +1356,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#serveride-socket-mode-headless-ndjson" class="md-nav__link">
+  <a href="#ctrf-reporter" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Server/IDE socket mode (headless NDJSON)
+        CTRF reporter
       
     </span>
   </a>
@@ -1308,10 +1367,65 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ctrf-reporter" class="md-nav__link">
+  <a href="#history-dashboard" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CTRF reporter
+        History dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-coverage-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test coverage helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#group-based-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Group-based filtering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#doc-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Doc tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expand-internal-test-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expand internal test suite
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-tool-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More tool plugins
       
     </span>
   </a>
@@ -1337,26 +1451,21 @@
 
 
 <h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
-<p>Planned features that are not yet implemented. For smaller in-progress items, see <code>TODO.md</code> in the repository.</p>
-<h2 id="serveride-socket-mode-headless-ndjson">Server/IDE socket mode (headless NDJSON)<a class="headerlink" href="#serveride-socket-mode-headless-ndjson" title="Permanent link">&para;</a></h2>
-<p>Run <em>Scrutin</em> as a long-lived background process that editor extensions connect to over a socket (Unix domain socket or loopback TCP), instead of re-spawning the binary for every action.</p>
-<p>Motivation: editor extensions (VS Code, Positron, RStudio) currently shell out per run, losing warm R and Python worker subprocesses between invocations. A persistent socket keeps the pool hot and lets the editor subscribe to live events the same way the web SSE endpoint does, without HTTP overhead or browser-specific assumptions.</p>
-<p>Shape:</p>
-<ul>
-<li>New reporter variant (e.g. <code>-r socket:/tmp/scrutin.sock</code>) that runs headless: no TUI, no web UI, no plain text output.</li>
-<li>The socket streams NDJSON events from <code>scrutin-core::engine::run_events</code> (FileFinished, Complete, cancellation, watch state).</li>
-<li>Clients send NDJSON commands back: run, rerun, rerun-failing, cancel, apply plugin action, toggle watch. Same verbs as the web's control routes.</li>
-<li>Wire format reuses <code>scrutin-web::wire</code> so editor clients and the browser dashboard stay schema-compatible.</li>
-</ul>
+<p>Planned features that are not yet implemented.</p>
 <h2 id="ctrf-reporter">CTRF reporter<a class="headerlink" href="#ctrf-reporter" title="Permanent link">&para;</a></h2>
-<p>Emit <a href="https://ctrf.io">Common Test Report Format</a> (CTRF) output via a new reporter variant (<code>-r ctrf:PATH</code>). CTRF is a JSON schema for test results with growing adoption in the JS/TS ecosystem (Playwright, Jest, Cypress reporters) but no existing pytest or R producer, so this is a producer-angle opportunity rather than an ingest one.</p>
-<p>Shape:</p>
-<ul>
-<li>New file in <code>scrutin-bin/src/cli/reporter/</code>, enum variant in <code>cli/mod.rs</code>, one match arm. Same pattern as the JUnit and GitHub reporters.</li>
-<li>Six-outcome mapping uses CTRF's <code>rawStatus</code> field to preserve <em>Scrutin</em>'s finer taxonomy: <code>pass→passed</code>, <code>fail→failed+rawStatus=fail</code>, <code>error→failed+rawStatus=error</code>, <code>skip→skipped</code>, <code>xfail→skipped+rawStatus=xfail</code>, <code>warn→other+rawStatus=warn</code>.</li>
-<li>File-level granularity (one CTRF <code>test</code> per <em>Scrutin</em> file) for consistency with <code>max_fail</code>; per-expectation detail goes in <code>extra</code>.</li>
-<li>Multi-suite runs either emit one CTRF file per suite or list siblings in <code>extra</code>: decide at implementation time.</li>
-</ul>
+<p>Emit <a href="https://ctrf.io">Common Test Report Format</a> output via a new <code>-r ctrf:PATH</code> reporter, giving the R and Python ecosystems a producer for a schema that so far has traction only in JS/TS tooling.</p>
+<h2 id="history-dashboard">History dashboard<a class="headerlink" href="#history-dashboard" title="Permanent link">&para;</a></h2>
+<p>Turn <code>scrutin stats</code> into a history view over the SQLite database: pass/fail/flaky rates, average and p95 durations, retry-prone files, and a "what changed since last run" diff against a baseline run. The data is already captured on every run, so this is a query and presentation layer, not new instrumentation.</p>
+<h2 id="test-coverage-helpers">Test coverage helpers<a class="headerlink" href="#test-coverage-helpers" title="Permanent link">&para;</a></h2>
+<p>Dispatch to <a href="https://covr.r-lib.org">covr</a> for R and <a href="https://coverage.readthedocs.io">coverage.py</a> for pytest, aggregate the results across suites, and emit a unified summary with <code>term</code>, <code>html</code>, or <code>lcov</code> output configurable under <code>[coverage]</code>.</p>
+<h2 id="group-based-filtering">Group-based filtering<a class="headerlink" href="#group-based-filtering" title="Permanent link">&para;</a></h2>
+<p>Add a <code>-g GROUP</code> flag so tests can be grouped by user-defined labels (slow, integration, flaky, ...) and runs can target one group at a time. Companions extract group annotations from each tool's native mechanism (pytest markers, testthat tags, tinytest comments), scrutin filters the file list before dispatch.</p>
+<h2 id="doc-tests">Doc tests<a class="headerlink" href="#doc-tests" title="Permanent link">&para;</a></h2>
+<p>Treat runnable examples in documentation as first-class test files: roxygen <code>@examples</code> blocks on the R side, <a href="https://docs.python.org/3/library/doctest.html">doctest</a> (or <code>pytest --doctest-modules</code>) on the Python side. Each doc-test source becomes a synthetic file in the run with the same six-outcome taxonomy as regular tests.</p>
+<h2 id="expand-internal-test-suite">Expand internal test suite<a class="headerlink" href="#expand-internal-test-suite" title="Permanent link">&para;</a></h2>
+<p>Broaden <em>Scrutin</em>'s own <code>cargo test</code> coverage: more end-to-end runs against the <code>demo/</code> fixture across every plugin and every outcome in the six-value taxonomy, plus targeted tests for the engine seams (multi-suite fan-out, cancellation, rerun, watch-mode dep-map invalidation).</p>
+<h2 id="more-tool-plugins">More tool plugins<a class="headerlink" href="#more-tool-plugins" title="Permanent link">&para;</a></h2>
+<p>Extend the plugin registry to cover more of the R and Python validation ecosystem. Each tool drops into its language directory (<code>r/&lt;tool&gt;/</code> or <code>python/&lt;tool&gt;/</code>) with a <code>plugin.rs</code> and, where applicable, a runner companion, following the pattern already used by pointblank, validate, and great_expectations. Candidates: <a href="https://pandera.readthedocs.io">pandera</a> and <a href="https://docs.pydantic.dev">pydantic</a> on the Python side; further R data-validation packages as they appear.</p>
 
 
 

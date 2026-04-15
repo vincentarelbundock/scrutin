@@ -137,9 +137,14 @@ CLI_MD          := docs-src/reference/cli.md
 HISTORY_MD      := docs-src/history.md
 HISTORY_IN      := $(HISTORY_MD).in
 SQL_DIR         := crates/scrutin-core/src/storage/sql
+PALETTE_SRC     := crates/scrutin-web/frontend/catppuccin-palette.css
+PALETTE_DOCS    := docs-src/stylesheets/catppuccin-palette.css
 
 inject-docs: ## Regenerate injected docs pages (CLI / config / SQL schema) in docs-src/
 	cargo run --features generate-docs -- generate-docs target/docs
+	@# Shared palette: single source of truth is the dashboard copy.
+	@# Keep the docs copy in sync so both sites stay visually aligned.
+	@cp $(PALETTE_SRC) $(PALETTE_DOCS)
 	sed 's/^# Command-Line Help for .*/# Command-Line/; s/—/: /g; s/–/-/g; s/:  /: /g' $(CLI_SRC) > $(CLI_MD)
 	@awk 'BEGIN{s=0} \
 	/^<!-- BEGIN init_template.toml -->/{print; print "```toml"; while((getline l < "$(CONFIG_TEMPLATE)") > 0) print l; print "```"; s=1; next} \
