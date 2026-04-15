@@ -681,12 +681,13 @@ fn handle_detail_key(
     event_tx: &tokio::sync::mpsc::UnboundedSender<TuiEvent>,
     terminal: &mut Terminal<CrosstermBackend<io::Stderr>>,
 ) -> Result<bool> {
-    // Most keys are now dispatched via DETAIL_BINDINGS → apply_action. This
-    // "extras" fn handles only Ctrl-o (yank path:line, context-dependent).
-    let _ = (pkg, event_tx, terminal);
-    let st = state.lock().unwrap();
-    if key.code == KeyCode::Char('o') && key.modifiers.contains(KeyModifiers::CONTROL)
-        && let Some(file) = st.selected_file() {
+    // Most keys are dispatched via DETAIL_BINDINGS → apply_action. This
+    // "extras" fn handles Ctrl-o (yank path:line) and 0-9 (accept the Nth
+    // spell-check suggestion attached to the cursor test).
+    let _ = terminal;
+    if key.code == KeyCode::Char('o') && key.modifiers.contains(KeyModifiers::CONTROL) {
+        let st = state.lock().unwrap();
+        if let Some(file) = st.selected_file() {
             // test_cursor indexes the sorted-for-display list.
             let sorted = st.sorted_selected_tests();
             let s = match sorted.get(st.nav.test_cursor) {
@@ -697,7 +698,181 @@ fn handle_detail_key(
             };
             osc52_copy(&s);
         }
+        return Ok(false);
+    }
+
+    if let KeyCode::Char(c) = key.code
+        && c.is_ascii_digit()
+        && key.modifiers == KeyModifiers::NONE
+    {
+        match c {
+            '0' => add_word_to_dictionary(pkg, state, event_tx),
+            _ => {
+                // 1-9 accept the Nth suggestion (1-based in UI, 0-based in
+                // the `suggestions` vec).
+                let idx = (c as u8 - b'1') as usize;
+                accept_suggestion_in_detail(state, event_tx, idx);
+            }
+        }
+    }
     Ok(false)
+}
+
+/// Apply the Nth ranked suggestion (0-based) of the cursor test's first
+/// attached `Correction` to the file on disk, then trigger a rerun so the
+/// refreshed test list picks up the change. No-op when the current test
+/// has no corrections (non-spell-check findings) or `n` is out of range.
+fn accept_suggestion_in_detail(
+    state: &Arc<Mutex<AppState>>,
+    event_tx: &tokio::sync::mpsc::UnboundedSender<TuiEvent>,
+    n: usize,
+) {
+    let (file_path, correction, replacement) = {
+        let st = state.lock().unwrap();
+        let Some(file) = st.selected_file() else { return };
+        let sorted = st.sorted_selected_tests();
+        let Some(test) = sorted.get(st.nav.test_cursor) else { return };
+        let Some(correction) = test.corrections.first().cloned() else { return };
+        let Some(replacement) = correction.suggestions.get(n).cloned() else { return };
+        (file.path.clone(), correction, replacement)
+    };
+
+    match apply_correction_to_file(&file_path, &correction, &replacement) {
+        Ok(()) => {
+            let st = state.lock().unwrap();
+            st.log.push(
+                "scrutin",
+                &format!(
+                    "spell: replaced '{}' with '{}'\n",
+                    correction.word, replacement
+                ),
+            );
+            drop(st);
+            let _ = event_tx.send(TuiEvent::WatchEvent(vec![file_path]));
+        }
+        Err(e) => {
+            let st = state.lock().unwrap();
+            st.log
+                .push("scrutin", &format!("spell: apply failed: {}\n", e));
+        }
+    }
+}
+
+/// Read `file_path`, replace the byte range described by `correction` with
+/// `replacement`, and write it back. Errors when the line isn't found, the
+/// range is out of bounds, or the bytes at that range don't match the word
+/// the correction was generated for (a mismatch means the file drifted
+/// since the spell-check run).
+///
+/// skyspell reports `col_start`/`col_end` as 1-based byte offsets within
+/// the line (exact for ASCII, approximate for multi-byte UTF-8 prose).
+fn apply_correction_to_file(
+    file_path: &Path,
+    correction: &scrutin_core::engine::protocol::Correction,
+    replacement: &str,
+) -> Result<(), String> {
+    let content = std::fs::read_to_string(file_path)
+        .map_err(|e| format!("read {}: {}", file_path.display(), e))?;
+
+    let mut line_start = if correction.line == 1 { Some(0) } else { None };
+    if line_start.is_none() {
+        let mut cur: u32 = 1;
+        for (i, b) in content.bytes().enumerate() {
+            if b == b'\n' {
+                cur += 1;
+                if cur == correction.line {
+                    line_start = Some(i + 1);
+                    break;
+                }
+            }
+        }
+    }
+    let line_start =
+        line_start.ok_or_else(|| format!("line {} not found", correction.line))?;
+
+    let byte_start = line_start + (correction.col_start as usize).saturating_sub(1);
+    let byte_end = line_start + correction.col_end as usize;
+    if byte_end > content.len() || byte_start >= byte_end {
+        return Err(format!("byte range {}..{} out of bounds", byte_start, byte_end));
+    }
+    let actual = &content[byte_start..byte_end];
+    if actual != correction.word {
+        return Err(format!(
+            "word mismatch at {}:{}: expected {:?}, found {:?}",
+            correction.line, correction.col_start, correction.word, actual
+        ));
+    }
+
+    let mut out = String::with_capacity(
+        content.len() + replacement.len().saturating_sub(correction.word.len()),
+    );
+    out.push_str(&content[..byte_start]);
+    out.push_str(replacement);
+    out.push_str(&content[byte_end..]);
+    std::fs::write(file_path, out)
+        .map_err(|e| format!("write {}: {}", file_path.display(), e))
+}
+
+/// Shell out to `skyspell --project-path <SUITE> <EXTRA_ARGS> add
+/// <ADD_ARGS> <WORD>`. Args come from `[skyspell]` in `.scrutin/config.toml`
+/// (plumbed through `Package`), defaulting to `["--lang", "en_US"]` +
+/// `["--project"]` so the whitelist lands in `<suite>/skyspell-ignore.toml`.
+/// No-op when the cursor test doesn't come from the skyspell suite or has
+/// no corrections attached.
+fn add_word_to_dictionary(
+    pkg: &Package,
+    state: &Arc<Mutex<AppState>>,
+    event_tx: &tokio::sync::mpsc::UnboundedSender<TuiEvent>,
+) {
+    let (file_path, word, suite_root) = {
+        let st = state.lock().unwrap();
+        let Some(file) = st.selected_file() else { return };
+        if file.suite != "skyspell" {
+            return;
+        }
+        let sorted = st.sorted_selected_tests();
+        let Some(test) = sorted.get(st.nav.test_cursor) else { return };
+        let Some(correction) = test.corrections.first() else { return };
+        let Some(suite_root) = st.suite_roots.get("skyspell").cloned() else { return };
+        (file.path.clone(), correction.word.clone(), suite_root)
+    };
+
+    let mut cmd = std::process::Command::new("skyspell");
+    cmd.arg("--project-path")
+        .arg(&suite_root)
+        .args(&pkg.skyspell_extra_args)
+        .arg("add")
+        .args(&pkg.skyspell_add_args)
+        .arg(&word);
+    let result = cmd.output();
+
+    let st = state.lock().unwrap();
+    match result {
+        Ok(out) if out.status.success() => {
+            let scope = if pkg.skyspell_add_args.iter().any(|a| a == "--project") {
+                format!("{}/skyspell-ignore.toml", suite_root.display())
+            } else {
+                "skyspell global dictionary".into()
+            };
+            st.log.push(
+                "scrutin",
+                &format!("spell: added '{}' to {}\n", word, scope),
+            );
+            drop(st);
+            let _ = event_tx.send(TuiEvent::WatchEvent(vec![file_path]));
+        }
+        Ok(out) => {
+            let err = String::from_utf8_lossy(&out.stderr);
+            st.log.push(
+                "scrutin",
+                &format!("spell: add failed: {}\n", err.trim()),
+            );
+        }
+        Err(e) => {
+            st.log
+                .push("scrutin", &format!("spell: add failed: {}\n", e));
+        }
+    }
 }
 
 fn handle_failure_key(

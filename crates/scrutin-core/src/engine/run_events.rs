@@ -129,7 +129,7 @@ pub async fn start_run(
         // spawns one short-lived command per file. Worker-mode plugins
         // (testthat, pytest, ...) get the full ProcessPool with warm
         // long-lived subprocesses.
-        let pool = if suite.plugin.command_spec(&suite.root).is_some() {
+        let pool = if suite.plugin.command_spec(&suite.root, pkg).is_some() {
             Pool::Command(Arc::new(CommandPool::new(
                 pkg,
                 suite,

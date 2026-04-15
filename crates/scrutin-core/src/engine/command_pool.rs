@@ -111,7 +111,7 @@ async fn run_command(
     log: Option<&LogBuffer>,
 ) -> Vec<Message> {
     let plugin = &suite.plugin;
-    let spec = match plugin.command_spec(&suite.root) {
+    let spec = match plugin.command_spec(&suite.root, pkg) {
         Some(s) => s,
         None => {
             return vec![Message::Event(Event::engine_error(

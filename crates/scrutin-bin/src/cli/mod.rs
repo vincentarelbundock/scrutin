@@ -245,6 +245,8 @@ fn discover_for_verb(root: &Path) -> Result<Package> {
         root.to_path_buf(),
         "auto",
         &[],
+        &[],
+        &[],
         Vec::new(),
         |_| Ok(scrutin_core::project::package::WorkerHookPaths::default()),
         |_| None,
@@ -295,6 +297,8 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
             root,
             &cfg.suites,
             &cfg.pytest.extra_args,
+            &cfg.skyspell.extra_args,
+            &cfg.skyspell.add_args,
             python_interpreter,
             |plugin| {
                 let wh = hooks::resolve_worker_hooks(&cfg_for_hooks, plugin, &root_for_hooks)?;
@@ -310,6 +314,8 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
             root,
             &cfg.run.tool,
             &cfg.pytest.extra_args,
+            &cfg.skyspell.extra_args,
+            &cfg.skyspell.add_args,
             python_interpreter,
             |plugin| {
                 let wh = hooks::resolve_worker_hooks(&cfg_for_hooks, plugin, &root_for_hooks)?;

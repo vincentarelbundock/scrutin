@@ -97,7 +97,7 @@ fn check_run_globs(pkg: &Package) -> Result<()> {
 
 fn check_command_tools(pkg: &Package) -> Result<()> {
     for suite in &pkg.test_suites {
-        let spec = match suite.plugin.command_spec(&suite.root) {
+        let spec = match suite.plugin.command_spec(&suite.root, pkg) {
             Some(s) => s,
             None => continue,
         };
@@ -232,7 +232,7 @@ fn check_r_pkgload(pkg: &Package) -> Result<()> {
             continue;
         }
         // Skip pure linter R plugins (jarl) which don't load_all.
-        if suite.plugin.command_spec(&suite.root).is_some() {
+        if suite.plugin.command_spec(&suite.root, pkg).is_some() {
             continue;
         }
         if !seen.insert(suite.root.as_path()) {

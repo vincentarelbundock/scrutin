@@ -152,6 +152,24 @@ pub struct FailureDetail {
     pub fields: BTreeMap<String, serde_json::Value>,
 }
 
+/// A spell-check correction attached to a `warn` event. Carries the
+/// misspelled word's byte/column span inside the file plus the ranked list
+/// of candidate replacements. Populated only by spell-check plugins (today:
+/// skyspell); every other plugin leaves [`Event::corrections`] empty.
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct Correction {
+    pub word: String,
+    /// 1-based line number inside the file.
+    pub line: u32,
+    /// 1-based start column of the misspelled word.
+    pub col_start: u32,
+    /// 1-based exclusive end column of the misspelled word.
+    pub col_end: u32,
+    /// Candidate replacements, ranked best-first by the backend.
+    #[serde(default)]
+    pub suggestions: Vec<String>,
+}
+
 /// One per-test event.
 #[derive(Debug, Clone, Deserialize)]
 pub struct Event {
@@ -168,6 +186,10 @@ pub struct Event {
     pub line: Option<u32>,
     #[serde(default)]
     pub duration_ms: u64,
+    /// Spell-check corrections attached to this event. Empty for all
+    /// non-spell-check plugins.
+    #[serde(default)]
+    pub corrections: Vec<Correction>,
 }
 
 // ── Summary ─────────────────────────────────────────────────────────────────
@@ -377,6 +399,7 @@ impl Event {
             message: Some(message.into()),
             line: None,
             duration_ms: 0,
+            corrections: Vec::new(),
         }
     }
 
@@ -464,6 +487,10 @@ pub struct ProcessedEvent {
     pub message: String,
     pub line: Option<u32>,
     pub duration_ms: u64,
+    /// Spell-check corrections (empty for non-spell-check plugins). Carried
+    /// through from [`Event::corrections`] so frontends like the TUI can
+    /// read suggestions off the current-file test list without re-parsing.
+    pub corrections: Vec<Correction>,
 }
 
 impl ProcessedEvent {
@@ -484,6 +511,7 @@ pub fn process_events(messages: &[Message]) -> Vec<ProcessedEvent> {
                 message: e.display_body(),
                 line: e.line,
                 duration_ms: e.duration_ms,
+                corrections: e.corrections.clone(),
             }),
             _ => None,
         })
@@ -774,6 +802,7 @@ mod tests {
             message: None,
             line: None,
             duration_ms: 5,
+            corrections: Vec::new(),
         })
     }
 
@@ -892,6 +921,7 @@ mod tests {
             message: None,
             line: None,
             duration_ms: 0,
+            corrections: Vec::new(),
         };
         let processed = process_events(&[Message::Event(anon_event)]);
         assert_eq!(processed.len(), 1);
@@ -906,6 +936,7 @@ mod tests {
             message: String::new(),
             line: None,
             duration_ms: 0,
+            corrections: Vec::new(),
         };
         assert!(pe(Outcome::Fail).is_bad());
         assert!(pe(Outcome::Error).is_bad());

@@ -53,6 +53,8 @@ fn pytest_package(root: &Path) -> Package {
         root: root.to_path_buf(),
         test_suites: vec![suite],
         pytest_extra_args: Vec::new(),
+        skyspell_extra_args: Vec::new(),
+        skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
     }
@@ -529,6 +531,8 @@ fn unified_dep_map_merges_r_cache_and_python_imports() {
         root: root.to_path_buf(),
         test_suites: vec![r_suite, py_suite],
         pytest_extra_args: Vec::new(),
+        skyspell_extra_args: Vec::new(),
+        skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };

@@ -159,6 +159,45 @@ fn render_detail_main_pane(
         }
         content.push(Line::from(""));
     }
+    // Spell-check: numbered suggestions directly under the message so users
+    // can press 1-9 to accept one (or 0 to add the word to the dictionary)
+    // without drilling into a separate mode.
+    if let Some(correction) = cur_test.and_then(|t| t.corrections.first()) {
+        content.push(Line::from(Span::styled(
+            "suggestions:",
+            Style::default().fg(Color::DarkGray),
+        )));
+        for (i, sug) in correction.suggestions.iter().take(9).enumerate() {
+            let n = i + 1;
+            let style = if i == 0 {
+                Style::default().fg(Color::Green)
+            } else {
+                Style::default()
+            };
+            let tail = if i == 0 {
+                Span::styled("  (best match)", Style::default().fg(Color::DarkGray))
+            } else {
+                Span::raw("")
+            };
+            content.push(Line::from(vec![
+                Span::styled(format!("  {}  ", n), Style::default().fg(Color::Cyan)),
+                Span::styled(sug.clone(), style),
+                tail,
+            ]));
+        }
+        content.push(Line::from(vec![
+            Span::styled("  0  ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                "add to dictionary",
+                Style::default().fg(Color::Magenta),
+            ),
+            Span::styled(
+                format!("  ({})", correction.word),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]));
+        content.push(Line::from(""));
+    }
     let auto = (inner.height as usize).saturating_sub(content.len());
     let remaining = if state.nav.source_context_lines > 0 {
         state.nav.source_context_lines.min(auto)
@@ -178,7 +217,7 @@ fn render_detail_main_pane(
 
 fn draw_detail_status_bar(f: &mut ratatui::Frame, area: Rect) {
     let line = Line::from(Span::styled(
-        " j/k navigate  Enter expand failure  e edit  d run file  Esc back  ? help",
+        " \u{2191}\u{2193}/jk navigate  Enter expand failure  1-9 accept  0 add-to-dict  e edit  d run file  Esc back  ? help",
         Style::default().fg(Color::DarkGray),
     ));
     f.render_widget(Paragraph::new(line), area);

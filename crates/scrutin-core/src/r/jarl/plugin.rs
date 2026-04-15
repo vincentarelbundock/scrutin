@@ -127,7 +127,11 @@ impl Plugin for JarlPlugin {
         ]
     }
 
-    fn command_spec(&self, _root: &Path) -> Option<CommandSpec> {
+    fn command_spec(
+        &self,
+        _root: &Path,
+        _pkg: &crate::project::package::Package,
+    ) -> Option<CommandSpec> {
         Some(CommandSpec {
             argv: vec![
                 "jarl".into(),
@@ -217,6 +221,7 @@ fn parse_jarl_output(file: &str, stdout: &str, duration_ms: u64) -> Vec<Message>
             message: Some(err.clone()),
             line: None,
             duration_ms: 0,
+            corrections: Vec::new(),
         }));
     }
 
@@ -235,6 +240,7 @@ fn parse_jarl_output(file: &str, stdout: &str, duration_ms: u64) -> Vec<Message>
             message: None,
             line: None,
             duration_ms,
+            corrections: Vec::new(),
         }));
     }
 
@@ -262,6 +268,7 @@ fn parse_jarl_output(file: &str, stdout: &str, duration_ms: u64) -> Vec<Message>
             message: if body.is_empty() { None } else { Some(body) },
             line,
             duration_ms: 0,
+            corrections: Vec::new(),
         }));
     }
 

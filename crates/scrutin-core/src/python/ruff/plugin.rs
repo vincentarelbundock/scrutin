@@ -125,7 +125,11 @@ impl Plugin for RuffPlugin {
         ]
     }
 
-    fn command_spec(&self, _root: &Path) -> Option<CommandSpec> {
+    fn command_spec(
+        &self,
+        _root: &Path,
+        _pkg: &crate::project::package::Package,
+    ) -> Option<CommandSpec> {
         Some(CommandSpec {
             argv: vec![
                 "ruff".into(),
@@ -230,6 +234,7 @@ fn parse_ruff_output(
             message: None,
             line: None,
             duration_ms,
+            corrections: Vec::new(),
         }));
     } else {
         for d in &diagnostics {
@@ -251,6 +256,7 @@ fn parse_ruff_output(
                 message: if body.is_empty() { None } else { Some(body) },
                 line,
                 duration_ms: 0,
+                corrections: Vec::new(),
             }));
         }
     }

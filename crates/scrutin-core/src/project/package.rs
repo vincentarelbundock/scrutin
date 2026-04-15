@@ -121,6 +121,12 @@ pub struct Package {
     /// Verbatim extra args appended to `pytest.main()` in the runner
     /// subprocess. Plumbed via the `SCRUTIN_PYTEST_EXTRA_ARGS` env var.
     pub pytest_extra_args: Vec<String>,
+    /// Args spliced between `skyspell` and the subcommand on every skyspell
+    /// invocation. Includes `--lang` (skyspell requires it).
+    pub skyspell_extra_args: Vec<String>,
+    /// Args appended to `skyspell add` after the subcommand, before the
+    /// `<WORD>`. Controls whitelist scope (default: `["--project"]`).
+    pub skyspell_add_args: Vec<String>,
     /// Resolved Python interpreter command (may be multiple tokens, e.g.
     /// `["uv", "run", "python"]`). When non-empty, replaces the interpreter
     /// that `py_subprocess_cmd` would auto-detect.
@@ -138,6 +144,8 @@ impl Package {
         pkg_root: PathBuf,
         suite_configs: &[SuiteConfig],
         pytest_extra_args: &[String],
+        skyspell_extra_args: &[String],
+        skyspell_add_args: &[String],
         python_interpreter: Vec<String>,
         mut resolve_hooks: impl FnMut(&dyn Plugin) -> Result<WorkerHookPaths>,
         env: BTreeMap<String, String>,
@@ -196,6 +204,8 @@ impl Package {
             root: pkg_root,
             test_suites,
             pytest_extra_args: pytest_extra_args.to_vec(),
+            skyspell_extra_args: skyspell_extra_args.to_vec(),
+            skyspell_add_args: skyspell_add_args.to_vec(),
             python_interpreter,
             env,
         })
@@ -209,6 +219,8 @@ impl Package {
         pkg_root: PathBuf,
         tool_filter: &str,
         pytest_extra_args: &[String],
+        skyspell_extra_args: &[String],
+        skyspell_add_args: &[String],
         python_interpreter: Vec<String>,
         mut resolve_hooks: impl FnMut(&dyn Plugin) -> Result<WorkerHookPaths>,
         mut resolve_runner: impl FnMut(&dyn Plugin) -> Option<PathBuf>,
@@ -252,6 +264,8 @@ impl Package {
             root: pkg_root,
             test_suites,
             pytest_extra_args: pytest_extra_args.to_vec(),
+            skyspell_extra_args: skyspell_extra_args.to_vec(),
+            skyspell_add_args: skyspell_add_args.to_vec(),
             python_interpreter,
             env,
         })
@@ -555,6 +569,8 @@ mod tests {
             root: pkg_root.to_path_buf(),
             test_suites: vec![r_suite, py_suite],
             pytest_extra_args: Vec::new(),
+            skyspell_extra_args: Vec::new(),
+            skyspell_add_args: Vec::new(),
             python_interpreter: Vec::new(),
             env: BTreeMap::new(),
         };

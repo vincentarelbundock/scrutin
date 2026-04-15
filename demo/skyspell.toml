@@ -1,0 +1,3 @@
+# Opt-in marker for the skyspell suite. Any content here is ignored:
+# skyspell tuning lives in .scrutin/config.toml under [skyspell]
+# (extra_args + add_args), alongside [pytest], [testthat], etc.

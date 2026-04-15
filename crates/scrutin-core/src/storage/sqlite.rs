@@ -469,6 +469,7 @@ mod tests {
             message: None,
             line: None,
             duration_ms: 12,
+            corrections: Vec::new(),
         })
     }
 
@@ -734,6 +735,7 @@ mod tests {
                 message: None,
                 line: None,
                 duration_ms: 10,
+                corrections: Vec::new(),
             })],
             retries,
         }];
@@ -880,6 +882,7 @@ mod tests {
                 message: None,
                 line: None,
                 duration_ms,
+                corrections: Vec::new(),
             })],
             retries: 0,
         }];

@@ -158,6 +158,8 @@ fn fake_package(root: &Path) -> Package {
         root: root.to_path_buf(),
         test_suites: vec![suite],
         pytest_extra_args: Vec::new(),
+        skyspell_extra_args: Vec::new(),
+        skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
     }
@@ -304,6 +306,8 @@ async fn pool_honors_worker_concurrency_cap() {
         root: root.to_path_buf(),
         test_suites: vec![suite],
         pytest_extra_args: Vec::new(),
+        skyspell_extra_args: Vec::new(),
+        skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };
@@ -463,6 +467,8 @@ async fn pool_multi_suite_fan_out_runs_concurrently() {
         root: root.to_path_buf(),
         test_suites: vec![suite_a, suite_b],
         pytest_extra_args: Vec::new(),
+        skyspell_extra_args: Vec::new(),
+        skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };
@@ -524,6 +530,8 @@ async fn pool_shared_cancel_handle_cancels_all_suites() {
         root: root.to_path_buf(),
         test_suites: vec![suite_a, suite_b],
         pytest_extra_args: Vec::new(),
+        skyspell_extra_args: Vec::new(),
+        skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };
@@ -594,6 +602,8 @@ async fn pool_cancel_all_stops_remaining_files() {
         root: root.to_path_buf(),
         test_suites: vec![suite],
         pytest_extra_args: Vec::new(),
+        skyspell_extra_args: Vec::new(),
+        skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };

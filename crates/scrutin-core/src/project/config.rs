@@ -20,6 +20,7 @@ pub struct Config {
     pub testthat: TestthatConfig,
     pub tinytest: TinytestConfig,
     pub pytest: PytestConfig,
+    pub skyspell: SkyspellConfig,
     pub web: WebConfig,
     pub hooks: HooksConfig,
     pub metadata: MetadataConfig,
@@ -187,6 +188,29 @@ pub struct PytestConfig {
     /// Path to a custom runner script. See `[testthat].runner`.
     pub runner: Option<PathBuf>,
     pub extra_args: Vec<String>,
+}
+
+/// Skyspell-specific escape hatches. Skyspell has two subcommands scrutin
+/// invokes (`check` from the plugin, `add` from the TUI's `0` key), so the
+/// config has two bags: `extra_args` for args that go before the
+/// subcommand (includes `--lang`, which skyspell requires), and `add_args`
+/// for args tacked onto `skyspell add` specifically. Defaults are sensible
+/// for most projects: `["--lang", "en_US"]` + `["--project"]` (project-
+/// scoped whitelist committed to `skyspell-ignore.toml`).
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(default)]
+pub struct SkyspellConfig {
+    pub extra_args: Vec<String>,
+    pub add_args: Vec<String>,
+}
+
+impl Default for SkyspellConfig {
+    fn default() -> Self {
+        Self {
+            extra_args: vec!["--lang".into(), "en_US".into()],
+            add_args: vec!["--project".into()],
+        }
+    }
 }
 
 /// Web-frontend-specific config. Only consulted by `scrutin-web`; the

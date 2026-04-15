@@ -162,7 +162,15 @@ pub trait Plugin: Send + Sync {
     /// NDJSON worker, return the command specification. The engine spawns
     /// the command once per file (no persistent subprocess). Default:
     /// `None` (worker mode).
-    fn command_spec(&self, _root: &Path) -> Option<CommandSpec> {
+    ///
+    /// `pkg` gives the plugin access to Package-level config (e.g.
+    /// `pkg.skyspell_extra_args`) so command-mode plugins can splice
+    /// user-configurable flags into their argv.
+    fn command_spec(
+        &self,
+        _root: &Path,
+        _pkg: &crate::project::package::Package,
+    ) -> Option<CommandSpec> {
         None
     }
 
@@ -223,6 +231,7 @@ pub fn all_plugins() -> Vec<Arc<dyn Plugin>> {
     let mut out = Vec::new();
     out.extend(crate::r::plugins());
     out.extend(crate::python::plugins());
+    out.extend(crate::prose::plugins());
     out
 }
 

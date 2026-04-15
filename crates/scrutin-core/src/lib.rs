@@ -16,6 +16,7 @@ pub mod logbuf;
 pub mod metadata;
 pub mod preflight;
 pub mod project;
+pub mod prose;
 pub mod python;
 pub mod r;
 pub mod report;
