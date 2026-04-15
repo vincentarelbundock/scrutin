@@ -271,6 +271,96 @@ impl Package {
         })
     }
 
+    /// Build a `Package` for file-mode: a handful of explicit file paths run
+    /// through a single named command-mode plugin. `pkg_root` is a synthetic
+    /// scratch dir (typically a tempdir) that anchors `.scrutin/` state; it
+    /// does not need to contain `files`. The suite's own root is set to the
+    /// files' common ancestor so tool-specific config (`pyproject.toml`,
+    /// `ruff.toml`) is still discoverable.
+    pub fn from_files(
+        pkg_root: PathBuf,
+        files: &[PathBuf],
+        tool_name: &str,
+        pytest_extra_args: &[String],
+        skyspell_extra_args: &[String],
+        skyspell_add_args: &[String],
+        python_interpreter: Vec<String>,
+        env: BTreeMap<String, String>,
+    ) -> Result<Self> {
+        if files.is_empty() {
+            bail!("file-mode requires at least one file");
+        }
+        let plugin = plugin::plugin_by_name(tool_name)
+            .ok_or_else(|| anyhow::anyhow!("Unknown tool: {}", tool_name))?;
+
+        // Refuse worker-mode plugins in file-mode: without a project root,
+        // their runner subprocess has nowhere to live.
+        let stub = Package {
+            name: String::new(),
+            root: pkg_root.clone(),
+            test_suites: Vec::new(),
+            pytest_extra_args: pytest_extra_args.to_vec(),
+            skyspell_extra_args: skyspell_extra_args.to_vec(),
+            skyspell_add_args: skyspell_add_args.to_vec(),
+            python_interpreter: python_interpreter.clone(),
+            env: env.clone(),
+        };
+        if plugin.command_spec(&pkg_root, &stub).is_none() {
+            bail!(
+                "{} requires a project root; run scrutin from the project directory instead",
+                plugin.name()
+            );
+        }
+
+        let suite_root = common_ancestor(files)
+            .unwrap_or_else(|| files[0].parent().unwrap_or(Path::new(".")).to_path_buf());
+
+        // Build a run glob matching each input file as a literal path.
+        // globset treats paths without metachars (*, ?, [, {) as exact
+        // matches, which is what we want. Paths containing glob metachars
+        // are a rare edge case: the engine invokes the tool with the
+        // literal path regardless (see `engine::command_pool`), so suite
+        // routing is the only thing that could misroute; document that
+        // users with exotic filenames use `[[suite]] run = [...]` instead.
+        let run_patterns: Vec<String> = files
+            .iter()
+            .map(|f| f.to_string_lossy().into_owned())
+            .collect();
+        let mut gsb = GlobSetBuilder::new();
+        for pat in &run_patterns {
+            gsb.add(
+                Glob::new(pat)
+                    .with_context(|| format!("compiling exact-path glob for {}", pat))?,
+            );
+        }
+        let run_set = gsb.build().context("compiling file-mode run globset")?;
+        // watch isn't used in file-mode, but TestSuite keeps a non-empty
+        // watch_set invariant; alias it to the run set.
+        let watch_set = run_set.clone();
+
+        let suite = TestSuite {
+            plugin: plugin.clone(),
+            root: suite_root.clone(),
+            run: run_patterns.clone(),
+            watch: run_patterns,
+            run_set,
+            watch_set,
+            worker_hooks: WorkerHookPaths::default(),
+            runner_override: None,
+        };
+
+        Ok(Package {
+            name: plugin.project_name(&suite_root),
+            root: pkg_root,
+            test_suites: vec![suite],
+            pytest_extra_args: pytest_extra_args.to_vec(),
+            skyspell_extra_args: skyspell_extra_args.to_vec(),
+            skyspell_add_args: skyspell_add_args.to_vec(),
+            python_interpreter,
+            env,
+        })
+    }
+
     /// Resolved source/watch dirs across every active suite, deduplicated.
     /// Only directories that exist on disk are returned. Drives the
     /// watcher registration and the hash/dep-map walker.
@@ -465,6 +555,27 @@ fn dir_name(root: &Path) -> String {
         .and_then(|n| n.to_str())
         .unwrap_or("<unknown>")
         .to_string()
+}
+
+/// Longest shared directory prefix of the given paths. Returns `None` if
+/// `paths` is empty. Used by file-mode to derive a suite root from a set
+/// of file arguments: `["/a/b/c.md", "/a/b/d.md"]` -> `Some("/a/b")`.
+fn common_ancestor(paths: &[PathBuf]) -> Option<PathBuf> {
+    let first = paths.first()?;
+    let mut ancestor = first
+        .parent()
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| PathBuf::from("."));
+    for p in &paths[1..] {
+        let parent = p.parent().unwrap_or_else(|| Path::new("."));
+        while !parent.starts_with(&ancestor) {
+            match ancestor.parent() {
+                Some(up) => ancestor = up.to_path_buf(),
+                None => return Some(PathBuf::from("/")),
+            }
+        }
+    }
+    Some(ancestor)
 }
 
 #[cfg(test)]

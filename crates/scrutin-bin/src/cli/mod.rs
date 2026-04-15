@@ -73,13 +73,23 @@ pub enum Command {
 
 #[derive(clap::Args, Default)]
 pub struct RunArgs {
-    /// Path to the project (default: current directory).
-    #[arg(default_value = ".")]
-    pub path: PathBuf,
+    /// Path(s) to the project or to individual files. A single directory is
+    /// the project root (default: `.`). One or more file paths activates
+    /// file-mode: scrutin runs the tool named by `--tool` on just those
+    /// files, with no project context. Mixing files and directories is an
+    /// error.
+    pub paths: Vec<PathBuf>,
+
+    /// Tool to run in file-mode. Sugar for `--set run.tool=<name>`.
+    /// Required when `paths` contains files instead of a directory. Must
+    /// name a command-mode plugin (skyspell, jarl, ruff); worker-mode
+    /// plugins (pytest, testthat, ...) need a project root.
+    #[arg(short = 't', long = "tool", value_name = "NAME")]
+    pub tool: Option<String>,
 
     /// Output reporter. Values: `tui`, `plain`, `github`, `web[:ADDR]`,
     /// `list`, `junit:PATH`. Defaults to `tui` when stderr is a tty, else
-    /// `plain`.
+    /// `plain`. File-mode defaults to `plain` regardless.
     #[arg(short = 'r', long = "reporter", value_name = "NAME[:ARG]")]
     pub reporter: Vec<ReporterSpec>,
 
@@ -256,43 +266,116 @@ fn discover_for_verb(root: &Path) -> Result<Package> {
 
 
 async fn run_subcommand(mut args: RunArgs) -> Result<()> {
+    // Default to "." when no positional path is given.
+    if args.paths.is_empty() {
+        args.paths.push(PathBuf::from("."));
+    }
     // Canonicalize up-front: R's pkgload::load_all resolves relative paths
     // against its own cwd, so `demo` would blow up inside R.
-    args.path = std::fs::canonicalize(&args.path)
-        .with_context(|| format!("path does not exist: {}", args.path.display()))?;
+    let canonical_paths: Vec<PathBuf> = args
+        .paths
+        .iter()
+        .map(|p| {
+            std::fs::canonicalize(p)
+                .with_context(|| format!("path does not exist: {}", p.display()))
+        })
+        .collect::<Result<_>>()?;
+
+    // Classify: exactly one directory, or one-or-more files. Anything else
+    // is an error (mixing modes, or a non-file non-directory entry).
+    let all_files = canonical_paths.iter().all(|p| p.is_file());
+    let one_dir = canonical_paths.len() == 1 && canonical_paths[0].is_dir();
+    if !all_files && !one_dir {
+        anyhow::bail!(
+            "mix of files and directories in positional args; pass either one directory or one-or-more files"
+        );
+    }
+    let file_mode = all_files;
+
+    // Fold `--tool X` into the `--set` overrides so the regular config
+    // layering picks it up.
+    let mut set_overrides = args.set.clone();
+    if let Some(tool) = args.tool.as_deref() {
+        set_overrides.push(format!("run.tool={}", tool));
+    }
+
+    // In file-mode the CLI argument is a file path; `.scrutin/` state lives
+    // in a throwaway tempdir so we don't pollute the user's CWD or the
+    // file's parent. In dir-mode the sole positional path is the project
+    // root. `config_root` is where `Config::load` looks for `.scrutin/
+    // config.toml`; in file-mode that's the tempdir (no user config picked
+    // up), so users must pass `--tool` and `-s run.*` on the CLI.
+    let tempdir_guard: Option<tempfile::TempDir> = if file_mode {
+        Some(tempfile::tempdir().context("creating file-mode tempdir")?)
+    } else {
+        None
+    };
+    let config_root: PathBuf = if file_mode {
+        tempdir_guard.as_ref().unwrap().path().to_path_buf()
+    } else {
+        canonical_paths[0].clone()
+    };
 
     // Config layering: defaults -> .scrutin/config.toml -> --set -> CLI flags.
     // scrutin intentionally has no config env vars; .scrutin/config.toml is
     // the only persistent source of truth.
-    let mut cfg = Config::load(&args.path)?;
-    cfg.apply_set_overrides(&args.set)?;
+    let mut cfg = Config::load(&config_root)?;
+    cfg.apply_set_overrides(&set_overrides)?;
+
+    if file_mode {
+        // Watch mode makes no sense for a one-shot lint/spell-check.
+        cfg.watch.enabled = false;
+    }
 
     if !cfg.run.color {
         style::disable_color();
     }
 
     // Resolve reporter before anything else so we know whether to talk to
-    // a tty or stay quiet about color, headers, etc.
+    // a tty or stay quiet about color, headers, etc. File-mode defaults to
+    // plain even on a tty; explicit `-r tui`/`-r web` is still respected.
     if args.reporter.len() > 1 {
         anyhow::bail!("only one --reporter (-r) is allowed");
     }
-    let reporter = resolve_reporter(args.reporter.first())?;
+    let explicit_reporter = args.reporter.first();
+    let reporter = if file_mode && explicit_reporter.is_none() {
+        Reporter::Plain
+    } else {
+        resolve_reporter(explicit_reporter)?
+    };
 
     // Startup hook runs before *anything* touches plugins or spawns
-    // subprocesses.
-    let process_hooks = ProcessHooks::from_config(&cfg, &args.path);
+    // subprocesses. In file-mode `config_root` is the scratch tempdir, so
+    // user hooks are silently skipped: nothing to run.
+    let process_hooks = ProcessHooks::from_config(&cfg, &config_root);
     process_hooks.run_startup()?;
     let mut teardown_guard = TeardownGuard::new(process_hooks);
 
-    // Build the package: explicit [[suite]] entries take priority over
-    // auto-detection. The CLI path is the project root.
-    let root = args.path.clone();
+    // Build the package. File-mode skips auto-detection + [[suite]] and
+    // goes straight to `from_files` with the user-named tool.
+    let root = config_root.clone();
     let cfg_for_hooks = cfg.clone();
     let cfg_for_runner = cfg.clone();
     let root_for_hooks = root.clone();
     let python_interpreter = cfg.python.resolve_interpreter(&root);
 
-    let pkg = if !cfg.suites.is_empty() {
+    let pkg = if file_mode {
+        if cfg.run.tool == "auto" {
+            anyhow::bail!(
+                "file-mode requires a tool: pass --tool <name> or --set run.tool=<name>"
+            );
+        }
+        Package::from_files(
+            root,
+            &canonical_paths,
+            &cfg.run.tool,
+            &cfg.pytest.extra_args,
+            &cfg.skyspell.extra_args,
+            &cfg.skyspell.add_args,
+            python_interpreter,
+            cfg.env.clone(),
+        )?
+    } else if !cfg.suites.is_empty() {
         Package::from_suites(
             root,
             &cfg.suites,
@@ -339,7 +422,11 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
 
     print_header(&pkg, n_workers, reporter.is_plain());
 
-    let mut test_files = pkg.test_files()?;
+    let mut test_files = if file_mode {
+        canonical_paths.clone()
+    } else {
+        pkg.test_files()?
+    };
     let filter = resolve_filter_args(&cfg, &args.groups)?;
     // Tool filter: restrict to files owned by the named tools.
     if !filter.tools.is_empty() {
