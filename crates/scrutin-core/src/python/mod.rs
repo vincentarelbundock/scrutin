@@ -95,6 +95,19 @@ pub(crate) fn py_find_python(root: &Path, venv_override: Option<&Path>) -> Strin
     PATH_PY.into()
 }
 
+/// Resolve a Python project's display name: `pyproject.toml` if
+/// parseable, else the directory basename. Used by every Python
+/// plugin's `Plugin::project_name` so the fallback logic lives in
+/// one place.
+pub(crate) fn py_project_name_or_dir(root: &Path) -> String {
+    py_parse_pyproject_name(root).unwrap_or_else(|| {
+        root.file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("<unknown>")
+            .to_string()
+    })
+}
+
 /// Parse the project's package name from `pyproject.toml`. Looks under
 /// `[project]` first, then `[tool.poetry]`. Returns `None` if neither
 /// section has a string `name` field.

@@ -428,8 +428,6 @@ pub struct ForkPool {
     listener: Arc<TcpListener>,
     /// Controls max concurrent children (same as ProcessPool's semaphore).
     available: Arc<Semaphore>,
-    #[allow(dead_code)]
-    pkg: Arc<Package>,
     suite: Arc<TestSuite>,
     timeout: Duration,
     busy: BusyCounter,
@@ -460,7 +458,6 @@ impl ForkPool {
             parent: Arc::new(tokio::sync::Mutex::new(parent)),
             listener: Arc::new(listener),
             available: Arc::new(Semaphore::new(n_workers)),
-            pkg: Arc::new(pkg.clone()),
             suite: Arc::new(suite.clone()),
             timeout,
             busy: shared_busy.unwrap_or_default(),

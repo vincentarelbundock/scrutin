@@ -2,14 +2,14 @@
 //! lighter per-resource lookups (`/api/files`, `/api/file/{id}`,
 //! `/api/suites`, `/api/config`).
 
-use std::collections::HashMap;
-
 use axum::Router;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::Json;
 use axum::routing::get;
 use serde::Deserialize;
+
+use scrutin_core::analysis::deps::build_reverse_dep_map;
 
 use crate::state::{AppState, sorted_files};
 use crate::wire::{
@@ -158,7 +158,7 @@ async fn source_for_test(
 
     // Build the reverse dep map and find the best source match.
     let dep_map = state.dep_map.read().await;
-    let reverse = build_reverse_dep_map(&*dep_map);
+    let reverse = build_reverse_dep_map(&dep_map);
     let sources = reverse.get(&test_name);
     let best = sources.and_then(|srcs| {
         let test_stem = test_name
@@ -209,27 +209,6 @@ async fn source_for_test(
         "highlight_line": q.line,
         "path": canon.strip_prefix(&root).unwrap_or(&canon).to_string_lossy(),
     })))
-}
-
-fn build_reverse_dep_map(
-    dep_map: &Option<HashMap<String, Vec<String>>>,
-) -> HashMap<String, Vec<String>> {
-    let mut reverse = HashMap::new();
-    if let Some(map) = dep_map {
-        for (source, tests) in map {
-            for test in tests {
-                reverse
-                    .entry(test.clone())
-                    .or_insert_with(Vec::new)
-                    .push(source.clone());
-            }
-        }
-    }
-    for sources in reverse.values_mut() {
-        sources.sort();
-        sources.dedup();
-    }
-    reverse
 }
 
 async fn keymap() -> Json<serde_json::Value> {

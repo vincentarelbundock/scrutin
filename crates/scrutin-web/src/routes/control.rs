@@ -332,10 +332,10 @@ async fn suite_action(
         .file_id
         .parse()
         .map_err(|_| bad("invalid file_id"))?;
-    let (rel_path, suite_name) = {
+    let rel_path = {
         let fmap = state.files.read().await;
         let f = fmap.get(&file_id).ok_or_else(|| bad("unknown file_id"))?;
-        (f.path.clone(), f.suite.clone())
+        f.path.clone()
     };
     let abs = state.pkg.root.join(&rel_path);
     let canon = std::fs::canonicalize(&abs).map_err(|_| bad("file not found"))?;
@@ -344,10 +344,15 @@ async fn suite_action(
         return Err(bad("path escapes project root"));
     }
 
+    // `suite_for` is the single source of truth: whichever suite owns
+    // the targeted file decides both the action lookup and the spawn
+    // cwd. Using the file-map's cached `suite` field would let those
+    // drift if the cache lagged behind a config reload.
     let owning_suite = state
         .pkg
         .suite_for(&abs)
         .ok_or_else(|| bad(&format!("no suite owns file {}", rel_path)))?;
+    let suite_name = owning_suite.plugin.name().to_string();
     let plugin_action = owning_suite
         .plugin
         .actions()

@@ -19,7 +19,7 @@ use scrutin_core::storage::sqlite;
 
 use super::{
     RunAccumulator, RunOutcome, RunStats,
-    collect_failed_files, merge_deps_from_results, rebuild_depmap_in_background,
+    collect_failed_files, merge_deps_from_results,
     replace_results,
 };
 
@@ -216,7 +216,7 @@ async fn run_once(
         let md_for_junit = if run_metadata.is_empty() { None } else { Some(run_metadata) };
         let suites_for_junit: Vec<(String, Vec<Message>)> = all_results
             .iter()
-            .map(|r| (r.file.clone(), r.messages.iter().cloned().collect()))
+            .map(|r| (r.file.clone(), r.messages.to_vec()))
             .collect();
         if let Err(e) = junit::write_report(
             junit_path,
@@ -235,16 +235,8 @@ async fn run_once(
     }
 
     // Record run history via SQLite (best-effort).
-    {
-        let run_id = uuid::Uuid::new_v4().to_string();
-        let timestamp = chrono::Utc::now().to_rfc3339();
-        let rows = build_result_rows(pkg, &all_results, &flaky_files);
-        let _ = sqlite::with_open(&pkg.root, |c| {
-            sqlite::record_run(c, &run_id, &timestamp, &run_metadata.provenance, &rows)?;
-            sqlite::record_extras(c, &run_id, &run_metadata.labels)
-        });
-        print_flaky_warnings(&pkg.root);
-    }
+    super::persist_run(pkg, &all_results, &flaky_files, run_metadata);
+    print_flaky_warnings(&pkg.root);
 
     // Merge runtime dep observations from instrumentation. The SQLite write
     // happens inside merge_deps_from_results; the in-memory map is kept in
@@ -256,11 +248,7 @@ async fn run_once(
 
     // Rebuild Python side of the dep map if stale (R deps are updated
     // incrementally via instrumentation above).
-    if is_full_suite && depmap_stale
-        && pkg.test_suites.iter().any(|s| s.plugin.name() == "pytest")
-    {
-        rebuild_depmap_in_background(pkg);
-    }
+    super::maybe_rebuild_depmap(pkg, is_full_suite, depmap_stale);
 
     Ok(if exit > 0 { 1 } else { 0 })
 }

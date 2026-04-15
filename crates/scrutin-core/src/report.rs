@@ -170,9 +170,9 @@ fn render_suite(file: &str, messages: &[Message], is_flaky: bool) -> RenderedSui
                 match e.outcome {
                     Outcome::Pass => {
                         counts.tests += 1;
-                        write!(
+                        writeln!(
                             cases,
-                            "    <testcase classname=\"{}\" name=\"{}\" time=\"{}\"/>\n",
+                            "    <testcase classname=\"{}\" name=\"{}\" time=\"{}\"/>",
                             XmlAttr(&classname),
                             XmlAttr(&name),
                             fmt_secs(time)
@@ -234,9 +234,9 @@ fn render_suite(file: &str, messages: &[Message], is_flaky: bool) -> RenderedSui
     let suite_time = summary_ms.map(ms_to_secs).unwrap_or(0.0);
 
     let mut xml = String::new();
-    write!(
+    writeln!(
         xml,
-        "  <testsuite name=\"{}\" tests=\"{}\" failures=\"{}\" errors=\"{}\" skipped=\"{}\" time=\"{}\">\n",
+        "  <testsuite name=\"{}\" tests=\"{}\" failures=\"{}\" errors=\"{}\" skipped=\"{}\" time=\"{}\">",
         XmlAttr(file),
         counts.tests,
         counts.failures,

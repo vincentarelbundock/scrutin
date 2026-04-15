@@ -146,10 +146,10 @@ pub fn capture_provenance(project_root: &Path, enabled: bool) -> Provenance {
     if let GitAvailability::Available { repo_root } = git::detect_git(project_root) {
         if let Some(out) = run_git(&repo_root, &["rev-parse", "HEAD", "--abbrev-ref", "HEAD"]) {
             let mut lines = out.lines();
-            if let Some(sha) = lines.next() {
-                if !sha.is_empty() {
-                    p.git_commit = Some(sha.to_string());
-                }
+            if let Some(sha) = lines.next()
+                && !sha.is_empty()
+            {
+                p.git_commit = Some(sha.to_string());
             }
             if let Some(branch) = lines.next() {
                 let branch = if branch == "HEAD" { "(detached)" } else { branch };

@@ -43,6 +43,13 @@ use crate::project::package::Package;
 pub fn build_import_map(pkg: &Package) -> HashMap<String, Vec<String>> {
     // Gather .py files from every Python suite's watch + run dir-prefixes
     // so the walker stays bounded by what Python actually cares about.
+    //
+    // With default pytest globs `watch_search_dirs` already covers the
+    // whole suite root via `**/*.py` (see `PytestPlugin::default_watch`),
+    // so `run_search_dirs` is typically a subset. The chain below keeps
+    // the union correct for configs that narrow `watch` to source dirs
+    // (e.g. `watch = ["marginaleffects/**/*.py"]`) but still want test
+    // files under `tests/` indexed.
     let mut py_files: Vec<PathBuf> = Vec::new();
     let mut seen_py: HashSet<PathBuf> = HashSet::new();
     for suite in &pkg.test_suites {
@@ -226,8 +233,8 @@ pub(crate) fn scan_imports_str(contents: &str) -> Vec<Import> {
     let mut accum = String::new();
     for raw in contents.lines() {
         let trimmed_end = raw.trim_end();
-        if trimmed_end.ends_with('\\') {
-            accum.push_str(&trimmed_end[..trimmed_end.len() - 1]);
+        if let Some(without_backslash) = trimmed_end.strip_suffix('\\') {
+            accum.push_str(without_backslash);
             continue;
         }
         if !accum.is_empty() {
@@ -305,7 +312,7 @@ pub(crate) fn scan_imports_str(contents: &str) -> Vec<Import> {
                 while idx < logical_lines.len() {
                     let next = strip_inline_comment(logical_lines[idx].trim());
                     idx += 1;
-                    parts.push_str(" ");
+                    parts.push(' ');
                     parts.push_str(next);
                     if next.contains(')') {
                         break;

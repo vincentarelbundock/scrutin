@@ -254,10 +254,10 @@ pub(super) fn handle_key(
     // letter itself already encodes shift, so mask it out before comparing.
     let key_mods_for_match = {
         let mut m = key.modifiers;
-        if let event::KeyCode::Char(c) = key.code {
-            if c.is_ascii_uppercase() {
-                m.remove(KeyModifiers::SHIFT);
-            }
+        if let event::KeyCode::Char(c) = key.code
+            && c.is_ascii_uppercase()
+        {
+            m.remove(KeyModifiers::SHIFT);
         }
         m
     };
@@ -277,25 +277,24 @@ pub(super) fn handle_key(
 
     // Plugin action menu: `a` opens the action palette when the selected
     // file's suite defines actions (Normal + Detail modes only).
-    if matches!(mode, Mode::Normal | Mode::Detail) {
-        if let KeyCode::Char('a') = key.code {
-            if key_mods_for_match == KeyModifiers::NONE {
-                let mut st = state.lock().unwrap();
-                let has_actions = st
-                    .selected_plugin_actions()
-                    .is_some_and(|a| !a.is_empty());
-                if has_actions {
-                    let labels: Vec<String> = st
-                        .selected_plugin_actions()
-                        .unwrap()
-                        .iter()
-                        .map(|a| a.label.to_string())
-                        .collect();
-                    st.overlay = OverlayState::menu("Actions", labels);
-                    st.push_mode(Mode::Palette(PaletteKind::Action));
-                    return Ok(false);
-                }
-            }
+    if matches!(mode, Mode::Normal | Mode::Detail)
+        && matches!(key.code, KeyCode::Char('a'))
+        && key_mods_for_match == KeyModifiers::NONE
+    {
+        let mut st = state.lock().unwrap();
+        let has_actions = st
+            .selected_plugin_actions()
+            .is_some_and(|a| !a.is_empty());
+        if has_actions {
+            let labels: Vec<String> = st
+                .selected_plugin_actions()
+                .unwrap()
+                .iter()
+                .map(|a| a.label.to_string())
+                .collect();
+            st.overlay = OverlayState::menu("Actions", labels);
+            st.push_mode(Mode::Palette(PaletteKind::Action));
+            return Ok(false);
         }
     }
 
@@ -872,7 +871,6 @@ fn handle_action_menu_key(
             if let Some((pa, paths, cwd)) = action_paths_cwd {
                 let _ = run_plugin_action(&pa, &paths, &cwd, state, event_tx, terminal);
             }
-            return;
         }
         _ => {}
     }

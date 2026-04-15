@@ -15,7 +15,6 @@ use std::sync::Arc;
 
 use crate::analysis::walk;
 use crate::engine::protocol::Outcome;
-use crate::project::package::{Package, TestSuite};
 use crate::project::plugin::Plugin;
 
 pub mod depmap;
@@ -63,16 +62,6 @@ pub fn plugins() -> Vec<Arc<dyn Plugin>> {
             subject_label: "rule",
         }),
     ]
-}
-
-/// Iterate the R-flavored suites of a `Package`. Plugins report their
-/// language via `Plugin::language()`; "r" identifies all R plugins.
-/// Used by `r::depmap` and `analysis::hashing` so they can hash
-/// and dep-map across every R suite at once.
-pub fn r_suites(pkg: &Package) -> impl Iterator<Item = &TestSuite> {
-    pkg.test_suites
-        .iter()
-        .filter(|s| s.plugin.language() == "r")
 }
 
 // ── Data-driven R plugin ──────────────────────────────────────────────────

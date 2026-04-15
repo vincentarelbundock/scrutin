@@ -71,19 +71,12 @@ fn check_suite_roots(pkg: &Package) -> Result<()> {
 fn check_run_globs(pkg: &Package) -> Result<()> {
     for suite in &pkg.test_suites {
         let dirs = suite.run_search_dirs();
-        let mut hit = false;
-        'outer: for dir in &dirs {
-            if !dir.is_dir() {
-                continue;
-            }
-            for path in crate::analysis::walk::collect_files(dir, |p| {
+        let hit = dirs.iter().filter(|d| d.is_dir()).any(|dir| {
+            !crate::analysis::walk::collect_files(dir, |p| {
                 suite.run_set.is_match(p) && suite.plugin.is_test_file(p)
-            }) {
-                let _ = path;
-                hit = true;
-                break 'outer;
-            }
-        }
+            })
+            .is_empty()
+        });
         if !hit {
             anyhow::bail!(
                 "[[suite]] {}: `run` globs matched zero files under {}.\n\
@@ -217,9 +210,6 @@ fn check_python_import_one(
     if output.status.success() {
         return Ok(());
     }
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    let tail: Vec<&str> = stderr.lines().rev().take(3).collect();
-    let tail = tail.into_iter().rev().collect::<Vec<_>>().join("\n");
     anyhow::bail!(
         "python suite {} ({}): cannot import package '{}'.\n\
          Hint: from {}, run `uv pip install -e .` (or `pip install -e .` in your venv).\n\
@@ -229,7 +219,7 @@ fn check_python_import_one(
         suite_root.display(),
         module,
         suite_root.display(),
-        tail,
+        stderr_tail(&output.stderr, 3),
     );
 }
 
@@ -277,9 +267,7 @@ fn check_r_pkgload_one(suite_root: &Path, suite_name: &str) -> Result<()> {
     if output.status.success() {
         return Ok(());
     }
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    let tail: Vec<&str> = stderr.lines().rev().take(3).collect();
-    let tail = tail.into_iter().rev().collect::<Vec<_>>().join("\n");
+    let tail = stderr_tail(&output.stderr, 3);
     let extra = if tail.trim().is_empty() {
         String::new()
     } else {
@@ -306,6 +294,18 @@ fn path_separator() -> &'static str {
 #[cfg(not(windows))]
 fn path_separator() -> &'static str {
     ":"
+}
+
+// ── Error-message formatting ───────────────────────────────────────────────
+
+/// Last `n` lines of a subprocess stderr buffer, in original order.
+/// Used to surface the root-cause traceback in pre-flight failure
+/// messages without flooding the terminal.
+fn stderr_tail(bytes: &[u8], n: usize) -> String {
+    let stderr = String::from_utf8_lossy(bytes);
+    let mut tail: Vec<&str> = stderr.lines().rev().take(n).collect();
+    tail.reverse();
+    tail.join("\n")
 }
 
 #[cfg(test)]

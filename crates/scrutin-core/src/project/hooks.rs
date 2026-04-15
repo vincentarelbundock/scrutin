@@ -389,9 +389,6 @@ worker_teardown = "scripts/py_pytest_td.py"
             fn is_source_file(&self, _: &Path) -> bool {
                 false
             }
-            fn test_file_candidates(&self, _: &str) -> Vec<String> {
-                Vec::new()
-            }
         }
 
         let hooks = resolve_worker_hooks(&cfg, &FakePyPytest, dir.path()).unwrap();
@@ -399,7 +396,7 @@ worker_teardown = "scripts/py_pytest_td.py"
             hooks
                 .startup
                 .as_ref()
-                .map_or(false, |p| p.ends_with("py_any.py")),
+                .is_some_and(|p| p.ends_with("py_any.py")),
             "startup must inherit from [hooks.python]; got {:?}",
             hooks.startup
         );
@@ -407,7 +404,7 @@ worker_teardown = "scripts/py_pytest_td.py"
             hooks
                 .teardown
                 .as_ref()
-                .map_or(false, |p| p.ends_with("py_pytest_td.py")),
+                .is_some_and(|p| p.ends_with("py_pytest_td.py")),
             "teardown must come from [hooks.python.pytest] (tool-level wins); got {:?}",
             hooks.teardown
         );

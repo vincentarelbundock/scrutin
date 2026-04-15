@@ -257,25 +257,13 @@ impl Package {
         })
     }
 
-    /// Resolved source dirs across every active suite, deduplicated. Only
-    /// directories that exist on disk are returned.
+    /// Resolved source/watch dirs across every active suite, deduplicated.
+    /// Only directories that exist on disk are returned. Drives the
+    /// watcher registration and the hash/dep-map walker.
     pub fn resolved_source_dirs(&self) -> Vec<PathBuf> {
-        self.resolved_source_dirs_for_language(None)
-    }
-
-    /// Like `resolved_source_dirs`, but if `language` is `Some(lang)` only
-    /// suites whose plugin reports that language are walked. Used by per-
-    /// language analyzers so they don't pick up unrelated directories from
-    /// co-resident suites in other languages.
-    pub fn resolved_source_dirs_for_language(&self, language: Option<&str>) -> Vec<PathBuf> {
         let mut out: Vec<PathBuf> = Vec::new();
         let mut seen: std::collections::HashSet<PathBuf> = std::collections::HashSet::new();
         for suite in &self.test_suites {
-            if let Some(lang) = language
-                && suite.plugin.language() != lang
-            {
-                continue;
-            }
             for dir in suite.watch_search_dirs() {
                 if dir.is_dir() && seen.insert(dir.clone()) {
                     out.push(dir);
@@ -375,17 +363,20 @@ fn default_patterns(root: &Path, defaults: &[String]) -> Vec<String> {
         .collect()
 }
 
+/// Join a glob pattern under `root`, producing an absolute glob string.
+///
+/// `globset` matches against forward-slash-separated paths on every
+/// platform (it treats `\` as a literal character, not a separator),
+/// so we build the result as a string with explicit `/` rather than
+/// going through `Path::join`, which would emit `\` on Windows.
+/// Absolute patterns pass through unchanged.
 fn anchor_pattern(root: &Path, pattern: &str) -> String {
     if Path::new(pattern).is_absolute() {
-        pattern.to_string()
-    } else {
-        let mut s = root.to_string_lossy().into_owned();
-        if !s.ends_with('/') {
-            s.push('/');
-        }
-        s.push_str(pattern);
-        s
+        return pattern.to_string();
     }
+    let root_str = root.to_string_lossy();
+    let sep = if root_str.ends_with('/') { "" } else { "/" };
+    format!("{root_str}{sep}{pattern}")
 }
 
 fn build_globset(patterns: &[String]) -> Result<GlobSet> {
@@ -414,29 +405,39 @@ fn glob_prefix_dirs(patterns: &[String]) -> Vec<PathBuf> {
 }
 
 fn longest_literal_prefix(pattern: &str) -> PathBuf {
-    let mut cur = PathBuf::new();
-    for segment in pattern.split('/') {
-        if contains_glob_meta(segment) {
-            break;
+    // Rebuild the longest leading path that contains no glob
+    // metacharacters. The pattern is always forward-slash-separated
+    // (we build it that way in `anchor_pattern`), so we can scan
+    // segments directly.
+    let (absolute, rest) = match pattern.strip_prefix('/') {
+        Some(rest) => (true, rest),
+        None => (false, pattern),
+    };
+    let literal: Vec<&str> = rest
+        .split('/')
+        .take_while(|seg| !contains_glob_meta(seg))
+        .collect();
+
+    let mut cur = if absolute {
+        PathBuf::from("/")
+    } else if literal.is_empty() {
+        // Top-level glob like `**/*.py`: walk from `.`.
+        PathBuf::from(".")
+    } else {
+        PathBuf::new()
+    };
+    for seg in literal {
+        if !seg.is_empty() {
+            cur.push(seg);
         }
-        if segment.is_empty() {
-            // Leading slash, keep building from "/".
-            cur.push("/");
-            continue;
-        }
-        cur.push(segment);
     }
-    // If we never consumed any segment (top-level glob like `**/*.py`),
-    // fall back to `.`.
-    if cur.as_os_str().is_empty() {
-        cur.push(".");
-    }
+
     // If the literal prefix points to a file rather than a directory,
-    // return the parent; we want a dir for walking.
-    if cur.is_file() {
-        if let Some(parent) = cur.parent() {
-            return parent.to_path_buf();
-        }
+    // return the parent; the caller wants a dir for walking.
+    if cur.is_file()
+        && let Some(parent) = cur.parent()
+    {
+        return parent.to_path_buf();
     }
     cur
 }
@@ -505,6 +506,22 @@ mod tests {
         assert!(!contains_glob_meta("foo/bar.R"));
     }
 
+    /// Build a `TestSuite` with canonicalized `root` and compiled globs,
+    /// panicking on failure. Keeps the routing tests readable.
+    fn suite(name: &str, root: &Path, run: Vec<&str>, watch: Vec<&str>) -> TestSuite {
+        let plugin = plugin::plugin_by_name(name)
+            .unwrap_or_else(|| panic!("{name} plugin registered"));
+        TestSuite::new(
+            plugin,
+            std::fs::canonicalize(root).unwrap(),
+            run.into_iter().map(String::from).collect(),
+            watch.into_iter().map(String::from).collect(),
+            WorkerHookPaths::default(),
+            None,
+        )
+        .expect("compile globs")
+    }
+
     #[test]
     fn monorepo_routing_keeps_suites_separate() {
         // Two suites with different roots under the same project.
@@ -520,27 +537,18 @@ mod tests {
         std::fs::write(r_root.join("DESCRIPTION"), "Package: demo\nVersion: 0.0.1\n").unwrap();
         std::fs::write(py_root.join("pyproject.toml"), "[project]\nname=\"demo\"\n").unwrap();
 
-        let testthat = plugin::plugin_by_name("testthat").expect("testthat plugin registered");
-        let pytest = plugin::plugin_by_name("pytest").expect("pytest plugin registered");
-
-        let r_suite = TestSuite::new(
-            testthat,
-            std::fs::canonicalize(&r_root).unwrap(),
-            vec!["tests/testthat/**/test-*.R".into()],
-            vec!["R/**/*.R".into()],
-            WorkerHookPaths::default(),
-            None,
-        )
-        .unwrap();
-        let py_suite = TestSuite::new(
-            pytest,
-            std::fs::canonicalize(&py_root).unwrap(),
-            vec!["tests/**/test_*.py".into()],
-            vec!["src/**/*.py".into()],
-            WorkerHookPaths::default(),
-            None,
-        )
-        .unwrap();
+        let r_suite = suite(
+            "testthat",
+            &r_root,
+            vec!["tests/testthat/**/test-*.R"],
+            vec!["R/**/*.R"],
+        );
+        let py_suite = suite(
+            "pytest",
+            &py_root,
+            vec!["tests/**/test_*.py"],
+            vec!["src/**/*.py"],
+        );
 
         let pkg = Package {
             name: "monorepo".into(),
@@ -579,16 +587,12 @@ mod tests {
         std::fs::create_dir_all(root.join("a")).unwrap();
         std::fs::create_dir_all(root.join("b")).unwrap();
 
-        let plugin = plugin::plugin_by_name("testthat").expect("testthat plugin registered");
-        let suite = TestSuite::new(
-            plugin,
-            std::fs::canonicalize(root).unwrap(),
-            vec!["a/test-foo.R".into(), "b/test-bar.R".into()],
-            Vec::new(),
-            WorkerHookPaths::default(),
-            None,
-        )
-        .unwrap();
+        let suite = suite(
+            "testthat",
+            root,
+            vec!["a/test-foo.R", "b/test-bar.R"],
+            vec![],
+        );
 
         let foo = std::fs::canonicalize(root).unwrap().join("a/test-foo.R");
         let bar = std::fs::canonicalize(root).unwrap().join("b/test-bar.R");

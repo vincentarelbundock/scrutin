@@ -125,7 +125,7 @@ fn import_map_package_init_is_a_valid_dep_target() {
     let map = build_import_map(&pytest_package(root));
     let init_tests = map.get("src/pkg/__init__.py");
     assert!(
-        init_tests.map_or(false, |v| v.contains(&"test_pkg.py".to_string())),
+        init_tests.is_some_and(|v| v.contains(&"test_pkg.py".to_string())),
         "editing src/pkg/__init__.py must trigger test_pkg.py; got map={map:?}"
     );
 }
@@ -153,12 +153,12 @@ fn import_map_is_transitive() {
 
     assert!(
         map.get("src/pkg/helpers.py")
-            .map_or(false, |v| v.contains(&"test_x.py".to_string())),
+            .is_some_and(|v| v.contains(&"test_x.py".to_string())),
         "direct dep src/pkg/helpers.py must map to test_x.py; got map={map:?}"
     );
     assert!(
         map.get("src/pkg/core.py")
-            .map_or(false, |v| v.contains(&"test_x.py".to_string())),
+            .is_some_and(|v| v.contains(&"test_x.py".to_string())),
         "transitive dep src/pkg/core.py must map to test_x.py; got map={map:?}"
     );
 }
@@ -178,12 +178,12 @@ fn import_map_is_cycle_safe() {
     // Both src files are (transitively) reachable from test_cycle.py.
     assert!(
         map.get("src/pkg/a.py")
-            .map_or(false, |v| v.contains(&"test_cycle.py".to_string())),
+            .is_some_and(|v| v.contains(&"test_cycle.py".to_string())),
         "a.py must map to test_cycle.py even though a imports b imports a; got map={map:?}"
     );
     assert!(
         map.get("src/pkg/b.py")
-            .map_or(false, |v| v.contains(&"test_cycle.py".to_string())),
+            .is_some_and(|v| v.contains(&"test_cycle.py".to_string())),
     );
 }
 
@@ -265,7 +265,7 @@ fn import_map_relative_import_within_package() {
     let map = build_import_map(&pytest_package(root));
     assert!(
         map.get("tests/helpers.py")
-            .map_or(false, |v| v.contains(&"test_rel.py".to_string())),
+            .is_some_and(|v| v.contains(&"test_rel.py".to_string())),
         "relative import must resolve: editing tests/helpers.py should invalidate test_rel.py; \
          got map={map:?}"
     );

@@ -166,7 +166,7 @@ impl Mode {
             Mode::Help          => Some(Overlay::Help),
             Mode::Log           => Some(Overlay::Log),
             Mode::ActionOutput  => Some(Overlay::ActionOutput),
-            Mode::Palette(k)    => Some(Overlay::Palette(k.clone())),
+            Mode::Palette(k)    => Some(Overlay::Palette(*k)),
             _ => None,
         }
     }
@@ -697,6 +697,10 @@ pub(super) struct AppState {
     /// when a plugin action is spawned so tool-specific configs
     /// (`ruff.toml`, `jarl.toml`, `pyproject.toml`) resolve against the
     /// right subtree in a monorepo.
+    ///
+    /// Denormalized from `Package.test_suites[_].root` so `AppState`
+    /// doesn't need to hold an `Arc<Package>`. n_suites is small (at
+    /// most a handful), so the map stays tiny.
     pub(super) suite_roots: HashMap<String, PathBuf>,
 }
 
@@ -828,14 +832,6 @@ impl AppState {
             }
         }
         Level::Normal
-    }
-
-    /// The topmost overlay, if any. None when no overlay is active.
-    /// Migration seam: `match state.overlay_kind()` is preferred over
-    /// `match state.mode()` for overlay-only logic.
-    #[allow(dead_code)]
-    pub(super) fn overlay_kind(&self) -> Option<Overlay> {
-        self.mode().overlay_kind()
     }
 
     /// Push a new mode on top of the stack (drill-down). No-op if the

@@ -51,14 +51,26 @@ pub trait Plugin: Send + Sync {
         None
     }
 
-    /// Subprocess command to spawn (argv-style). The first element is the binary.
-    fn subprocess_cmd(&self, root: &Path) -> Vec<String>;
+    /// Subprocess command to spawn (argv-style). The first element is
+    /// the binary. Worker-mode plugins must override; command-mode
+    /// plugins (those that return `Some` from [`Plugin::command_spec`])
+    /// are never consulted here.
+    fn subprocess_cmd(&self, _root: &Path) -> Vec<String> {
+        Vec::new()
+    }
 
-    /// Runner script contents (embedded via `include_str!`).
-    fn runner_script(&self) -> &'static str;
+    /// Runner script contents (embedded via `include_str!`). Worker-
+    /// mode plugins override; command-mode plugins inherit the empty
+    /// default.
+    fn runner_script(&self) -> &'static str {
+        ""
+    }
 
-    /// File extension for the runner script (without the dot). "R" or "py".
-    fn script_extension(&self) -> &'static str;
+    /// File extension for the runner script (without the dot), e.g.
+    /// `"R"` or `"py"`. Worker-mode plugins override.
+    fn script_extension(&self) -> &'static str {
+        ""
+    }
 
     /// Basename of the runner script written under `.scrutin/`. Two plugins
     /// in the same project must use distinct basenames so they don't clobber
@@ -105,8 +117,12 @@ pub trait Plugin: Send + Sync {
     fn is_source_file(&self, path: &Path) -> bool;
 
     /// Given a source file stem (e.g., "foo"), return candidate test filenames
-    /// ("test-foo.R", "test_foo.py", etc.): used by the Tier-1 filename heuristic.
-    fn test_file_candidates(&self, source_stem: &str) -> Vec<String>;
+    /// ("test-foo.R", "test_foo.py", etc.): used by the Tier-1 filename
+    /// heuristic. Return an empty vec when the plugin has no meaningful
+    /// stem→test mapping (linters, data-validators).
+    fn test_file_candidates(&self, _source_stem: &str) -> Vec<String> {
+        Vec::new()
+    }
 
     /// Extra env vars to set on each subprocess.
     fn env_vars(&self, _root: &Path) -> Vec<(String, String)> {

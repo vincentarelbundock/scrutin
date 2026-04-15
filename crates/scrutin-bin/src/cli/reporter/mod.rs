@@ -30,7 +30,6 @@ pub type RunOutcome = (u32, Vec<FileRecord>, Duration);
 /// Per-file tally for the plain reporter. Wraps the shared
 /// `protocol::FileTally` with the `cancelled` flag.
 #[derive(Default, Clone)]
-#[allow(dead_code)]
 pub struct FileTally {
     pub passed: u32,
     pub failed: u32,
@@ -39,7 +38,19 @@ pub struct FileTally {
     pub skipped: u32,
     pub xfailed: u32,
     pub bad_file: bool,
-    pub cancelled: bool,
+}
+
+impl std::ops::AddAssign<&FileTally> for FileTally {
+    fn add_assign(&mut self, rhs: &FileTally) {
+        self.passed += rhs.passed;
+        self.failed += rhs.failed;
+        self.errored += rhs.errored;
+        self.warned += rhs.warned;
+        self.skipped += rhs.skipped;
+        self.xfailed += rhs.xfailed;
+        // `bad_file` is per-file, so it's not accumulated here — callers
+        // treat it as a boolean signal for the *current* file.
+    }
 }
 
 impl From<&proto::FileTally> for FileTally {
@@ -52,7 +63,6 @@ impl From<&proto::FileTally> for FileTally {
             skipped: t.counts.skip,
             xfailed: t.counts.xfail,
             bad_file: t.bad,
-            cancelled: matches!(t.status, proto::FileStatus::Cancelled),
         }
     }
 }
@@ -80,8 +90,6 @@ pub struct RunAccumulator {
     /// `totals.failed`/`totals.errored`, which count individual expectations.
     pub failed_files: u32,
     pub file_durations: Vec<(String, u64)>,
-    /// Per-file tallies buffered for end-of-run rendering.
-    pub file_tallies: Vec<(String, FileTally, u64)>,
     pub failed_details: Vec<Finding>,
     pub warn_details: Vec<Finding>,
     pub all_results: Vec<FileRecord>,
@@ -101,18 +109,12 @@ impl RunAccumulator {
             &mut self.failed_details,
             &mut self.warn_details,
         );
-        self.totals.passed += t.passed;
-        self.totals.failed += t.failed;
-        self.totals.errored += t.errored;
-        self.totals.warned += t.warned;
-        self.totals.skipped += t.skipped;
-        self.totals.xfailed += t.xfailed;
+        self.totals += &t;
         if t.bad_file {
             self.failed_files += 1;
         }
 
         self.file_durations.push((file_name.clone(), file_ms));
-        self.file_tallies.push((file_name.clone(), t, file_ms));
         self.all_results.push(FileRecord {
             file: file_name,
             messages,
@@ -132,17 +134,11 @@ impl RunAccumulator {
                 &mut acc.failed_details,
                 &mut acc.warn_details,
             );
-            acc.totals.passed += t.passed;
-            acc.totals.failed += t.failed;
-            acc.totals.errored += t.errored;
-            acc.totals.warned += t.warned;
-            acc.totals.skipped += t.skipped;
-            acc.totals.xfailed += t.xfailed;
+            acc.totals += &t;
             if t.bad_file {
                 acc.failed_files += 1;
             }
             acc.file_durations.push((rec.file.clone(), file_ms));
-            acc.file_tallies.push((rec.file.clone(), t, file_ms));
         }
         acc
     }
@@ -291,6 +287,47 @@ pub fn rebuild_depmap_in_background(pkg: &scrutin_core::project::package::Packag
     );
 }
 
+/// Call `rebuild_depmap_in_background` only when it's meaningful: a
+/// full-suite run whose dep-map hashes are stale, and at least one
+/// Python suite is active (R deps are updated incrementally via
+/// instrumentation, so rebuilding them here is a no-op).
+pub fn maybe_rebuild_depmap(
+    pkg: &scrutin_core::project::package::Package,
+    is_full_suite: bool,
+    depmap_stale: bool,
+) {
+    if is_full_suite
+        && depmap_stale
+        && pkg.test_suites.iter().any(|s| s.plugin.name() == "pytest")
+    {
+        rebuild_depmap_in_background(pkg);
+    }
+}
+
+/// Persist one run to `.scrutin/state.db` (best-effort; errors are
+/// swallowed so a DB hiccup never masks test results). Shared by the
+/// plain and github reporters.
+pub fn persist_run(
+    pkg: &scrutin_core::project::package::Package,
+    all_results: &[FileRecord],
+    flaky_files: &std::collections::HashSet<String>,
+    run_metadata: &scrutin_core::metadata::RunMetadata,
+) {
+    let run_id = uuid::Uuid::new_v4().to_string();
+    let timestamp = chrono::Utc::now().to_rfc3339();
+    let rows = plain::build_result_rows(pkg, all_results, flaky_files);
+    let _ = scrutin_core::storage::sqlite::with_open(&pkg.root, |c| {
+        scrutin_core::storage::sqlite::record_run(
+            c,
+            &run_id,
+            &timestamp,
+            &run_metadata.provenance,
+            &rows,
+        )?;
+        scrutin_core::storage::sqlite::record_extras(c, &run_id, &run_metadata.labels)
+    });
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -331,10 +368,6 @@ mod tests {
         assert_eq!(t.skipped, 1);
         assert_eq!(t.xfailed, 1);
         assert!(t.bad_file, "any fail or error must mark file bad");
-        assert!(
-            !t.cancelled,
-            "cancelled flag must come from the engine, not from messages"
-        );
         assert_eq!(ms, 42);
         assert_eq!(failed.len(), 2, "fail event + error event");
         assert_eq!(warned.len(), 1);
@@ -354,10 +387,9 @@ mod tests {
     }
 
     #[test]
-    fn tally_cancelled_flag_passes_through() {
+    fn tally_cancelled_flag_does_not_count_as_skipped_or_bad() {
         let msgs: Vec<Message> = vec![];
         let (t, _) = tally_messages(&msgs, "f", true, &mut Vec::new(), &mut Vec::new());
-        assert!(t.cancelled);
         assert_eq!(t.skipped, 0);
         assert!(!t.bad_file);
     }

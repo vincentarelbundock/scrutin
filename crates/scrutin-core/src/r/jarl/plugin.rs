@@ -37,20 +37,6 @@ impl Plugin for JarlPlugin {
             && root.join("DESCRIPTION").is_file()
             && root.join(super::LINT_DIR).is_dir()
     }
-    // Worker-mode methods: not called for command plugins, but the trait
-    // requires them. Return inert values.
-    fn subprocess_cmd(&self, _root: &Path) -> Vec<String> {
-        vec![]
-    }
-    fn runner_script(&self) -> &'static str {
-        ""
-    }
-    fn script_extension(&self) -> &'static str {
-        "R"
-    }
-    fn runner_basename(&self) -> String {
-        "runner_jarl.R".into()
-    }
     fn project_name(&self, root: &Path) -> String {
         parse_r_package_name(root)
     }

@@ -88,9 +88,7 @@ pub fn detect_git(project_root: &Path) -> GitAvailability {
         Ok(out) => {
             let stderr = String::from_utf8_lossy(&out.stderr);
             let first = stderr.lines().next().unwrap_or("").trim().to_string();
-            if first.is_empty() {
-                GitAvailability::NotARepo
-            } else if first.contains("not a git repository") {
+            if first.is_empty() || first.contains("not a git repository") {
                 GitAvailability::NotARepo
             } else {
                 GitAvailability::ProbeFailed { stderr: first }

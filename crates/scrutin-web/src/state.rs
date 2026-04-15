@@ -28,6 +28,10 @@ use crate::wire::{
     tally_file_messages,
 };
 
+/// Reverse dep map: source-file path (project-relative) → test-file
+/// basenames that depend on it.
+pub type DepMap = HashMap<String, Vec<String>>;
+
 /// Capacity of the broadcast channel. Slow consumers lose the oldest
 /// events; they recover via `Last-Event-ID` replay (bounded separately).
 const BROADCAST_CAPACITY: usize = 1024;
@@ -48,7 +52,7 @@ pub struct AppState {
     pub events_tx: broadcast::Sender<SeqEvent>,
     pub replay_buffer: Arc<RwLock<std::collections::VecDeque<SeqEvent>>>,
     pub seq: Arc<std::sync::atomic::AtomicU64>,
-    pub dep_map: Arc<RwLock<Option<HashMap<String, Vec<String>>>>>,
+    pub dep_map: Arc<RwLock<Option<DepMap>>>,
     pub initial_files: Arc<Vec<PathBuf>>,
     /// Optional editor command from `[web].editor` in .scrutin/config.toml. When
     /// set, wins over `$VISUAL` / `$EDITOR` for the "open in editor"

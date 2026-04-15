@@ -485,27 +485,7 @@ fn start_test_run_inner(
     Ok(())
 }
 
-fn build_reverse_dep_map(
-    dep_map: &Option<std::collections::HashMap<String, Vec<String>>>,
-) -> std::collections::HashMap<String, Vec<String>> {
-    let mut reverse = std::collections::HashMap::new();
-    if let Some(map) = dep_map {
-        for (source, tests) in map {
-            for test in tests {
-                reverse
-                    .entry(test.clone())
-                    .or_insert_with(Vec::new)
-                    .push(source.clone());
-            }
-        }
-    }
-    // Deduplicate
-    for sources in reverse.values_mut() {
-        sources.sort();
-        sources.dedup();
-    }
-    reverse
-}
+pub(crate) use scrutin_core::analysis::deps::build_reverse_dep_map;
 
 /// Try to find the source file most relevant to a failing test file
 fn find_source_for_test(

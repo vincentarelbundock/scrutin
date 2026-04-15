@@ -28,6 +28,31 @@ pub fn build_unified_dep_map(pkg: &Package) -> HashMap<String, Vec<String>> {
     map
 }
 
+/// Invert a source→tests map into a tests→sources map. Duplicates in
+/// the output are deduped and sorted. An input of `None` yields an
+/// empty map. Used by frontends to jump from a selected test file to
+/// the source files the dep map says it depends on.
+pub fn build_reverse_dep_map(
+    dep_map: &Option<HashMap<String, Vec<String>>>,
+) -> HashMap<String, Vec<String>> {
+    let mut reverse: HashMap<String, Vec<String>> = HashMap::new();
+    if let Some(map) = dep_map {
+        for (source, tests) in map {
+            for test in tests {
+                reverse
+                    .entry(test.clone())
+                    .or_default()
+                    .push(source.clone());
+            }
+        }
+    }
+    for sources in reverse.values_mut() {
+        sources.sort();
+        sources.dedup();
+    }
+    reverse
+}
+
 /// Filename heuristic (Tier 1): given a changed source file, return matching test files.
 ///
 /// Walks every active suite — a `.R` source change consults the R suites'

@@ -24,7 +24,7 @@ use serde::Deserialize;
 use crate::analysis::walk;
 use crate::engine::protocol::{Counts, Event, Message, Outcome, Subject, Summary};
 use crate::project::plugin::{CommandSpec, Plugin, PluginAction};
-use crate::python::{py_env_vars, py_parse_pyproject_name, py_parse_pyproject_version};
+use crate::python::{py_env_vars, py_parse_pyproject_version, py_project_name_or_dir};
 
 pub struct RuffPlugin;
 
@@ -38,27 +38,8 @@ impl Plugin for RuffPlugin {
     fn detect(&self, root: &Path) -> bool {
         super::has_ruff_config(root)
     }
-    // Worker-mode methods: not called for command plugins, but the trait
-    // requires them. Return inert values.
-    fn subprocess_cmd(&self, _root: &Path) -> Vec<String> {
-        vec![]
-    }
-    fn runner_script(&self) -> &'static str {
-        ""
-    }
-    fn script_extension(&self) -> &'static str {
-        "py"
-    }
-    fn runner_basename(&self) -> String {
-        "runner_ruff.py".into()
-    }
     fn project_name(&self, root: &Path) -> String {
-        py_parse_pyproject_name(root).unwrap_or_else(|| {
-            root.file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("<unknown>")
-                .to_string()
-        })
+        py_project_name_or_dir(root)
     }
     fn project_version(&self, root: &Path) -> Option<String> {
         py_parse_pyproject_version(root)

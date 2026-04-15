@@ -52,8 +52,8 @@ pub(super) fn draw_counts_bar(f: &mut ratatui::Frame, state: &AppState, area: Re
     let count_span = |icon: &str, n: u32, active_color: Color| -> Vec<Span> {
         let color = if n > 0 { active_color } else { Color::DarkGray };
         vec![
-            Span::styled(format!("{}", icon), Style::default().fg(color)),
-            Span::styled(format!("{}", n), Style::default().fg(color)),
+            Span::styled(icon.to_string(), Style::default().fg(color)),
+            Span::styled(n.to_string(), Style::default().fg(color)),
             Span::raw(" "),
         ]
     };

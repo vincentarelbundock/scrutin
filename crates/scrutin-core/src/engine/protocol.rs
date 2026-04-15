@@ -252,9 +252,7 @@ impl FileStatus {
     pub fn from_counts(counts: &Counts, cancelled: bool) -> Self {
         if cancelled {
             Self::Cancelled
-        } else if counts.error > 0 {
-            Self::Failed
-        } else if counts.fail > 0 {
+        } else if counts.error > 0 || counts.fail > 0 {
             Self::Failed
         } else if counts.pass + counts.xfail + counts.warn > 0 {
             Self::Passed

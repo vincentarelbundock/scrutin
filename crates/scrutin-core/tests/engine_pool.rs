@@ -127,9 +127,6 @@ impl Plugin for FakePlugin {
     fn is_source_file(&self, _path: &Path) -> bool {
         false
     }
-    fn test_file_candidates(&self, _source_stem: &str) -> Vec<String> {
-        Vec::new()
-    }
 }
 
 // ── Fixture helpers ─────────────────────────────────────────────────────────

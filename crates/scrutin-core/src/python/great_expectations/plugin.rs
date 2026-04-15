@@ -13,7 +13,7 @@ use crate::engine::protocol::Outcome;
 use crate::project::plugin::Plugin;
 use crate::python::{
     py_env_vars, py_is_source_path, py_is_test_path, py_module_version, py_parse_pyproject_name,
-    py_parse_pyproject_version, py_subprocess_cmd,
+    py_parse_pyproject_version, py_project_name_or_dir, py_subprocess_cmd,
 };
 
 const GE_RUNNER: &str = include_str!("runner.py");
@@ -46,12 +46,7 @@ impl Plugin for GreatExpectationsPlugin {
         "runner_great_expectations.py".into()
     }
     fn project_name(&self, root: &Path) -> String {
-        py_parse_pyproject_name(root).unwrap_or_else(|| {
-            root.file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("<unknown>")
-                .to_string()
-        })
+        py_project_name_or_dir(root)
     }
     fn project_module_name(&self, root: &Path) -> Option<String> {
         py_parse_pyproject_name(root).map(|n| n.replace('-', "_"))

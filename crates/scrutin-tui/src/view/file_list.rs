@@ -134,7 +134,7 @@ pub(super) fn draw_file_list(f: &mut ratatui::Frame, state: &mut AppState, area:
             }
             if show_detail {
                 let dw = detail.width();
-                let pad = if dw < detail_width { detail_width - dw } else { 0 };
+                let pad = detail_width.saturating_sub(dw);
                 spans.push(Span::styled(
                     format!(" {}{}", detail, " ".repeat(pad)),
                     Style::default().fg(Color::DarkGray),

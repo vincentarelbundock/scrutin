@@ -14,7 +14,7 @@ use scrutin_core::project::config::Config;
 use scrutin_core::project::package::Package;
 use scrutin_core::storage::sqlite;
 
-use super::{FileRecord, RunStats, merge_deps_from_results, rebuild_depmap_in_background};
+use super::{FileRecord, RunStats, merge_deps_from_results};
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -107,15 +107,7 @@ pub async fn run(
     print_summary(&stats);
 
     // DB persistence (best-effort).
-    {
-        let run_id = uuid::Uuid::new_v4().to_string();
-        let timestamp = chrono::Utc::now().to_rfc3339();
-        let rows = super::plain::build_result_rows(pkg, &all_results, &HashSet::new());
-        let _ = sqlite::with_open(&pkg.root, |c| {
-            sqlite::record_run(c, &run_id, &timestamp, &run_metadata.provenance, &rows)?;
-            sqlite::record_extras(c, &run_id, &run_metadata.labels)
-        });
-    }
+    super::persist_run(pkg, &all_results, &HashSet::new(), run_metadata);
 
     // Merge runtime dep observations from instrumentation.
     {
@@ -125,11 +117,7 @@ pub async fn run(
     }
 
     // Rebuild Python side of the dep map if stale.
-    if is_full_suite && depmap_stale
-        && pkg.test_suites.iter().any(|s| s.plugin.name() == "pytest")
-    {
-        rebuild_depmap_in_background(pkg);
-    }
+    super::maybe_rebuild_depmap(pkg, is_full_suite, depmap_stale);
 
     Ok(if failed_files > 0 { 1 } else { 0 })
 }
