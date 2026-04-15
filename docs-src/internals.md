@@ -1,6 +1,6 @@
 # How it works
 
-Scrutin is a single Rust binary that orchestrates test execution across R and Python. It handles file watching, dependency resolution, process management, and result presentation. The actual test execution happens in language-specific subprocesses driven by embedded runner scripts.
+*Scrutin* is a single Rust binary that orchestrates test execution across R and Python. It handles file watching, dependency resolution, process management, and result presentation. The actual test execution happens in language-specific subprocesses driven by embedded runner scripts.
 
 ``` mermaid
 flowchart TD
@@ -25,7 +25,7 @@ flowchart TD
 
 ## File watcher
 
-Watch mode is on by default in the TUI and web. scrutin monitors your project's source and test directories for changes using OS-level file notifications. When a file changes, the watcher passes it to the dependency tracker to figure out which tests are affected, then hands the result to the run engine.
+Watch mode is on by default in the TUI and web. *Scrutin* monitors your project's source and test directories for changes using OS-level file notifications. When a file changes, the watcher passes it to the dependency tracker to figure out which tests are affected, then hands the result to the run engine.
 
 When watch mode is off (any plain/github/junit/list reporter, or `--set watch.enabled=false`), runs are single-shot and this step is skipped entirely.
 
@@ -33,7 +33,7 @@ When watch mode is off (any plain/github/junit/list reporter, or `--set watch.en
 
 When a file changes, the dependency tracker determines which test files need to re-run. It uses different strategies depending on the language.
 
-**Filename matching** is always active and instant. Scrutin maps source file names to likely test files using naming conventions:
+**Filename matching** is always active and instant. *Scrutin* maps source file names to likely test files using naming conventions:
 
 ```
 R/foo.R         -->  tests/testthat/test-foo.R
@@ -42,7 +42,7 @@ src/foo.py      -->  tests/test_foo.py
 
 This covers most cases but can miss indirect dependencies.
 
-**R runtime tracing** provides higher accuracy. During every test run, scrutin's R runner calls `trace()` on each function in the package namespace so that each source file whose functions get invoked is recorded. When the test finishes, the runner emits the list of touched source files back to the engine, which accumulates a `source → [tests]` map across runs. Because this is observed rather than inferred, only real call paths create edges: dynamic dispatch, method lookup, and helpers called through wrappers are all captured. The map is cached locally and refined every time a test executes. It is multi-suite aware: editing `R/math.R` invalidates test files under both `tests/testthat/` and `inst/tinytest/`.
+**R runtime tracing** provides higher accuracy. During every test run, *Scrutin*'s R runner calls `trace()` on each function in the package namespace so that each source file whose functions get invoked is recorded. When the test finishes, the runner emits the list of touched source files back to the engine, which accumulates a `source → [tests]` map across runs. Because this is observed rather than inferred, only real call paths create edges: dynamic dispatch, method lookup, and helpers called through wrappers are all captured. The map is cached locally and refined every time a test executes. It is multi-suite aware: editing `R/math.R` invalidates test files under both `tests/testthat/` and `inst/tinytest/`.
 
 **Python static import analysis** parses all `.py` files to extract `import` and `from ... import` statements, building a full import graph across both test and source files. Resolution is **transitive**: if `test_x.py` imports `helpers.py` which imports `core.py`, editing `core.py` will trigger `test_x.py`. The parser handles absolute imports, relative imports, submodule probing, multi-line parenthesized imports, and backslash continuation lines. Circular imports (allowed by Python) are handled safely. Dynamic imports (`importlib.import_module`) are missed. Unresolved changes fall back to the filename heuristic or a full suite re-run.
 
@@ -50,7 +50,7 @@ If no mapping is found for a changed file, all test files re-run.
 
 ## Run engine
 
-The run engine is the core of scrutin. It takes a list of test files, partitions them by tool, and runs them through the appropriate plugin. Each tool gets its own pool of worker subprocesses, but the pools run **sequentially**: one suite's workers come up, process every file assigned to that suite (in parallel up to the pool size), shut down, and the next suite's pool takes its place. Running the pools concurrently would mean paying the interpreter warm-up cost (`pkgload::load_all()`, `import mypkg`, ...) multiple times in parallel, which adds up fast. All pools share a single cancel signal, so cancelling a run stops everything.
+The run engine is the core of *Scrutin*. It takes a list of test files, partitions them by tool, and runs them through the appropriate plugin. Each tool gets its own pool of worker subprocesses, but the pools run **sequentially**: one suite's workers come up, process every file assigned to that suite (in parallel up to the pool size), shut down, and the next suite's pool takes its place. Running the pools concurrently would mean paying the interpreter warm-up cost (`pkgload::load_all()`, `import mypkg`, ...) multiple times in parallel, which adds up fast. All pools share a single cancel signal, so cancelling a run stops everything.
 
 The engine communicates with worker subprocesses via NDJSON (newline-delimited JSON). File paths go to the worker on stdin; results come back from the forked child on a loopback TCP socket in fork mode, or on stdout in the non-fork / Windows fallback. Four message types flow back:
 
@@ -86,12 +86,12 @@ A file is considered failing when `failed > 0 || errored > 0`. This determines t
 
 ## Tool plugins
 
-Each supported tool is compiled into the binary as a plugin. A plugin knows how to detect the right kind of project, discover files the tool should operate on, launch the tool, and map its output into scrutin's common event format. Multiple plugins can be active in the same run; see [Projects and Files](project-discovery.md) for the full list and for which tools auto-detect versus opt in.
+Each supported tool is compiled into the binary as a plugin. A plugin knows how to detect the right kind of project, discover files the tool should operate on, launch the tool, and map its output into *Scrutin*'s common event format. Multiple plugins can be active in the same run; see [Projects and Files](project-discovery.md) for the full list and for which tools auto-detect versus opt in.
 
 Plugins come in two flavors:
 
 - **Interpreter-integrated** (testthat, tinytest, pointblank, validate, pytest, Great Expectations). The test code runs inside a long-lived R or Python subprocess with your package imported, so you get the fastest iteration but the tool and your package must be installed in that interpreter.
-- **Standalone CLI** (jarl, ruff, skyspell, typos). scrutin shells out to the tool's binary per file and parses its output. No interpreter coupling; just put the binary on `PATH`.
+- **Standalone CLI** (jarl, ruff, skyspell, typos). *Scrutin* shells out to the tool's binary per file and parses its output. No interpreter coupling; just put the binary on `PATH`.
 
 Plugins can expose per-file actions (e.g. jarl / ruff / typos "fix" variants). In the Detail view they render as a numbered chip row under the warning; pressing `1`-`N` invokes the Nth action. Spell-check plugins attach per-warning suggestions to the same chip row, with `0` reserved for "add to dictionary" (skyspell only).
 

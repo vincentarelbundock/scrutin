@@ -1338,7 +1338,7 @@
 <h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
 <p>Planned features that are not yet implemented. For smaller in-progress items, see <code>TODO.md</code> in the repository.</p>
 <h2 id="serveride-socket-mode-headless-ndjson">Server/IDE socket mode (headless NDJSON)<a class="headerlink" href="#serveride-socket-mode-headless-ndjson" title="Permanent link">&para;</a></h2>
-<p>Run scrutin as a long-lived background process that editor extensions connect to over a socket (Unix domain socket or loopback TCP), instead of re-spawning the binary for every action.</p>
+<p>Run <em>Scrutin</em> as a long-lived background process that editor extensions connect to over a socket (Unix domain socket or loopback TCP), instead of re-spawning the binary for every action.</p>
 <p>Motivation: editor extensions (VS Code, Positron, RStudio) currently shell out per run, losing warm R and Python worker subprocesses between invocations. A persistent socket keeps the pool hot and lets the editor subscribe to live events the same way the web SSE endpoint does, without HTTP overhead or browser-specific assumptions.</p>
 <p>Shape:</p>
 <ul>
@@ -1352,8 +1352,8 @@
 <p>Shape:</p>
 <ul>
 <li>New file in <code>scrutin-bin/src/cli/reporter/</code>, enum variant in <code>cli/mod.rs</code>, one match arm. Same pattern as the JUnit and GitHub reporters.</li>
-<li>Six-outcome mapping uses CTRF's <code>rawStatus</code> field to preserve scrutin's finer taxonomy: <code>pass→passed</code>, <code>fail→failed+rawStatus=fail</code>, <code>error→failed+rawStatus=error</code>, <code>skip→skipped</code>, <code>xfail→skipped+rawStatus=xfail</code>, <code>warn→other+rawStatus=warn</code>.</li>
-<li>File-level granularity (one CTRF <code>test</code> per scrutin file) for consistency with <code>max_fail</code>; per-expectation detail goes in <code>extra</code>.</li>
+<li>Six-outcome mapping uses CTRF's <code>rawStatus</code> field to preserve <em>Scrutin</em>'s finer taxonomy: <code>pass→passed</code>, <code>fail→failed+rawStatus=fail</code>, <code>error→failed+rawStatus=error</code>, <code>skip→skipped</code>, <code>xfail→skipped+rawStatus=xfail</code>, <code>warn→other+rawStatus=warn</code>.</li>
+<li>File-level granularity (one CTRF <code>test</code> per <em>Scrutin</em> file) for consistency with <code>max_fail</code>; per-expectation detail goes in <code>extra</code>.</li>
 <li>Multi-suite runs either emit one CTRF file per suite or list siblings in <code>extra</code>: decide at implementation time.</li>
 </ul>
 

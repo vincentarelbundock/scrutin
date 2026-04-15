@@ -1,8 +1,8 @@
 # History
 
-Every scrutin invocation records its outcome to an embedded SQLite database at `.scrutin/state.db` (created and managed by scrutin, gitignored by default). The same file also holds the source-to-test dependency map and the file-hash fingerprints that drive watch mode, so a single delete gives you a clean slate.
+Every *Scrutin* invocation records its outcome to an embedded SQLite database at `.scrutin/state.db` (created and managed by *Scrutin*, gitignored by default). The same file also holds the source-to-test dependency map and the file-hash fingerprints that drive watch mode, so a single delete gives you a clean slate.
 
-No external binary is required: scrutin links SQLite in via `rusqlite` (with the `bundled` feature), so the DB always works regardless of what's installed on the host.
+No external binary is required: *Scrutin* links SQLite in via `rusqlite` (with the `bundled` feature), so the DB always works regardless of what's installed on the host.
 
 ## Reruns and flaky tests
 
@@ -16,7 +16,7 @@ A file that fails and then passes on rerun is marked **flaky**. Flaky results ar
 
 ## Run metadata
 
-scrutin records provenance for every run: version, OS, hostname, git SHA, branch, dirty state, CI provider, and CI build identifiers. These values populate the `runs` table (see [Schema](#schema)) and also land in the JUnit `<properties>` block.
+*Scrutin* records provenance for every run: version, OS, hostname, git SHA, branch, dirty state, CI provider, and CI build identifiers. These values populate the `runs` table (see [Schema](#schema)) and also land in the JUnit `<properties>` block.
 
 Add custom labels with `--set extras.key=value` on the command line, or an `[extras]` section in `.scrutin/config.toml`. Disable provenance capture entirely with `[metadata] enabled = false`.
 
@@ -29,7 +29,7 @@ The DDL below is the authoritative schema, loaded verbatim at startup via `CREAT
 
 ### `runs`
 
-One row per scrutin invocation. Holds all run-level provenance so `results` rows don't repeat it.
+One row per *Scrutin* invocation. Holds all run-level provenance so `results` rows don't repeat it.
 
 | Column | Source | Notes |
 |---|---|---|
@@ -37,7 +37,7 @@ One row per scrutin invocation. Holds all run-level provenance so `results` rows
 | `timestamp` | `chrono::Utc::now().to_rfc3339()` at run start | ISO 8601 |
 | `hostname` | `hostname` command (unix) / `%COMPUTERNAME%` (windows) | |
 | `ci` | `github` / `gitlab` / `buildkite` / `circleci` / `jenkins` / `azure-pipelines` / `travis` / `ci` / NULL | |
-| `scrutin_version` | `CARGO_PKG_VERSION` | version of the scrutin binary that wrote this row |
+| `scrutin_version` | `CARGO_PKG_VERSION` | version of the *Scrutin* binary that wrote this row |
 | `git_commit` | `git rev-parse HEAD` | full 40-char SHA |
 | `git_branch` | `git rev-parse --abbrev-ref HEAD`, or `(detached)` | |
 | `git_dirty` | `git status --porcelain` non-empty | 1 = uncommitted changes, 0 = clean |
@@ -68,7 +68,7 @@ CI env var sources for `build_*`:
 
 ### `results`
 
-One row per `(run, file, subject)`. The fact table. Tool metadata (`tool`, `tool_version`, `app_name`, `app_version`) is denormalized here rather than stored in a separate `tools` table; at scrutin's scale the repetition is negligible and queries stay flat.
+One row per `(run, file, subject)`. The fact table. Tool metadata (`tool`, `tool_version`, `app_name`, `app_version`) is denormalized here rather than stored in a separate `tools` table; at *Scrutin*'s scale the repetition is negligible and queries stay flat.
 
 | Column | Source | Notes |
 |---|---|---|
@@ -91,7 +91,7 @@ One row per `(run, file, subject)`. The fact table. Tool metadata (`tool`, `tool
 
 ### `extras`
 
-User-supplied key/value labels, populated from `[extras]` in `.scrutin/config.toml` and `--set extras.KEY=VALUE` on the CLI. The only table where key names are not known at schema time. Everything scrutin captures itself has a dedicated column on `runs` or `results`. Typical contents:
+User-supplied key/value labels, populated from `[extras]` in `.scrutin/config.toml` and `--set extras.KEY=VALUE` on the CLI. The only table where key names are not known at schema time. Everything *Scrutin* captures itself has a dedicated column on `runs` or `results`. Typical contents:
 
 ```toml
 [extras]
@@ -105,7 +105,7 @@ reviewer     = "vincent"
 
 Source-to-test dependency edges, one row per edge. Each row says "if source file X changes, test file Y is affected." Populated at run start by the dep-map builder and consulted by watch mode to pick affected test files on each save. Has no `run_id`: the dep map is a project-wide cache, not per-run state.
 
-Writes are full-replace per `test_file`: when a test file's imports change, scrutin deletes all existing rows where `test_file = ?` and inserts fresh ones in one transaction.
+Writes are full-replace per `test_file`: when a test file's imports change, *Scrutin* deletes all existing rows where `test_file = ?` and inserts fresh ones in one transaction.
 
 ### `hashes`
 

@@ -23,11 +23,11 @@ hide:
   <text x="93" y="54.2" font-family="Menlo, ui-monospace, SFMono-Regular, monospace" font-size="48" font-weight="500" fill="currentColor" letter-spacing="-1">Scrutin</text>
 </svg>
 
-## A Unified Dashboard and Orchestrator for Quality Checks.
+## A Unified Dashboard and Orchestrator for Quality Checks
 
 <p class="hero-examples">Unit tests · Data validation · Linting · Spell check</p>
 
-Scrutin watches your R and Python projects, figures out which checks each edit affects, runs them in parallel, and streams results live to a terminal UI, a browser dashboard, or your editor.
+Run every quality check on your project using a single command: unit tests, data validation, linters, spell checks. *Scrutin* watches for edits, figures out which checks are affected, and re-runs them in parallel. Drill into a failure to see the expected and actual values, as well as the relevant source code. Use quick keystrokes to fix linting and spelling issues, or to open files in your editor of choice.
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
 
@@ -39,7 +39,7 @@ Scrutin watches your R and Python projects, figures out which checks each edit a
 
 ## See everything in one place
 
-Every test, lint, data-validation, and spell-check result in a single dashboard. Filter by status or by tool, sort by name, time, or suite, and drill into findings to see expected vs. actual values, source context, and numbered fix actions you can invoke with a keystroke. Press `e` to jump straight into your editor.
+Pick where to see your results: a live [terminal UI](frontends.md#terminal-ui), a [browser dashboard](frontends.md#web-dashboard), or embedded inside your editor ([VS Code](frontends.md#vs-code), [Positron](frontends.md#positron), or [RStudio](frontends.md#rstudio)). *Scrutin* can also emit [JUnit XML](reporters.md#junit-xml) for CI platforms, [GitHub Actions annotations](reporters.md#github-actions) for pull-request comments, or [plain text](reporters.md#plain) for shell pipelines.
 
 </div>
 
@@ -55,7 +55,7 @@ Every test, lint, data-validation, and spell-check result in a single dashboard.
 
 <div class="feature-section" markdown>
 
-## What it runs
+## Tools
 
 </div>
 
@@ -99,13 +99,13 @@ Every test, lint, data-validation, and spell-check result in a single dashboard.
 
 <div class="feature-section" markdown>
 
-## Fast and focused
+## Fast, focused, and flexible
 
-**Re-run only what changed.** Scrutin watches your project for file changes and uses dependency mapping to figure out which checks are affected. Edit a source file, and only the tests that depend on it re-run.
+**Re-run only what changed.** *Scrutin* watches your project for file changes and uses dependency mapping to figure out which checks are affected. Edit a source file, and only the tests that depend on it re-run.
 
 **Parallel execution.** Within each tool, files run concurrently across isolated workers; one crash never takes down the rest. Opt in to automatic retries (`run.reruns`) and failing-but-passes-on-retry files get flagged as flaky.
 
-**Any mix of tools, side by side.** Test and data-validation tools auto-detect from marker files (`DESCRIPTION`, `pyproject.toml`, ...) the moment you run scrutin. Linters and spell checkers opt in through a one-line `[[suite]]` entry. Every active tool streams into the same dashboard.
+**Any mix of tools, side by side.** Test and data-validation tools auto-detect from marker files (`DESCRIPTION`, `pyproject.toml`, ...) the moment you run *Scrutin*. Linters and spell checkers opt in through a one-line `[[suite]]` entry. Every active tool streams into the same dashboard.
 
 </div>
 
@@ -157,8 +157,8 @@ Every test, lint, data-validation, and spell-check result in a single dashboard.
     ---
 
     Install a single binary. Works on macOS, Linux, and Windows.
-    Install the underlying R / Python tools you actually use separately,
-    through their own package managers.
+    The tools *Scrutin* orchestrates are installed separately, through
+    whatever package manager they normally ship with.
 
 -   :material-file-document-outline: **Continuous integration**
 

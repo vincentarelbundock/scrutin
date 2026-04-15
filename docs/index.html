@@ -320,7 +320,7 @@
   <a href="#a-unified-dashboard-and-orchestrator-for-quality-checks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        A Unified Dashboard and Orchestrator for Quality Checks.
+        A Unified Dashboard and Orchestrator for Quality Checks
       
     </span>
   </a>
@@ -339,10 +339,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-it-runs" class="md-nav__link">
+  <a href="#tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What it runs
+        Tools
       
     </span>
   </a>
@@ -350,10 +350,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#fast-and-focused" class="md-nav__link">
+  <a href="#fast-focused-and-flexible" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fast and focused
+        Fast, focused, and flexible
       
     </span>
   </a>
@@ -1337,7 +1337,7 @@
   <a href="#a-unified-dashboard-and-orchestrator-for-quality-checks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        A Unified Dashboard and Orchestrator for Quality Checks.
+        A Unified Dashboard and Orchestrator for Quality Checks
       
     </span>
   </a>
@@ -1356,10 +1356,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-it-runs" class="md-nav__link">
+  <a href="#tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What it runs
+        Tools
       
     </span>
   </a>
@@ -1367,10 +1367,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#fast-and-focused" class="md-nav__link">
+  <a href="#fast-focused-and-flexible" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fast and focused
+        Fast, focused, and flexible
       
     </span>
   </a>
@@ -1434,15 +1434,15 @@
   <line x1="67" y1="77" x2="79" y2="85" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
   <text x="93" y="54.2" font-family="Menlo, ui-monospace, SFMono-Regular, monospace" font-size="48" font-weight="500" fill="currentColor" letter-spacing="-1">Scrutin</text>
 </svg></p>
-<h2 id="a-unified-dashboard-and-orchestrator-for-quality-checks">A Unified Dashboard and Orchestrator for Quality Checks.<a class="headerlink" href="#a-unified-dashboard-and-orchestrator-for-quality-checks" title="Permanent link">&para;</a></h2>
+<h2 id="a-unified-dashboard-and-orchestrator-for-quality-checks">A Unified Dashboard and Orchestrator for Quality Checks<a class="headerlink" href="#a-unified-dashboard-and-orchestrator-for-quality-checks" title="Permanent link">&para;</a></h2>
 <p class="hero-examples">Unit tests · Data validation · Linting · Spell check</p>
-<p>Scrutin watches your R and Python projects, figures out which checks each edit affects, runs them in parallel, and streams results live to a terminal UI, a browser dashboard, or your editor.</p>
+<p>Run every quality check on your project using a single command: unit tests, data validation, linters, spell checks. <em>Scrutin</em> watches for edits, figures out which checks are affected, and re-runs them in parallel. Drill into a failure to see the expected and actual values, as well as the relevant source code. Use quick keystrokes to fix linting and spelling issues, or to open files in your editor of choice.</p>
 <p><a class="md-button md-button--primary" href="getting-started/">Get Started</a></p>
 </div>
 <hr />
 <div class="feature-section">
 <h2 id="see-everything-in-one-place">See everything in one place<a class="headerlink" href="#see-everything-in-one-place" title="Permanent link">&para;</a></h2>
-<p>Every test, lint, data-validation, and spell-check result in a single dashboard. Filter by status or by tool, sort by name, time, or suite, and drill into findings to see expected vs. actual values, source context, and numbered fix actions you can invoke with a keystroke. Press <code>e</code> to jump straight into your editor.</p>
+<p>Pick where to see your results: a live <a href="frontends/#terminal-ui">terminal UI</a>, a <a href="frontends/#web-dashboard">browser dashboard</a>, or embedded inside your editor (<a href="frontends/#vs-code">VS Code</a>, <a href="frontends/#positron">Positron</a>, or <a href="frontends/#rstudio">RStudio</a>). <em>Scrutin</em> can also emit <a href="reporters/#junit-xml">JUnit XML</a> for CI platforms, <a href="reporters/#github-actions">GitHub Actions annotations</a> for pull-request comments, or <a href="reporters/#plain">plain text</a> for shell pipelines.</p>
 </div>
 <div class="screenshot-row">
 <p><img alt="Terminal UI" class="screenshot" src="assets/screenshot_tui_normal_mode.png" /></p>
@@ -1450,7 +1450,7 @@
 </div>
 <hr />
 <div class="feature-section">
-<h2 id="what-it-runs">What it runs<a class="headerlink" href="#what-it-runs" title="Permanent link">&para;</a></h2>
+<h2 id="tools">Tools<a class="headerlink" href="#tools" title="Permanent link">&para;</a></h2>
 </div>
 <div class="grid cards wide">
 <ul>
@@ -1486,10 +1486,10 @@ Supports <strong>skyspell</strong> and <strong>typos</strong>.</p>
 </div>
 <hr />
 <div class="feature-section">
-<h2 id="fast-and-focused">Fast and focused<a class="headerlink" href="#fast-and-focused" title="Permanent link">&para;</a></h2>
-<p><strong>Re-run only what changed.</strong> Scrutin watches your project for file changes and uses dependency mapping to figure out which checks are affected. Edit a source file, and only the tests that depend on it re-run.</p>
+<h2 id="fast-focused-and-flexible">Fast, focused, and flexible<a class="headerlink" href="#fast-focused-and-flexible" title="Permanent link">&para;</a></h2>
+<p><strong>Re-run only what changed.</strong> <em>Scrutin</em> watches your project for file changes and uses dependency mapping to figure out which checks are affected. Edit a source file, and only the tests that depend on it re-run.</p>
 <p><strong>Parallel execution.</strong> Within each tool, files run concurrently across isolated workers; one crash never takes down the rest. Opt in to automatic retries (<code>run.reruns</code>) and failing-but-passes-on-retry files get flagged as flaky.</p>
-<p><strong>Any mix of tools, side by side.</strong> Test and data-validation tools auto-detect from marker files (<code>DESCRIPTION</code>, <code>pyproject.toml</code>, ...) the moment you run scrutin. Linters and spell checkers opt in through a one-line <code>[[suite]]</code> entry. Every active tool streams into the same dashboard.</p>
+<p><strong>Any mix of tools, side by side.</strong> Test and data-validation tools auto-detect from marker files (<code>DESCRIPTION</code>, <code>pyproject.toml</code>, ...) the moment you run <em>Scrutin</em>. Linters and spell checkers opt in through a one-line <code>[[suite]]</code> entry. Every active tool streams into the same dashboard.</p>
 </div>
 <hr />
 <div class="feature-section">
@@ -1519,8 +1519,8 @@ Supports <strong>skyspell</strong> and <strong>typos</strong>.</p>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15l-1.89 1.07L16 8.61l1.96-1.11zM6.04 7.5 12 10.85l1.96-1.1-5.88-3.4zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg></span> <strong>Easy to install</strong></p>
 <hr />
 <p>Install a single binary. Works on macOS, Linux, and Windows.
-Install the underlying R / Python tools you actually use separately,
-through their own package managers.</p>
+The tools <em>Scrutin</em> orchestrates are installed separately, through
+whatever package manager they normally ship with.</p>
 </li>
 <li>
 <p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm0 2h7v5h5v11H6zm2 8v2h8v-2zm0 4v2h5v-2z"/></svg></span> <strong>Continuous integration</strong></p>

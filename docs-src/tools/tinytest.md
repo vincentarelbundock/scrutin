@@ -1,6 +1,6 @@
 # tinytest
 
-A lightweight, zero-dependency testing framework for R packages. Scrutin auto-detects tinytest when a `DESCRIPTION` file and an `inst/tinytest/` directory are both present.
+A lightweight, zero-dependency testing framework for R packages. *Scrutin* auto-detects tinytest when a `DESCRIPTION` file and an `inst/tinytest/` directory are both present.
 
 ## Directory structure
 

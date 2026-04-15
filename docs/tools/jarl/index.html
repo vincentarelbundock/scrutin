@@ -1406,7 +1406,7 @@
 
 
 <h1 id="jarl">jarl<a class="headerlink" href="#jarl" title="Permanent link">&para;</a></h1>
-<p>An R linter that scrutin can drive as a plugin. Unlike test tools, jarl checks code style rather than correctness. It maps lint diagnostics to <code>warn</code> events, so lint issues appear alongside test results in the TUI and web dashboard. jarl is opt-in: enable it with an explicit <code>[[suite]] tool = "jarl"</code> entry in <code>.scrutin/config.toml</code>, or pass files on the command line with <code>-t jarl</code> in <a href="../../project-discovery/#file-mode">file mode</a>.</p>
+<p>An R linter that <em>Scrutin</em> can drive as a plugin. Unlike test tools, jarl checks code style rather than correctness. It maps lint diagnostics to <code>warn</code> events, so lint issues appear alongside test results in the TUI and web dashboard. jarl is opt-in: enable it with an explicit <code>[[suite]] tool = "jarl"</code> entry in <code>.scrutin/config.toml</code>, or pass files on the command line with <code>-t jarl</code> in <a href="../../project-discovery/#file-mode">file mode</a>.</p>
 <h2 id="directory-structure">Directory structure<a class="headerlink" href="#directory-structure" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mypackage/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── .scrutin/
@@ -1423,7 +1423,7 @@
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;jarl&quot;</span>
 </span></code></pre></div>
 <p><strong>jarl.toml</strong> (optional)</p>
-<p><code>jarl.toml</code> is read by jarl itself (not by scrutin) if you want to tune rules. Omit it to use jarl's built-in defaults.</p>
+<p><code>jarl.toml</code> is read by jarl itself (not by <em>Scrutin</em>) if you want to tune rules. Omit it to use jarl's built-in defaults.</p>
 <p><strong>R/math.R</strong></p>
 <div class="language-r highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># jarl flags T/F instead of TRUE/FALSE</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">is_positive</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>

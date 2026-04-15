@@ -1,6 +1,6 @@
 # typos
 
-A source-code spell checker that scrutin drives as a plugin. Unlike a
+A source-code spell checker that *Scrutin* drives as a plugin. Unlike a
 dictionary-based checker (which treats every unfamiliar token as a
 misspelling), [typos](https://github.com/crate-ci/typos) works from a
 curated list of known-wrong-to-right corrections, so it produces
@@ -17,7 +17,7 @@ enable it with an explicit `[[suite]] tool = "typos"` entry in
 
 ## Installing typos
 
-typos is not shipped with scrutin. Follow the upstream install instructions at [github.com/crate-ci/typos](https://github.com/crate-ci/typos).
+typos is not shipped with *Scrutin*. Follow the upstream install instructions at [github.com/crate-ci/typos](https://github.com/crate-ci/typos).
 
 ## typos vs. skyspell
 
@@ -34,7 +34,7 @@ Both are spell checkers. They have opposite philosophies:
 Use skyspell for prose that needs a real dictionary check. Use typos
 for source trees where you want to catch `recieve` / `teh` /
 `occurence` without a flood of noise. They coexist: declare both as
-`[[suite]]` entries and scrutin runs them in the same invocation
+`[[suite]]` entries and *Scrutin* runs them in the same invocation
 (suites run one at a time; files within each suite run in parallel).
 
 ## Directory structure
@@ -60,7 +60,7 @@ tool = "typos"
 
 **_typos.toml** (optional)
 
-`_typos.toml` (or `typos.toml` / `.typos.toml`) is read by typos itself (not by scrutin) for custom words, locale, and excludes:
+`_typos.toml` (or `typos.toml` / `.typos.toml`) is read by typos itself (not by *Scrutin*) for custom words, locale, and excludes:
 
 ```toml
 [default.extend-words]
@@ -81,7 +81,7 @@ foo <- function() {
 }
 ```
 
-Running scrutin flags `recieve` and `defintely` but ignores `foo`,
+Running *Scrutin* flags `recieve` and `defintely` but ignores `foo`,
 `function`, `x`, and every other R identifier.
 
 ## Running
@@ -111,7 +111,7 @@ In Detail view, each typo shows its suggested correction inline as a numbered ch
 
 | Key | Action |
 |-----|--------|
-| `1` | Accept the suggested correction: scrutin rewrites the file on disk and triggers a rerun so the warning disappears. |
+| `1` | Accept the suggested correction: *Scrutin* rewrites the file on disk and triggers a rerun so the warning disappears. |
 | `j`/`k` / `↑↓` | Move between typos. |
 
 In the web dashboard, two additional chip buttons are exposed per file:
@@ -125,12 +125,12 @@ Affected files are re-checked automatically after any fix action.
 
 The minimal suite entry is just `tool = "typos"`. typos' own configuration
 (`_typos.toml`, `typos.toml`, or `.typos.toml` at the suite root)
-controls custom words, exclusions, and locale; scrutin doesn't
+controls custom words, exclusions, and locale; *Scrutin* doesn't
 interpret it. See the
 [typos config reference](https://github.com/crate-ci/typos/blob/master/docs/reference.md)
 for the full schema.
 
-To override scrutin's default suite targets in `.scrutin/config.toml`:
+To override *Scrutin*'s default suite targets in `.scrutin/config.toml`:
 
 ```toml
 [[suite]]

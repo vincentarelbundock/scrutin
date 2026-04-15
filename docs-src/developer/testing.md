@@ -1,6 +1,6 @@
 # Testing Spec
 
-This document specifies what the scrutin test suite should cover, what
+This document specifies what the *Scrutin* test suite should cover, what
 behaviors are locked in (i.e., tests exist precisely to prevent their
 regression), and what is deliberately out of scope.
 
@@ -21,7 +21,7 @@ the tests exercise.
   inputs-to-outputs are contracts. The internal types that implement
   them are not. Tests that break on refactor without catching a real
   regression are worse than nothing.
-- **One honest E2E per tool beats ten mocked ones.** scrutin's
+- **One honest E2E per tool beats ten mocked ones.** *Scrutin*'s
   value is correctness across real R/Python subprocesses; mocking the
   subprocess erases the thing being tested. The `ci_run_*_fixture`
   pattern (see `crates/scrutin-bin/tests/`) is the right shape: add
@@ -43,7 +43,7 @@ the tests exercise.
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------ |
 | **Unit**                              | Pure functions: glob matching, config merging, outcome rank, protocol encode/decode, filter, git SHA parse, hashing           | under 5ms each  | ~250         |
 | **Module-integration** (no subprocess) | Engine pool with fake runner, dep-map against an in-memory package, watcher against tempdir, SQLite schema round-trip        | under 500ms each | ~60         |
-| **E2E fixture**                       | scrutin binary against `demo/` or a purpose-built fixture, real `Rscript`/`pytest` subprocess                                 | 1 to 10s each   | ~30          |
+| **E2E fixture**                       | *Scrutin* binary against `demo/` or a purpose-built fixture, real `Rscript`/`pytest` subprocess                                 | 1 to 10s each   | ~30          |
 | **Snapshot**                          | TUI view trees, JUnit XML, CTRF JSON, web wire types, compared byte-for-byte against a golden file                            | under 50ms each | ~40          |
 
 ## 2. Harnesses to build first (blocking)
@@ -88,7 +88,7 @@ authoritative for wall time; events are authoritative for counts.
 ### 3.2 Runner companions (`r/*/runner.*.R`, `python/*/runner.py`)
 
 **Lock:** each companion emits exactly the taxonomy expected. This is
-the seam where the R/Python/tool idiom is translated to scrutin's
+the seam where the R/Python/tool idiom is translated to *Scrutin*'s
 vocabulary; drift here is the single most common source of bugs.
 
 **Per-tool E2E** (one fixture file per outcome bucket, already
@@ -272,7 +272,7 @@ or failure).
 
 **Tests** (1 already exists; expand):
 
-- Hook env includes expected vars (scrutin version, run id).
+- Hook env includes expected vars (*Scrutin* version, run id).
 - Pre-run hook SIGKILL: run aborts with a clear error.
 
 ### 3.14 TUI state machine

@@ -1382,15 +1382,15 @@
 <h1 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
 <div class="admonition warning">
 <p class="admonition-title">Alpha software</p>
-<p>scrutin is alpha software under active development. Expect bugs, breaking changes, and rough edges. Please report issues at <a href="https://github.com/vincentarelbundock/scrutin">github.com/vincentarelbundock/scrutin</a>.</p>
+<p><em>Scrutin</em> is alpha software under active development. Expect bugs, breaking changes, and rough edges. Please report issues at <a href="https://github.com/vincentarelbundock/scrutin">github.com/vincentarelbundock/scrutin</a>.</p>
 </div>
-<p>Point scrutin at your project and it figures out the rest. It detects which test tools are present, discovers test files, and runs them in parallel.</p>
+<p>Point <em>Scrutin</em> at your project and it figures out the rest. It detects which test tools are present, discovers test files, and runs them in parallel.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>scrutin<span class="w">                          </span><span class="c1"># auto-detect, launch TUI (watch on by default)</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>scrutin<span class="w"> </span>-r<span class="w"> </span>plain<span class="w">                 </span><span class="c1"># one-shot run, text output</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>scrutin<span class="w"> </span>-r<span class="w"> </span>web<span class="w">                   </span><span class="c1"># browser dashboard</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>scrutin<span class="w"> </span>--set<span class="w"> </span>watch.enabled<span class="o">=</span><span class="nb">false</span><span class="w">  </span><span class="c1"># TUI, one-shot</span>
 </span></code></pre></div>
-<p>If your project uses both R and Python, scrutin runs every active tool in a single invocation. Within each tool, files run in parallel; across tools, they run one after another so the interpreter only has to warm up once per tool. See <a href="../parallelism/">Parallelism</a> for the tradeoffs and the opt-in fork mode that removes the warm-up cost.</p>
+<p>If your project uses both R and Python, <em>Scrutin</em> runs every active tool in a single invocation. Within each tool, files run in parallel; across tools, they run one after another so the interpreter only has to warm up once per tool. See <a href="../parallelism/">Parallelism</a> for the tradeoffs and the opt-in fork mode that removes the warm-up cost.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <p>Prebuilt binaries are published with each <a href="https://github.com/vincentarelbundock/scrutin/releases">release</a>.</p>
 <p>Install the latest release via shell script (macOS, Linux):</p>
@@ -1400,7 +1400,7 @@
 <div class="language-powershell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">powershell</span> <span class="n">-ExecutionPolicy</span> <span class="n">Bypass</span> <span class="n">-c</span> <span class="s2">&quot;irm https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.ps1 | iex&quot;</span>
 </span></code></pre></div>
 <h2 id="external-tool-dependencies">External tool dependencies<a class="headerlink" href="#external-tool-dependencies" title="Permanent link">&para;</a></h2>
-<p>scrutin orchestrates third-party tools but does not ship them. Follow each tool's own install instructions on its project page:</p>
+<p><em>Scrutin</em> orchestrates third-party tools but does not ship them. Follow each tool's own install instructions on its project page:</p>
 <table>
 <thead>
 <tr>
@@ -1462,8 +1462,8 @@
 </tr>
 </tbody>
 </table>
-<p>Test and data-validation tools (testthat, tinytest, pointblank, validate, pytest, Great Expectations) run inside an R or Python interpreter, so they must be installed as importable packages in the language environment scrutin uses for that suite (the active R library, or the suite's resolved Python virtualenv). Linters and spell checkers (jarl, ruff, skyspell, typos) are standalone binaries: just put them on <code>PATH</code>.</p>
-<p>scrutin checks for the required binaries at startup and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Turn that preflight off with <code>[preflight] command_tools = false</code> if you have a reason to bypass it.</p>
+<p>Test and data-validation tools (testthat, tinytest, pointblank, validate, pytest, Great Expectations) run inside an R or Python interpreter, so they must be installed as importable packages in the language environment <em>Scrutin</em> uses for that suite (the active R library, or the suite's resolved Python virtualenv). Linters and spell checkers (jarl, ruff, skyspell, typos) are standalone binaries: just put them on <code>PATH</code>.</p>
+<p><em>Scrutin</em> checks for the required binaries at startup and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Turn that preflight off with <code>[preflight] command_tools = false</code> if you have a reason to bypass it.</p>
 <h2 id="supported-tools">Supported tools<a class="headerlink" href="#supported-tools" title="Permanent link">&para;</a></h2>
 <p>Each tool page includes a minimal example with directory structure and configuration. Test and data-validation tools activate automatically when their marker files are present; linters and spell checkers are opt-in via an explicit <code>[[suite]]</code> entry. See <a href="../project-discovery/">Projects and Files</a> for the detection rules.</p>
 <table>

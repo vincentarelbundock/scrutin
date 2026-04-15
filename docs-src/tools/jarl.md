@@ -1,6 +1,6 @@
 # jarl
 
-An R linter that scrutin can drive as a plugin. Unlike test tools, jarl checks code style rather than correctness. It maps lint diagnostics to `warn` events, so lint issues appear alongside test results in the TUI and web dashboard. jarl is opt-in: enable it with an explicit `[[suite]] tool = "jarl"` entry in `.scrutin/config.toml`, or pass files on the command line with `-t jarl` in [file mode](../project-discovery.md#file-mode).
+An R linter that *Scrutin* can drive as a plugin. Unlike test tools, jarl checks code style rather than correctness. It maps lint diagnostics to `warn` events, so lint issues appear alongside test results in the TUI and web dashboard. jarl is opt-in: enable it with an explicit `[[suite]] tool = "jarl"` entry in `.scrutin/config.toml`, or pass files on the command line with `-t jarl` in [file mode](../project-discovery.md#file-mode).
 
 ## Directory structure
 
@@ -26,7 +26,7 @@ tool = "jarl"
 
 **jarl.toml** (optional)
 
-`jarl.toml` is read by jarl itself (not by scrutin) if you want to tune rules. Omit it to use jarl's built-in defaults.
+`jarl.toml` is read by jarl itself (not by *Scrutin*) if you want to tune rules. Omit it to use jarl's built-in defaults.
 
 **R/math.R**
 

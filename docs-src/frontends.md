@@ -10,7 +10,7 @@ scrutin -r web                   # browser dashboard
 scrutin -r web:0.0.0.0:3000      # web on a custom address
 ```
 
-When no reporter is given, scrutin defaults to `tui` on a tty and `plain` otherwise. The VS Code, Positron, and RStudio integrations are thin wrappers: each one spawns `scrutin -r web` in the background and embeds the resulting page inside the editor.
+When no reporter is given, *Scrutin* defaults to `tui` on a tty and `plain` otherwise. The VS Code, Positron, and RStudio integrations are thin wrappers: each one spawns `scrutin -r web` in the background and embeds the resulting page inside the editor.
 
 For non-interactive outputs (plain, JUnit, GitHub Actions, list), see [Reporters](reporters.md).
 
@@ -33,11 +33,11 @@ scrutin -r web                   # binds to 127.0.0.1:7878
 scrutin -r web:0.0.0.0:3000      # custom address
 ```
 
-The dashboard uses server-sent events to stream results as they arrive. It binds to localhost only by default. If the port is busy, scrutin tries the next one automatically.
+The dashboard uses server-sent events to stream results as they arrive. It binds to localhost only by default. If the port is busy, *Scrutin* tries the next one automatically.
 
 ## VS Code
 
-A TypeScript extension that embeds the scrutin web dashboard in an editor panel and surfaces live pass/fail/error counts in the status bar via SSE.
+A TypeScript extension that embeds the *Scrutin* web dashboard in an editor panel and surfaces live pass/fail/error counts in the status bar via SSE.
 
 ### Installation
 
@@ -55,7 +55,7 @@ The extension only exposes lifecycle commands. Run / rerun-failing / cancel / to
 
 | Command | Description |
 |---------|-------------|
-| `scrutin.start` | Start the scrutin server |
+| `scrutin.start` | Start the *Scrutin* server |
 | `scrutin.stop` | Stop the server |
 | `scrutin.showPanel` | Show/focus the dashboard panel |
 
@@ -63,10 +63,10 @@ The extension only exposes lifecycle commands. Run / rerun-failing / cancel / to
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `scrutin.binaryPath` | `""` | Absolute path to the scrutin binary. Leave empty to find it on `$PATH`. |
+| `scrutin.binaryPath` | `""` | Absolute path to the *Scrutin* binary. Leave empty to find it on `$PATH`. |
 | `scrutin.autoStart` | `false` | Start the server automatically when the extension activates |
 
-Watch mode and every other scrutin knob are controlled by `.scrutin/config.toml` (per-project) or `~/.config/scrutin/config.toml` (user-level). The extension doesn't override them.
+Watch mode and every other *Scrutin* knob are controlled by `.scrutin/config.toml` (per-project) or `~/.config/scrutin/config.toml` (user-level). The extension doesn't override them.
 
 ## Positron
 

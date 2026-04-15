@@ -1,6 +1,6 @@
 # Parallelism
 
-scrutin runs test files concurrently across a pool of worker subprocesses. The default pool size is `min(available_parallelism, 8)` with a minimum of 2. Each tool gets its own pool, but the pools run **sequentially**: one suite's workers start, chew through all its files in parallel, and shut down before the next suite's pool spins up. Running pools concurrently would mean paying the interpreter warm-up cost (`pkgload::load_all()`, `import mypkg`, ...) `workers × suites` times instead of `workers` times. Within any one suite every file still runs in parallel up to the pool size.
+*Scrutin* runs test files concurrently across a pool of worker subprocesses. The default pool size is `min(available_parallelism, 8)` with a minimum of 2. Each tool gets its own pool, but the pools run **sequentially**: one suite's workers start, chew through all its files in parallel, and shut down before the next suite's pool spins up. Running pools concurrently would mean paying the interpreter warm-up cost (`pkgload::load_all()`, `import mypkg`, ...) `workers × suites` times instead of `workers` times. Within any one suite every file still runs in parallel up to the pool size.
 
 ## Spawn mode (default, safe)
 

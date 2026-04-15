@@ -1450,7 +1450,7 @@
 
 
 <h1 id="testthat">testthat<a class="headerlink" href="#testthat" title="Permanent link">&para;</a></h1>
-<p>The standard testing framework for R packages. Scrutin auto-detects testthat when a <code>DESCRIPTION</code> file and a <code>tests/testthat/</code> directory are both present.</p>
+<p>The standard testing framework for R packages. <em>Scrutin</em> auto-detects testthat when a <code>DESCRIPTION</code> file and a <code>tests/testthat/</code> directory are both present.</p>
 <h2 id="directory-structure">Directory structure<a class="headerlink" href="#directory-structure" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mypackage/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── DESCRIPTION
@@ -1487,15 +1487,15 @@
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># watch = [&quot;R/**/*.R&quot;]</span>
 </span></code></pre></div>
 <h2 id="working-directory">Working directory<a class="headerlink" href="#working-directory" title="Permanent link">&para;</a></h2>
-<p>Scrutin runs workers from the <strong>suite root</strong> (the directory containing <code>DESCRIPTION</code>, which in a single-package project equals the project root; in a monorepo use <code>[[suite]] root = "r"</code> or similar). The subprocess CWD is the suite root. <code>testthat::test_path()</code> is the portable way to build paths to fixture files:</p>
+<p><em>Scrutin</em> runs workers from the <strong>suite root</strong> (the directory containing <code>DESCRIPTION</code>, which in a single-package project equals the project root; in a monorepo use <code>[[suite]] root = "r"</code> or similar). The subprocess CWD is the suite root. <code>testthat::test_path()</code> is the portable way to build paths to fixture files:</p>
 <div class="language-r highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nf">test_that</span><span class="p">(</span><span class="s">&quot;reads fixture data&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">d</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read.csv</span><span class="p">(</span><span class="nf">test_path</span><span class="p">(</span><span class="s">&quot;fixtures&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;data.csv&quot;</span><span class="p">))</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nf">expect_equal</span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">d</span><span class="p">),</span><span class="w"> </span><span class="m">10</span><span class="p">)</span>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">})</span>
 </span></code></pre></div>
-<p>Bare relative paths like <code>"inst/extdata/data.csv"</code> resolve against the suite root, which makes them portable between scrutin and interactive <code>devtools::load_all()</code> sessions.</p>
+<p>Bare relative paths like <code>"inst/extdata/data.csv"</code> resolve against the suite root, which makes them portable between <em>Scrutin</em> and interactive <code>devtools::load_all()</code> sessions.</p>
 <h2 id="package-loading">Package loading<a class="headerlink" href="#package-loading" title="Permanent link">&para;</a></h2>
-<p>Workers call <code>pkgload::load_all()</code> to load the package. When a source file changes in watch mode, the engine reloads the package automatically before running affected tests. If you add or change <code>@export</code> or <code>@importFrom</code> tags, run <code>devtools::document()</code> separately: scrutin does not invoke roxygen.</p>
+<p>Workers call <code>pkgload::load_all()</code> to load the package. When a source file changes in watch mode, the engine reloads the package automatically before running affected tests. If you add or change <code>@export</code> or <code>@importFrom</code> tags, run <code>devtools::document()</code> separately: <em>Scrutin</em> does not invoke roxygen.</p>
 <h2 id="custom-runner">Custom runner<a class="headerlink" href="#custom-runner" title="Permanent link">&para;</a></h2>
 <p><code>scrutin init</code> writes the default runner to <code>.scrutin/testthat/runner.R</code>. To use an edited copy, point to it either globally (applies to every testthat suite) or on the specific <code>[[suite]]</code>:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">[testthat]</span>

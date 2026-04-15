@@ -2,7 +2,7 @@
 
 ## Goal
 
-Replace scrutin's fixed pass/fail/skip/warn/error vocabulary with a single
+Replace *Scrutin*'s fixed pass/fail/skip/warn/error vocabulary with a single
 outcome taxonomy that fits both unit-testing frameworks (testthat,
 tinytest, pytest) and data-validation frameworks (pointblank, Great
 Expectations, pandera, pydantic). The taxonomy must carry quantitative
@@ -28,7 +28,7 @@ Six outcomes. Every event a runner emits maps to exactly one.
 
 `xfail` is the load-bearing addition. Every tool has *some*
 form of "this failure was predicted, ignore it for CI gating," and today
-scrutin has nowhere to put it.
+*Scrutin* has nowhere to put it.
 
 ### Severity is derived, not transmitted
 

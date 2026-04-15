@@ -1646,7 +1646,7 @@
 
 
 <h1 id="projects-and-files">Projects and Files<a class="headerlink" href="#projects-and-files" title="Permanent link">&para;</a></h1>
-<p>scrutin runs in one of two modes:</p>
+<p><em>Scrutin</em> runs in one of two modes:</p>
 <ol>
 <li><strong>File mode</strong>: point a single tool at one or more files. No project, no config, no auto-detection.</li>
 <li><strong>Project mode</strong> (the default): run every applicable tool against a full package, loading your code into R or Python so tests can exercise it.</li>
@@ -1699,19 +1699,19 @@
 <li>Watch mode still applies if your terminal supports the TUI: edits to the listed files trigger reruns.</li>
 </ul>
 <h2 id="project-mode">Project mode<a class="headerlink" href="#project-mode" title="Permanent link">&para;</a></h2>
-<p>scrutin runs from the project directory and activates every applicable tool against the whole package. Works for <strong>testthat</strong>, <strong>tinytest</strong>, <strong>pointblank</strong>, <strong>validate</strong> (R), and <strong>pytest</strong>, <strong>Great Expectations</strong> (Python) with zero configuration; <strong>jarl</strong>, <strong>ruff</strong>, <strong>skyspell</strong>, <strong>typos</strong> join in when you opt them in explicitly (see <a href="#example-projects">Example projects</a> below).</p>
+<p><em>Scrutin</em> runs from the project directory and activates every applicable tool against the whole package. Works for <strong>testthat</strong>, <strong>tinytest</strong>, <strong>pointblank</strong>, <strong>validate</strong> (R), and <strong>pytest</strong>, <strong>Great Expectations</strong> (Python) with zero configuration; <strong>jarl</strong>, <strong>ruff</strong>, <strong>skyspell</strong>, <strong>typos</strong> join in when you opt them in explicitly (see <a href="#example-projects">Example projects</a> below).</p>
 <h3 id="concepts">Concepts<a class="headerlink" href="#concepts" title="Permanent link">&para;</a></h3>
-<p><strong>Project root</strong>: the directory you point scrutin at on the command line. This is where <code>.scrutin/config.toml</code> lives (if any), and where the run's shared state is anchored: <code>.scrutin/state.db</code>, runner scripts, hooks, and ignore patterns.</p>
-<p><strong>Tool</strong>: a test runner or quality checker scrutin knows how to drive (testthat, pytest, jarl, ruff, skyspell, ...). Support for every supported tool is built into the scrutin binary; there are no separate scrutin plugins to install. You still install the underlying tools (R, Python, pytest, ruff, ...) through their usual channels.</p>
+<p><strong>Project root</strong>: the directory you point <em>Scrutin</em> at on the command line. This is where <code>.scrutin/config.toml</code> lives (if any), and where the run's shared state is anchored: <code>.scrutin/state.db</code>, runner scripts, hooks, and ignore patterns.</p>
+<p><strong>Tool</strong>: a test runner or quality checker <em>Scrutin</em> knows how to drive (testthat, pytest, jarl, ruff, skyspell, ...). Support for every supported tool is built into the <em>Scrutin</em> binary; there are no separate <em>Scrutin</em> plugins to install. You still install the underlying tools (R, Python, pytest, ruff, ...) through their usual channels.</p>
 <p><strong>Suite</strong>: one configured instance of a tool. A suite owns a working directory and a set of file patterns. A project can run many suites in one invocation, even several using the same tool on different subtrees; suites run one after another so each gets the full worker pool, and files within a suite run in parallel.</p>
 <p><strong>Suite root</strong>: the working directory a suite's subprocess runs from. Subprocesses are spawned with <code>cwd = suite.root</code> and <code>SCRUTIN_PKG_DIR = suite.root</code>, so <code>pkgload::load_all()</code>, <code>pytest</code>, <code>ruff</code>, and your tests' relative <code>read.csv(...)</code> / <code>open(...)</code> calls all resolve against that subtree. In a single-package project, suite root equals project root. In a monorepo, each suite points at its own package.</p>
 <h3 id="pointing-at-a-project">Pointing at a project<a class="headerlink" href="#pointing-at-a-project" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>scrutin<span class="w">                   </span><span class="c1"># project root is the current directory</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>scrutin<span class="w"> </span>path/to/project<span class="w">   </span><span class="c1"># project root is the given path</span>
 </span></code></pre></div>
-<p>scrutin does <strong>not</strong> walk upward to find a parent project. Running it from inside <code>tests/testthat/</code> looks for tools in <code>tests/testthat/</code>. Run from the project root or pass the path explicitly.</p>
+<p><em>Scrutin</em> does <strong>not</strong> walk upward to find a parent project. Running it from inside <code>tests/testthat/</code> looks for tools in <code>tests/testthat/</code>. Run from the project root or pass the path explicitly.</p>
 <h3 id="auto-detection">Auto-detection<a class="headerlink" href="#auto-detection" title="Permanent link">&para;</a></h3>
-<p>With no <code>[[suite]]</code> entries in your config, scrutin scans the project root for marker files and activates every matching test or data-validation tool. A project with both <code>tests/testthat/</code> and <code>inst/tinytest/</code> gets both suites; adding <code>pyproject.toml</code> with a <code>tests/</code> directory adds pytest alongside them. Every auto-detected suite gets <code>root</code> equal to the project root.</p>
+<p>With no <code>[[suite]]</code> entries in your config, <em>Scrutin</em> scans the project root for marker files and activates every matching test or data-validation tool. A project with both <code>tests/testthat/</code> and <code>inst/tinytest/</code> gets both suites; adding <code>pyproject.toml</code> with a <code>tests/</code> directory adds pytest alongside them. Every auto-detected suite gets <code>root</code> equal to the project root.</p>
 <table>
 <thead>
 <tr>
@@ -1753,8 +1753,8 @@
 </tr>
 </tbody>
 </table>
-<p>Linters and spell checkers (<strong>jarl</strong>, <strong>ruff</strong>, <strong>skyspell</strong>, <strong>typos</strong>) never auto-detect, even when their config files are present. They're orthogonal to testing: your editor probably already runs ruff on save, and spell checking is rarely something you want gating a CI test run. Enable them with an explicit <code>[[suite]]</code> entry when you want scrutin to orchestrate them alongside your tests.</p>
-<p>Auto-detection only scans the project root: subdirectory names are arbitrary, so scrutin does not guess. To narrow to a single tool, use <code>--tool</code> (short form <code>-t</code>):</p>
+<p>Linters and spell checkers (<strong>jarl</strong>, <strong>ruff</strong>, <strong>skyspell</strong>, <strong>typos</strong>) never auto-detect, even when their config files are present. They're orthogonal to testing: your editor probably already runs ruff on save, and spell checking is rarely something you want gating a CI test run. Enable them with an explicit <code>[[suite]]</code> entry when you want <em>Scrutin</em> to orchestrate them alongside your tests.</p>
+<p>Auto-detection only scans the project root: subdirectory names are arbitrary, so <em>Scrutin</em> does not guess. To narrow to a single tool, use <code>--tool</code> (short form <code>-t</code>):</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>scrutin<span class="w"> </span>--tool<span class="w"> </span>pytest
 </span></code></pre></div>
 <p><code>--tool</code> is sugar for <code>--set run.tool=&lt;name&gt;</code>, which applies to both auto-detected and explicitly-declared suites.</p>
@@ -1898,7 +1898,7 @@
 </span></code></pre></div>
 <p><code>scrutin init</code> writes the default runner out to <code>.scrutin/testthat/runner.R</code> so you can copy, edit, and point at the edited version. Same pattern works for pytest (<code>runner = ".scrutin/pytest/my_runner.py"</code>) and every other worker-mode tool.</p>
 <h3 id="python-virtual-environments">Python virtual environments<a class="headerlink" href="#python-virtual-environments" title="Permanent link">&para;</a></h3>
-<p>For Python suites, scrutin resolves the interpreter anchored at the <strong>suite root</strong>, not the project root. Resolution order:</p>
+<p>For Python suites, <em>Scrutin</em> resolves the interpreter anchored at the <strong>suite root</strong>, not the project root. Resolution order:</p>
 <ol>
 <li><code>[python].interpreter</code> in <code>.scrutin/config.toml</code> (project-wide override)</li>
 <li><code>[python].venv</code> (path to a virtualenv, relative to project root or absolute)</li>
@@ -1913,7 +1913,7 @@
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">interpreter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;python3.12&quot;</span><span class="w">  </span><span class="c1"># skip venv detection entirely</span>
 </span></code></pre></div>
 <h3 id="config-file-lookup">Config file lookup<a class="headerlink" href="#config-file-lookup" title="Permanent link">&para;</a></h3>
-<p>scrutin looks for <code>.scrutin/config.toml</code> in the project root. If none is found, it falls back to a user-level config in the platform-standard config directory:</p>
+<p><em>Scrutin</em> looks for <code>.scrutin/config.toml</code> in the project root. If none is found, it falls back to a user-level config in the platform-standard config directory:</p>
 <table>
 <thead>
 <tr>

@@ -1,4 +1,4 @@
-# scrutin Internals
+# *Scrutin* Internals
 
 ## Architecture
 
@@ -341,7 +341,7 @@ One store: `.scrutin/state.db`, an embedded SQLite database via `rusqlite` with 
 
 Tables in the DB:
 
-- **`runs`**: one row per invocation with provenance (git SHA, branch, dirty state, hostname, CI provider, CI build identifiers, OS, scrutin version).
+- **`runs`**: one row per invocation with provenance (git SHA, branch, dirty state, hostname, CI provider, CI build identifiers, OS, *Scrutin* version).
 - **`results`**: one row per `(run, file, subject)` with outcome, duration, retry count, tool, tool version, and data-validation expectation counts.
 - **`extras`**: key/value labels from `[extras]` / `--set extras.KEY=VALUE`.
 - **`dependencies`**: source-to-test edges for watch mode (no `run_id`: project-wide cache, not per-run state).

@@ -1423,7 +1423,7 @@
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ruff&quot;</span>
 </span></code></pre></div>
 <p><strong>pyproject.toml</strong> (optional)</p>
-<p><code>pyproject.toml</code>'s <code>[tool.ruff]</code> section, or a standalone <code>ruff.toml</code> / <code>.ruff.toml</code> at the suite root, is read by ruff itself (not by scrutin) to tune rules:</p>
+<p><code>pyproject.toml</code>'s <code>[tool.ruff]</code> section, or a standalone <code>ruff.toml</code> / <code>.ruff.toml</code> at the suite root, is read by ruff itself (not by <em>Scrutin</em>) to tune rules:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[tool.ruff]</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">line-length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">88</span>
 </span></code></pre></div>
@@ -1470,7 +1470,7 @@
 </table>
 <p>All four invoke <code>ruff check --fix</code> once with every matching file (after include / exclude filters) as trailing arguments. After a fix, the affected files are re-linted automatically.</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
-<p>The minimal suite entry is just <code>tool = "ruff"</code>. ruff's own configuration (<code>ruff.toml</code>, <code>.ruff.toml</code>, or <code>[tool.ruff]</code> in <code>pyproject.toml</code>) controls which rules are enabled, excluded paths, and other linter settings; scrutin doesn't interpret it.</p>
+<p>The minimal suite entry is just <code>tool = "ruff"</code>. ruff's own configuration (<code>ruff.toml</code>, <code>.ruff.toml</code>, or <code>[tool.ruff]</code> in <code>pyproject.toml</code>) controls which rules are enabled, excluded paths, and other linter settings; <em>Scrutin</em> doesn't interpret it.</p>
 <p>To override the default suite in <code>.scrutin/config.toml</code>:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[[suite]]</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ruff&quot;</span>

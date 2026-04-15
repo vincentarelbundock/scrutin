@@ -1428,9 +1428,9 @@
 
 
 <h1 id="skyspell">skyspell<a class="headerlink" href="#skyspell" title="Permanent link">&para;</a></h1>
-<p>A dictionary-based spell checker scrutin drives as a plugin. Like the linters (jarl, ruff) it maps diagnostics to <code>warn</code> events, so misspellings appear alongside test results in the TUI and web dashboard. skyspell is opt-in: enable it with an explicit <code>[[suite]] tool = "skyspell"</code> entry in <code>.scrutin/config.toml</code>, or pass files on the command line with <code>-t skyspell</code> in <a href="../../project-discovery/#file-mode">file mode</a>.</p>
+<p>A dictionary-based spell checker <em>Scrutin</em> drives as a plugin. Like the linters (jarl, ruff) it maps diagnostics to <code>warn</code> events, so misspellings appear alongside test results in the TUI and web dashboard. skyspell is opt-in: enable it with an explicit <code>[[suite]] tool = "skyspell"</code> entry in <code>.scrutin/config.toml</code>, or pass files on the command line with <code>-t skyspell</code> in <a href="../../project-discovery/#file-mode">file mode</a>.</p>
 <h2 id="installing-skyspell">Installing skyspell<a class="headerlink" href="#installing-skyspell" title="Permanent link">&para;</a></h2>
-<p>skyspell is not shipped with scrutin. Follow the upstream install instructions at <a href="https://codeberg.org/your-tools/skyspell">codeberg.org/your-tools/skyspell</a>.</p>
+<p>skyspell is not shipped with <em>Scrutin</em>. Follow the upstream install instructions at <a href="https://codeberg.org/your-tools/skyspell">codeberg.org/your-tools/skyspell</a>.</p>
 <h2 id="directory-structure">Directory structure<a class="headerlink" href="#directory-structure" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>myproject/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── .scrutin/
@@ -1468,7 +1468,7 @@
 <tbody>
 <tr>
 <td><code>1</code>..<code>9</code></td>
-<td>Accept the Nth ranked suggestion: scrutin rewrites the file on disk and triggers a rerun so the warning disappears.</td>
+<td>Accept the Nth ranked suggestion: <em>Scrutin</em> rewrites the file on disk and triggers a rerun so the warning disappears.</td>
 </tr>
 <tr>
 <td><code>0</code></td>

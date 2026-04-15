@@ -1,6 +1,6 @@
 # Great Expectations
 
-A Python data validation framework. Test files leave `CheckpointResult` or `ExpectationSuiteValidationResult` objects in module globals. The runner emits one event per `ExpectationValidationResult`. Scrutin auto-detects Great Expectations when a `tests/great_expectations/` directory is present.
+A Python data validation framework. Test files leave `CheckpointResult` or `ExpectationSuiteValidationResult` objects in module globals. The runner emits one event per `ExpectationValidationResult`. *Scrutin* auto-detects Great Expectations when a `tests/great_expectations/` directory is present.
 
 ## Directory structure
 

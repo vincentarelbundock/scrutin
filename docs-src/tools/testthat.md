@@ -1,6 +1,6 @@
 # testthat
 
-The standard testing framework for R packages. Scrutin auto-detects testthat when a `DESCRIPTION` file and a `tests/testthat/` directory are both present.
+The standard testing framework for R packages. *Scrutin* auto-detects testthat when a `DESCRIPTION` file and a `tests/testthat/` directory are both present.
 
 ## Directory structure
 
@@ -56,7 +56,7 @@ tool = "testthat"
 
 ## Working directory
 
-Scrutin runs workers from the **suite root** (the directory containing `DESCRIPTION`, which in a single-package project equals the project root; in a monorepo use `[[suite]] root = "r"` or similar). The subprocess CWD is the suite root. `testthat::test_path()` is the portable way to build paths to fixture files:
+*Scrutin* runs workers from the **suite root** (the directory containing `DESCRIPTION`, which in a single-package project equals the project root; in a monorepo use `[[suite]] root = "r"` or similar). The subprocess CWD is the suite root. `testthat::test_path()` is the portable way to build paths to fixture files:
 
 ```r
 test_that("reads fixture data", {
@@ -65,11 +65,11 @@ test_that("reads fixture data", {
 })
 ```
 
-Bare relative paths like `"inst/extdata/data.csv"` resolve against the suite root, which makes them portable between scrutin and interactive `devtools::load_all()` sessions.
+Bare relative paths like `"inst/extdata/data.csv"` resolve against the suite root, which makes them portable between *Scrutin* and interactive `devtools::load_all()` sessions.
 
 ## Package loading
 
-Workers call `pkgload::load_all()` to load the package. When a source file changes in watch mode, the engine reloads the package automatically before running affected tests. If you add or change `@export` or `@importFrom` tags, run `devtools::document()` separately: scrutin does not invoke roxygen.
+Workers call `pkgload::load_all()` to load the package. When a source file changes in watch mode, the engine reloads the package automatically before running affected tests. If you add or change `@export` or `@importFrom` tags, run `devtools::document()` separately: *Scrutin* does not invoke roxygen.
 
 ## Custom runner
 

@@ -1450,7 +1450,7 @@
 
 
 <h1 id="typos">typos<a class="headerlink" href="#typos" title="Permanent link">&para;</a></h1>
-<p>A source-code spell checker that scrutin drives as a plugin. Unlike a
+<p>A source-code spell checker that <em>Scrutin</em> drives as a plugin. Unlike a
 dictionary-based checker (which treats every unfamiliar token as a
 misspelling), <a href="https://github.com/crate-ci/typos">typos</a> works from a
 curated list of known-wrong-to-right corrections, so it produces
@@ -1464,7 +1464,7 @@ enable it with an explicit <code>[[suite]] tool = "typos"</code> entry in
 <code>.scrutin/config.toml</code>, or pass files on the command line with
 <code>-t typos</code> in <a href="../../project-discovery/#file-mode">file mode</a>.</p>
 <h2 id="installing-typos">Installing typos<a class="headerlink" href="#installing-typos" title="Permanent link">&para;</a></h2>
-<p>typos is not shipped with scrutin. Follow the upstream install instructions at <a href="https://github.com/crate-ci/typos">github.com/crate-ci/typos</a>.</p>
+<p>typos is not shipped with <em>Scrutin</em>. Follow the upstream install instructions at <a href="https://github.com/crate-ci/typos">github.com/crate-ci/typos</a>.</p>
 <h2 id="typos-vs-skyspell">typos vs. skyspell<a class="headerlink" href="#typos-vs-skyspell" title="Permanent link">&para;</a></h2>
 <p>Both are spell checkers. They have opposite philosophies:</p>
 <table>
@@ -1506,7 +1506,7 @@ enable it with an explicit <code>[[suite]] tool = "typos"</code> entry in
 <p>Use skyspell for prose that needs a real dictionary check. Use typos
 for source trees where you want to catch <code>recieve</code> / <code>teh</code> /
 <code>occurence</code> without a flood of noise. They coexist: declare both as
-<code>[[suite]]</code> entries and scrutin runs them in the same invocation
+<code>[[suite]]</code> entries and <em>Scrutin</em> runs them in the same invocation
 (suites run one at a time; files within each suite run in parallel).</p>
 <h2 id="directory-structure">Directory structure<a class="headerlink" href="#directory-structure" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>myproject/
@@ -1523,7 +1523,7 @@ for source trees where you want to catch <code>recieve</code> / <code>teh</code>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;typos&quot;</span>
 </span></code></pre></div>
 <p><strong>_typos.toml</strong> (optional)</p>
-<p><code>_typos.toml</code> (or <code>typos.toml</code> / <code>.typos.toml</code>) is read by typos itself (not by scrutin) for custom words, locale, and excludes:</p>
+<p><code>_typos.toml</code> (or <code>typos.toml</code> / <code>.typos.toml</code>) is read by typos itself (not by <em>Scrutin</em>) for custom words, locale, and excludes:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[default.extend-words]</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># Words that look like typos but aren&#39;t (project-specific):</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">arange</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;arange&quot;</span>
@@ -1538,7 +1538,7 @@ for source trees where you want to catch <code>recieve</code> / <code>teh</code>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">x</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>Running scrutin flags <code>recieve</code> and <code>defintely</code> but ignores <code>foo</code>,
+<p>Running <em>Scrutin</em> flags <code>recieve</code> and <code>defintely</code> but ignores <code>foo</code>,
 <code>function</code>, <code>x</code>, and every other R identifier.</p>
 <h2 id="running">Running<a class="headerlink" href="#running" title="Permanent link">&para;</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>scrutin<span class="w"> </span>myproject<span class="w">              </span><span class="c1"># TUI</span>
@@ -1566,7 +1566,7 @@ any config file at all:</p>
 <tbody>
 <tr>
 <td><code>1</code></td>
-<td>Accept the suggested correction: scrutin rewrites the file on disk and triggers a rerun so the warning disappears.</td>
+<td>Accept the suggested correction: <em>Scrutin</em> rewrites the file on disk and triggers a rerun so the warning disappears.</td>
 </tr>
 <tr>
 <td><code>j</code>/<code>k</code> / <code>↑↓</code></td>
@@ -1583,11 +1583,11 @@ any config file at all:</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <p>The minimal suite entry is just <code>tool = "typos"</code>. typos' own configuration
 (<code>_typos.toml</code>, <code>typos.toml</code>, or <code>.typos.toml</code> at the suite root)
-controls custom words, exclusions, and locale; scrutin doesn't
+controls custom words, exclusions, and locale; <em>Scrutin</em> doesn't
 interpret it. See the
 <a href="https://github.com/crate-ci/typos/blob/master/docs/reference.md">typos config reference</a>
 for the full schema.</p>
-<p>To override scrutin's default suite targets in <code>.scrutin/config.toml</code>:</p>
+<p>To override <em>Scrutin</em>'s default suite targets in <code>.scrutin/config.toml</code>:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">[[suite]]</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">tool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;typos&quot;</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># Default `run` covers common source + prose extensions (md, R, py, rs,</span>

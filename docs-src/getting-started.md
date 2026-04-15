@@ -1,9 +1,9 @@
 # Getting Started
 
 !!! warning "Alpha software"
-    scrutin is alpha software under active development. Expect bugs, breaking changes, and rough edges. Please report issues at [github.com/vincentarelbundock/scrutin](https://github.com/vincentarelbundock/scrutin).
+    *Scrutin* is alpha software under active development. Expect bugs, breaking changes, and rough edges. Please report issues at [github.com/vincentarelbundock/scrutin](https://github.com/vincentarelbundock/scrutin).
 
-Point scrutin at your project and it figures out the rest. It detects which test tools are present, discovers test files, and runs them in parallel.
+Point *Scrutin* at your project and it figures out the rest. It detects which test tools are present, discovers test files, and runs them in parallel.
 
 ```bash
 scrutin                          # auto-detect, launch TUI (watch on by default)
@@ -12,7 +12,7 @@ scrutin -r web                   # browser dashboard
 scrutin --set watch.enabled=false  # TUI, one-shot
 ```
 
-If your project uses both R and Python, scrutin runs every active tool in a single invocation. Within each tool, files run in parallel; across tools, they run one after another so the interpreter only has to warm up once per tool. See [Parallelism](parallelism.md) for the tradeoffs and the opt-in fork mode that removes the warm-up cost.
+If your project uses both R and Python, *Scrutin* runs every active tool in a single invocation. Within each tool, files run in parallel; across tools, they run one after another so the interpreter only has to warm up once per tool. See [Parallelism](parallelism.md) for the tradeoffs and the opt-in fork mode that removes the warm-up cost.
 
 ## Installation
 
@@ -32,7 +32,7 @@ powershell -ExecutionPolicy Bypass -c "irm https://github.com/vincentarelbundock
 
 ## External tool dependencies
 
-scrutin orchestrates third-party tools but does not ship them. Follow each tool's own install instructions on its project page:
+*Scrutin* orchestrates third-party tools but does not ship them. Follow each tool's own install instructions on its project page:
 
 | Tool | Kind | Homepage |
 | ---- | ---- | -------- |
@@ -47,9 +47,9 @@ scrutin orchestrates third-party tools but does not ship them. Follow each tool'
 | skyspell | Rust binary | <https://codeberg.org/your-tools/skyspell> |
 | typos | Rust binary | <https://github.com/crate-ci/typos> |
 
-Test and data-validation tools (testthat, tinytest, pointblank, validate, pytest, Great Expectations) run inside an R or Python interpreter, so they must be installed as importable packages in the language environment scrutin uses for that suite (the active R library, or the suite's resolved Python virtualenv). Linters and spell checkers (jarl, ruff, skyspell, typos) are standalone binaries: just put them on `PATH`.
+Test and data-validation tools (testthat, tinytest, pointblank, validate, pytest, Great Expectations) run inside an R or Python interpreter, so they must be installed as importable packages in the language environment *Scrutin* uses for that suite (the active R library, or the suite's resolved Python virtualenv). Linters and spell checkers (jarl, ruff, skyspell, typos) are standalone binaries: just put them on `PATH`.
 
-scrutin checks for the required binaries at startup and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Turn that preflight off with `[preflight] command_tools = false` if you have a reason to bypass it.
+*Scrutin* checks for the required binaries at startup and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Turn that preflight off with `[preflight] command_tools = false` if you have a reason to bypass it.
 
 ## Supported tools
 

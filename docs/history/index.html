@@ -1524,15 +1524,15 @@
 
 
 <h1 id="history">History<a class="headerlink" href="#history" title="Permanent link">&para;</a></h1>
-<p>Every scrutin invocation records its outcome to an embedded SQLite database at <code>.scrutin/state.db</code> (created and managed by scrutin, gitignored by default). The same file also holds the source-to-test dependency map and the file-hash fingerprints that drive watch mode, so a single delete gives you a clean slate.</p>
-<p>No external binary is required: scrutin links SQLite in via <code>rusqlite</code> (with the <code>bundled</code> feature), so the DB always works regardless of what's installed on the host.</p>
+<p>Every <em>Scrutin</em> invocation records its outcome to an embedded SQLite database at <code>.scrutin/state.db</code> (created and managed by <em>Scrutin</em>, gitignored by default). The same file also holds the source-to-test dependency map and the file-hash fingerprints that drive watch mode, so a single delete gives you a clean slate.</p>
+<p>No external binary is required: <em>Scrutin</em> links SQLite in via <code>rusqlite</code> (with the <code>bundled</code> feature), so the DB always works regardless of what's installed on the host.</p>
 <h2 id="reruns-and-flaky-tests">Reruns and flaky tests<a class="headerlink" href="#reruns-and-flaky-tests" title="Permanent link">&para;</a></h2>
 <p>Set <code>run.reruns</code> to re-execute failing files:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>scrutin<span class="w"> </span>--set<span class="w"> </span>run.reruns<span class="o">=</span><span class="m">2</span>
 </span></code></pre></div>
 <p>A file that fails and then passes on rerun is marked <strong>flaky</strong>. Flaky results are persisted in the <code>results</code> table (via the <code>retries</code> column, plus the final <code>outcome</code>), surfaced in the plain-mode summary, tagged <code>scrutin.flaky="true"</code> in JUnit XML, and queryable via <code>scrutin stats</code> (whose flaky-test query is embedded below under <a href="#typical-queries">Typical queries</a>).</p>
 <h2 id="run-metadata">Run metadata<a class="headerlink" href="#run-metadata" title="Permanent link">&para;</a></h2>
-<p>scrutin records provenance for every run: version, OS, hostname, git SHA, branch, dirty state, CI provider, and CI build identifiers. These values populate the <code>runs</code> table (see <a href="#schema">Schema</a>) and also land in the JUnit <code>&lt;properties&gt;</code> block.</p>
+<p><em>Scrutin</em> records provenance for every run: version, OS, hostname, git SHA, branch, dirty state, CI provider, and CI build identifiers. These values populate the <code>runs</code> table (see <a href="#schema">Schema</a>) and also land in the JUnit <code>&lt;properties&gt;</code> block.</p>
 <p>Add custom labels with <code>--set extras.key=value</code> on the command line, or an <code>[extras]</code> section in <code>.scrutin/config.toml</code>. Disable provenance capture entirely with <code>[metadata] enabled = false</code>.</p>
 <h2 id="schema">Schema<a class="headerlink" href="#schema" title="Permanent link">&para;</a></h2>
 <p>The DDL below is the authoritative schema, loaded verbatim at startup via <code>CREATE TABLE IF NOT EXISTS</code>. The same file lives at <code>crates/scrutin-core/src/storage/sql/schema.sql</code> and is embedded into the binary with <code>include_str!</code>.</p>
@@ -1613,7 +1613,7 @@
 <!-- END schema.sql -->
 
 <h3 id="runs"><code>runs</code><a class="headerlink" href="#runs" title="Permanent link">&para;</a></h3>
-<p>One row per scrutin invocation. Holds all run-level provenance so <code>results</code> rows don't repeat it.</p>
+<p>One row per <em>Scrutin</em> invocation. Holds all run-level provenance so <code>results</code> rows don't repeat it.</p>
 <table>
 <thead>
 <tr>
@@ -1646,7 +1646,7 @@
 <tr>
 <td><code>scrutin_version</code></td>
 <td><code>CARGO_PKG_VERSION</code></td>
-<td>version of the scrutin binary that wrote this row</td>
+<td>version of the <em>Scrutin</em> binary that wrote this row</td>
 </tr>
 <tr>
 <td><code>git_commit</code></td>
@@ -1791,7 +1791,7 @@
 </tbody>
 </table>
 <h3 id="results"><code>results</code><a class="headerlink" href="#results" title="Permanent link">&para;</a></h3>
-<p>One row per <code>(run, file, subject)</code>. The fact table. Tool metadata (<code>tool</code>, <code>tool_version</code>, <code>app_name</code>, <code>app_version</code>) is denormalized here rather than stored in a separate <code>tools</code> table; at scrutin's scale the repetition is negligible and queries stay flat.</p>
+<p>One row per <code>(run, file, subject)</code>. The fact table. Tool metadata (<code>tool</code>, <code>tool_version</code>, <code>app_name</code>, <code>app_version</code>) is denormalized here rather than stored in a separate <code>tools</code> table; at <em>Scrutin</em>'s scale the repetition is negligible and queries stay flat.</p>
 <table>
 <thead>
 <tr>
@@ -1884,7 +1884,7 @@
 </tbody>
 </table>
 <h3 id="extras"><code>extras</code><a class="headerlink" href="#extras" title="Permanent link">&para;</a></h3>
-<p>User-supplied key/value labels, populated from <code>[extras]</code> in <code>.scrutin/config.toml</code> and <code>--set extras.KEY=VALUE</code> on the CLI. The only table where key names are not known at schema time. Everything scrutin captures itself has a dedicated column on <code>runs</code> or <code>results</code>. Typical contents:</p>
+<p>User-supplied key/value labels, populated from <code>[extras]</code> in <code>.scrutin/config.toml</code> and <code>--set extras.KEY=VALUE</code> on the CLI. The only table where key names are not known at schema time. Everything <em>Scrutin</em> captures itself has a dedicated column on <code>runs</code> or <code>results</code>. Typical contents:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[extras]</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">environment</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;staging&quot;</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">experiment</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;new_parser&quot;</span>
@@ -1893,7 +1893,7 @@
 </span></code></pre></div>
 <h3 id="dependencies"><code>dependencies</code><a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h3>
 <p>Source-to-test dependency edges, one row per edge. Each row says "if source file X changes, test file Y is affected." Populated at run start by the dep-map builder and consulted by watch mode to pick affected test files on each save. Has no <code>run_id</code>: the dep map is a project-wide cache, not per-run state.</p>
-<p>Writes are full-replace per <code>test_file</code>: when a test file's imports change, scrutin deletes all existing rows where <code>test_file = ?</code> and inserts fresh ones in one transaction.</p>
+<p>Writes are full-replace per <code>test_file</code>: when a test file's imports change, <em>Scrutin</em> deletes all existing rows where <code>test_file = ?</code> and inserts fresh ones in one transaction.</p>
 <h3 id="hashes"><code>hashes</code><a class="headerlink" href="#hashes" title="Permanent link">&para;</a></h3>
 <p>Per-file content fingerprints (<code>xxhash_rust::xxh64</code>) used to decide whether the dep map is stale. The <code>u64</code> hash is stored via an <code>as i64</code> cast (bit pattern preserved, equality checks work correctly). No arithmetic is ever performed on these values.</p>
 <h2 id="typical-queries">Typical queries<a class="headerlink" href="#typical-queries" title="Permanent link">&para;</a></h2>

@@ -23,7 +23,7 @@
     
     
       
-        <title>scrutin Internals - scrutin</title>
+        <title>Scrutin Internals - scrutin</title>
       
     
     
@@ -127,7 +127,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              scrutin Internals
+              Scrutin Internals
             
           </span>
         </div>
@@ -1538,7 +1538,7 @@
   
 
 
-<h1 id="scrutin-internals">scrutin Internals<a class="headerlink" href="#scrutin-internals" title="Permanent link">&para;</a></h1>
+<h1 id="scrutin-internals"><em>Scrutin</em> Internals<a class="headerlink" href="#scrutin-internals" title="Permanent link">&para;</a></h1>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────────┐
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                    scrutin (Rust binary)                         │
@@ -1824,7 +1824,7 @@ dependencies.</p>
 <p>One store: <code>.scrutin/state.db</code>, an embedded SQLite database via <code>rusqlite</code> with the <code>bundled</code> feature (<code>storage/sqlite.rs</code>). No external binary is required, so writes always succeed. Any legacy JSON artifacts (<code>depmap.json</code>, <code>hashes.json</code>) left over from earlier builds are cleaned up on open.</p>
 <p>Tables in the DB:</p>
 <ul>
-<li><strong><code>runs</code></strong>: one row per invocation with provenance (git SHA, branch, dirty state, hostname, CI provider, CI build identifiers, OS, scrutin version).</li>
+<li><strong><code>runs</code></strong>: one row per invocation with provenance (git SHA, branch, dirty state, hostname, CI provider, CI build identifiers, OS, <em>Scrutin</em> version).</li>
 <li><strong><code>results</code></strong>: one row per <code>(run, file, subject)</code> with outcome, duration, retry count, tool, tool version, and data-validation expectation counts.</li>
 <li><strong><code>extras</code></strong>: key/value labels from <code>[extras]</code> / <code>--set extras.KEY=VALUE</code>.</li>
 <li><strong><code>dependencies</code></strong>: source-to-test edges for watch mode (no <code>run_id</code>: project-wide cache, not per-run state).</li>

@@ -1,10 +1,10 @@
 # skyspell
 
-A dictionary-based spell checker scrutin drives as a plugin. Like the linters (jarl, ruff) it maps diagnostics to `warn` events, so misspellings appear alongside test results in the TUI and web dashboard. skyspell is opt-in: enable it with an explicit `[[suite]] tool = "skyspell"` entry in `.scrutin/config.toml`, or pass files on the command line with `-t skyspell` in [file mode](../project-discovery.md#file-mode).
+A dictionary-based spell checker *Scrutin* drives as a plugin. Like the linters (jarl, ruff) it maps diagnostics to `warn` events, so misspellings appear alongside test results in the TUI and web dashboard. skyspell is opt-in: enable it with an explicit `[[suite]] tool = "skyspell"` entry in `.scrutin/config.toml`, or pass files on the command line with `-t skyspell` in [file mode](../project-discovery.md#file-mode).
 
 ## Installing skyspell
 
-skyspell is not shipped with scrutin. Follow the upstream install instructions at [codeberg.org/your-tools/skyspell](https://codeberg.org/your-tools/skyspell).
+skyspell is not shipped with *Scrutin*. Follow the upstream install instructions at [codeberg.org/your-tools/skyspell](https://codeberg.org/your-tools/skyspell).
 
 ## Directory structure
 
@@ -52,7 +52,7 @@ In Detail view (Enter on a file with misspellings), each misspelling shows its s
 
 | Key | Action |
 |-----|--------|
-| `1`..`9` | Accept the Nth ranked suggestion: scrutin rewrites the file on disk and triggers a rerun so the warning disappears. |
+| `1`..`9` | Accept the Nth ranked suggestion: *Scrutin* rewrites the file on disk and triggers a rerun so the warning disappears. |
 | `0` | Whitelist the word: runs `skyspell add` with whatever `[skyspell].add_args` specifies. The default `--project` writes to a committable `skyspell-ignore.toml` at the project root, so your teammates inherit the whitelist. |
 | `j`/`k` / `↑↓` | Move between misspellings. |
 

@@ -1534,7 +1534,7 @@
 
 <h1 id="reporting-generalization-spec">Reporting generalization spec<a class="headerlink" href="#reporting-generalization-spec" title="Permanent link">&para;</a></h1>
 <h2 id="goal">Goal<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
-<p>Replace scrutin's fixed pass/fail/skip/warn/error vocabulary with a single
+<p>Replace <em>Scrutin</em>'s fixed pass/fail/skip/warn/error vocabulary with a single
 outcome taxonomy that fits both unit-testing frameworks (testthat,
 tinytest, pytest) and data-validation frameworks (pointblank, Great
 Expectations, pandera, pydantic). The taxonomy must carry quantitative
@@ -1588,7 +1588,7 @@ writer are rewritten in one pass.</p>
 </table>
 <p><code>xfail</code> is the load-bearing addition. Every tool has <em>some</em>
 form of "this failure was predicted, ignore it for CI gating," and today
-scrutin has nowhere to put it.</p>
+<em>Scrutin</em> has nowhere to put it.</p>
 <h3 id="severity-is-derived-not-transmitted">Severity is derived, not transmitted<a class="headerlink" href="#severity-is-derived-not-transmitted" title="Permanent link">&para;</a></h3>
 <p>Severity is a property of the outcome, not an independent field.
 Each consumer (TUI colors, JUnit type strings, DB queries) derives

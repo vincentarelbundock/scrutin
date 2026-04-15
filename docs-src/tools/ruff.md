@@ -26,7 +26,7 @@ tool = "ruff"
 
 **pyproject.toml** (optional)
 
-`pyproject.toml`'s `[tool.ruff]` section, or a standalone `ruff.toml` / `.ruff.toml` at the suite root, is read by ruff itself (not by scrutin) to tune rules:
+`pyproject.toml`'s `[tool.ruff]` section, or a standalone `ruff.toml` / `.ruff.toml` at the suite root, is read by ruff itself (not by *Scrutin*) to tune rules:
 
 ```toml
 [tool.ruff]
@@ -69,7 +69,7 @@ All four invoke `ruff check --fix` once with every matching file (after include 
 
 ## Configuration
 
-The minimal suite entry is just `tool = "ruff"`. ruff's own configuration (`ruff.toml`, `.ruff.toml`, or `[tool.ruff]` in `pyproject.toml`) controls which rules are enabled, excluded paths, and other linter settings; scrutin doesn't interpret it.
+The minimal suite entry is just `tool = "ruff"`. ruff's own configuration (`ruff.toml`, `.ruff.toml`, or `[tool.ruff]` in `pyproject.toml`) controls which rules are enabled, excluded paths, and other linter settings; *Scrutin* doesn't interpret it.
 
 To override the default suite in `.scrutin/config.toml`:
 

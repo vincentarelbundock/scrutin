@@ -1450,7 +1450,7 @@
 
 
 <h1 id="pytest">pytest<a class="headerlink" href="#pytest" title="Permanent link">&para;</a></h1>
-<p>The standard testing framework for Python. Scrutin auto-detects pytest when a <code>pyproject.toml</code> (or <code>setup.py</code>/<code>setup.cfg</code>) is present alongside a <code>tests/</code> or <code>test/</code> directory, or <code>test_*.py</code> files at the project root.</p>
+<p>The standard testing framework for Python. <em>Scrutin</em> auto-detects pytest when a <code>pyproject.toml</code> (or <code>setup.py</code>/<code>setup.cfg</code>) is present alongside a <code>tests/</code> or <code>test/</code> directory, or <code>test_*.py</code> files at the project root.</p>
 <h2 id="directory-structure">Directory structure<a class="headerlink" href="#directory-structure" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>myproject/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── pyproject.toml
@@ -1484,7 +1484,7 @@
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># defaults pick up tests/**/test_*.py and watch src/**/*.py + lib/**/*.py</span>
 </span></code></pre></div>
 <h2 id="virtual-environment">Virtual environment<a class="headerlink" href="#virtual-environment" title="Permanent link">&para;</a></h2>
-<p>Scrutin auto-detects your Python virtual environment per suite. Detection order:</p>
+<p><em>Scrutin</em> auto-detects your Python virtual environment per suite. Detection order:</p>
 <ol>
 <li><code>[python].interpreter</code> in <code>.scrutin/config.toml</code></li>
 <li><code>[python].venv</code> in <code>.scrutin/config.toml</code></li>
@@ -1498,7 +1498,7 @@
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">venv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;.venv&quot;</span>
 </span></code></pre></div>
 <h2 id="extra-pytest-flags">Extra pytest flags<a class="headerlink" href="#extra-pytest-flags" title="Permanent link">&para;</a></h2>
-<p>Pass arbitrary flags through to <code>pytest.main()</code> via <code>[pytest] extra_args</code>. Appended verbatim to every invocation, letting you reach for obscure pytest knobs without scrutin growing a CLI option for each one:</p>
+<p>Pass arbitrary flags through to <code>pytest.main()</code> via <code>[pytest] extra_args</code>. Appended verbatim to every invocation, letting you reach for obscure pytest knobs without <em>Scrutin</em> growing a CLI option for each one:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">[pytest]</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">extra_args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;--tb=short&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-vv&quot;</span><span class="p">]</span>
 </span></code></pre></div>

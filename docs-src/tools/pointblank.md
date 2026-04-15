@@ -1,6 +1,6 @@
 # pointblank
 
-A data validation framework for R. Test files are `.R` scripts that produce interrogated `ptblank_agent` objects. The runner emits one event per validation step. Scrutin auto-detects pointblank when a `DESCRIPTION` file and a `tests/pointblank/` directory are both present.
+A data validation framework for R. Test files are `.R` scripts that produce interrogated `ptblank_agent` objects. The runner emits one event per validation step. *Scrutin* auto-detects pointblank when a `DESCRIPTION` file and a `tests/pointblank/` directory are both present.
 
 ## Directory structure
 

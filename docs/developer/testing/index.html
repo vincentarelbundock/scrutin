@@ -1499,7 +1499,7 @@
 
 
 <h1 id="testing-spec">Testing Spec<a class="headerlink" href="#testing-spec" title="Permanent link">&para;</a></h1>
-<p>This document specifies what the scrutin test suite should cover, what
+<p>This document specifies what the <em>Scrutin</em> test suite should cover, what
 behaviors are locked in (i.e., tests exist precisely to prevent their
 regression), and what is deliberately out of scope.</p>
 <p>It is both a design doc and a rollout plan: sections 0 and 1 set policy,
@@ -1517,7 +1517,7 @@ the tests exercise.</p>
   inputs-to-outputs are contracts. The internal types that implement
   them are not. Tests that break on refactor without catching a real
   regression are worse than nothing.</li>
-<li><strong>One honest E2E per tool beats ten mocked ones.</strong> scrutin's
+<li><strong>One honest E2E per tool beats ten mocked ones.</strong> <em>Scrutin</em>'s
   value is correctness across real R/Python subprocesses; mocking the
   subprocess erases the thing being tested. The <code>ci_run_*_fixture</code>
   pattern (see <code>crates/scrutin-bin/tests/</code>) is the right shape: add
@@ -1558,7 +1558,7 @@ the tests exercise.</p>
 </tr>
 <tr>
 <td><strong>E2E fixture</strong></td>
-<td>scrutin binary against <code>demo/</code> or a purpose-built fixture, real <code>Rscript</code>/<code>pytest</code> subprocess</td>
+<td><em>Scrutin</em> binary against <code>demo/</code> or a purpose-built fixture, real <code>Rscript</code>/<code>pytest</code> subprocess</td>
 <td>1 to 10s each</td>
 <td>~30</td>
 </tr>
@@ -1607,7 +1607,7 @@ authoritative for wall time; events are authoritative for counts.</p>
 </ul>
 <h3 id="32-runner-companions-rrunnerr-pythonrunnerpy">3.2 Runner companions (<code>r/*/runner.*.R</code>, <code>python/*/runner.py</code>)<a class="headerlink" href="#32-runner-companions-rrunnerr-pythonrunnerpy" title="Permanent link">&para;</a></h3>
 <p><strong>Lock:</strong> each companion emits exactly the taxonomy expected. This is
-the seam where the R/Python/tool idiom is translated to scrutin's
+the seam where the R/Python/tool idiom is translated to <em>Scrutin</em>'s
 vocabulary; drift here is the single most common source of bugs.</p>
 <p><strong>Per-tool E2E</strong> (one fixture file per outcome bucket, already
 present in <code>demo/</code>):</p>
@@ -1768,7 +1768,7 @@ exit from pre-run aborts the run; post-run always runs (even on cancel
 or failure).</p>
 <p><strong>Tests</strong> (1 already exists; expand):</p>
 <ul>
-<li>Hook env includes expected vars (scrutin version, run id).</li>
+<li>Hook env includes expected vars (<em>Scrutin</em> version, run id).</li>
 <li>Pre-run hook SIGKILL: run aborts with a clear error.</li>
 </ul>
 <h3 id="314-tui-state-machine">3.14 TUI state machine<a class="headerlink" href="#314-tui-state-machine" title="Permanent link">&para;</a></h3>

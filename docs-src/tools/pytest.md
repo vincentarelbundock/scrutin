@@ -1,6 +1,6 @@
 # pytest
 
-The standard testing framework for Python. Scrutin auto-detects pytest when a `pyproject.toml` (or `setup.py`/`setup.cfg`) is present alongside a `tests/` or `test/` directory, or `test_*.py` files at the project root.
+The standard testing framework for Python. *Scrutin* auto-detects pytest when a `pyproject.toml` (or `setup.py`/`setup.cfg`) is present alongside a `tests/` or `test/` directory, or `test_*.py` files at the project root.
 
 ## Directory structure
 
@@ -53,7 +53,7 @@ tool = "pytest"
 
 ## Virtual environment
 
-Scrutin auto-detects your Python virtual environment per suite. Detection order:
+*Scrutin* auto-detects your Python virtual environment per suite. Detection order:
 
 1. `[python].interpreter` in `.scrutin/config.toml`
 2. `[python].venv` in `.scrutin/config.toml`
@@ -71,7 +71,7 @@ venv = ".venv"
 
 ## Extra pytest flags
 
-Pass arbitrary flags through to `pytest.main()` via `[pytest] extra_args`. Appended verbatim to every invocation, letting you reach for obscure pytest knobs without scrutin growing a CLI option for each one:
+Pass arbitrary flags through to `pytest.main()` via `[pytest] extra_args`. Appended verbatim to every invocation, letting you reach for obscure pytest knobs without *Scrutin* growing a CLI option for each one:
 
 ```toml
 [pytest]

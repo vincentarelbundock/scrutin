@@ -1,6 +1,6 @@
 # Projects and Files
 
-scrutin runs in one of two modes:
+*Scrutin* runs in one of two modes:
 
 1. **File mode**: point a single tool at one or more files. No project, no config, no auto-detection.
 2. **Project mode** (the default): run every applicable tool against a full package, loading your code into R or Python so tests can exercise it.
@@ -37,13 +37,13 @@ File mode differs from project mode:
 
 ## Project mode
 
-scrutin runs from the project directory and activates every applicable tool against the whole package. Works for **testthat**, **tinytest**, **pointblank**, **validate** (R), and **pytest**, **Great Expectations** (Python) with zero configuration; **jarl**, **ruff**, **skyspell**, **typos** join in when you opt them in explicitly (see [Example projects](#example-projects) below).
+*Scrutin* runs from the project directory and activates every applicable tool against the whole package. Works for **testthat**, **tinytest**, **pointblank**, **validate** (R), and **pytest**, **Great Expectations** (Python) with zero configuration; **jarl**, **ruff**, **skyspell**, **typos** join in when you opt them in explicitly (see [Example projects](#example-projects) below).
 
 ### Concepts
 
-**Project root**: the directory you point scrutin at on the command line. This is where `.scrutin/config.toml` lives (if any), and where the run's shared state is anchored: `.scrutin/state.db`, runner scripts, hooks, and ignore patterns.
+**Project root**: the directory you point *Scrutin* at on the command line. This is where `.scrutin/config.toml` lives (if any), and where the run's shared state is anchored: `.scrutin/state.db`, runner scripts, hooks, and ignore patterns.
 
-**Tool**: a test runner or quality checker scrutin knows how to drive (testthat, pytest, jarl, ruff, skyspell, ...). Support for every supported tool is built into the scrutin binary; there are no separate scrutin plugins to install. You still install the underlying tools (R, Python, pytest, ruff, ...) through their usual channels.
+**Tool**: a test runner or quality checker *Scrutin* knows how to drive (testthat, pytest, jarl, ruff, skyspell, ...). Support for every supported tool is built into the *Scrutin* binary; there are no separate *Scrutin* plugins to install. You still install the underlying tools (R, Python, pytest, ruff, ...) through their usual channels.
 
 **Suite**: one configured instance of a tool. A suite owns a working directory and a set of file patterns. A project can run many suites in one invocation, even several using the same tool on different subtrees; suites run one after another so each gets the full worker pool, and files within a suite run in parallel.
 
@@ -56,11 +56,11 @@ scrutin                   # project root is the current directory
 scrutin path/to/project   # project root is the given path
 ```
 
-scrutin does **not** walk upward to find a parent project. Running it from inside `tests/testthat/` looks for tools in `tests/testthat/`. Run from the project root or pass the path explicitly.
+*Scrutin* does **not** walk upward to find a parent project. Running it from inside `tests/testthat/` looks for tools in `tests/testthat/`. Run from the project root or pass the path explicitly.
 
 ### Auto-detection
 
-With no `[[suite]]` entries in your config, scrutin scans the project root for marker files and activates every matching test or data-validation tool. A project with both `tests/testthat/` and `inst/tinytest/` gets both suites; adding `pyproject.toml` with a `tests/` directory adds pytest alongside them. Every auto-detected suite gets `root` equal to the project root.
+With no `[[suite]]` entries in your config, *Scrutin* scans the project root for marker files and activates every matching test or data-validation tool. A project with both `tests/testthat/` and `inst/tinytest/` gets both suites; adding `pyproject.toml` with a `tests/` directory adds pytest alongside them. Every auto-detected suite gets `root` equal to the project root.
 
 | Tool | Language | Detected when |
 |------|----------|---------------|
@@ -71,9 +71,9 @@ With no `[[suite]]` entries in your config, scrutin scans the project root for m
 | pytest | Python | `pyproject.toml` (or `setup.py` / `setup.cfg`) + `tests/` or `test/`, or `test_*.py` at the root |
 | Great Expectations | Python | `tests/great_expectations/` |
 
-Linters and spell checkers (**jarl**, **ruff**, **skyspell**, **typos**) never auto-detect, even when their config files are present. They're orthogonal to testing: your editor probably already runs ruff on save, and spell checking is rarely something you want gating a CI test run. Enable them with an explicit `[[suite]]` entry when you want scrutin to orchestrate them alongside your tests.
+Linters and spell checkers (**jarl**, **ruff**, **skyspell**, **typos**) never auto-detect, even when their config files are present. They're orthogonal to testing: your editor probably already runs ruff on save, and spell checking is rarely something you want gating a CI test run. Enable them with an explicit `[[suite]]` entry when you want *Scrutin* to orchestrate them alongside your tests.
 
-Auto-detection only scans the project root: subdirectory names are arbitrary, so scrutin does not guess. To narrow to a single tool, use `--tool` (short form `-t`):
+Auto-detection only scans the project root: subdirectory names are arbitrary, so *Scrutin* does not guess. To narrow to a single tool, use `--tool` (short form `-t`):
 
 ```bash
 scrutin --tool pytest
@@ -226,7 +226,7 @@ runner = ".scrutin/testthat/installed.R"
 
 ### Python virtual environments
 
-For Python suites, scrutin resolves the interpreter anchored at the **suite root**, not the project root. Resolution order:
+For Python suites, *Scrutin* resolves the interpreter anchored at the **suite root**, not the project root. Resolution order:
 
 1. `[python].interpreter` in `.scrutin/config.toml` (project-wide override)
 2. `[python].venv` (path to a virtualenv, relative to project root or absolute)
@@ -245,7 +245,7 @@ interpreter = "python3.12"  # skip venv detection entirely
 
 ### Config file lookup
 
-scrutin looks for `.scrutin/config.toml` in the project root. If none is found, it falls back to a user-level config in the platform-standard config directory:
+*Scrutin* looks for `.scrutin/config.toml` in the project root. If none is found, it falls back to a user-level config in the platform-standard config directory:
 
 | Platform | Path |
 |----------|------|
