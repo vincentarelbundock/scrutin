@@ -11,17 +11,22 @@ nav = [
   {"Home" = "index.md"},
   {"Getting Started" = "getting-started.md"},
   {"Project Discovery" = "project-discovery.md"},
-  {"R" = [
-    {"testthat" = "tools/testthat.md"},
-    {"tinytest" = "tools/tinytest.md"},
-    {"pointblank" = "tools/pointblank.md"},
-    {"validate" = "tools/validate.md"},
-    {"jarl" = "tools/jarl.md"},
+  {"Unit tests" = [
+    {"R: testthat" = "tools/testthat.md"},
+    {"R: tinytest" = "tools/tinytest.md"},
+    {"Python: pytest" = "tools/pytest.md"},
   ]},
-  {"Python" = [
-    {"pytest" = "tools/pytest.md"},
-    {"ruff" = "tools/ruff.md"},
-    {"Great Expectations" = "tools/great-expectations.md"},
+  {"Data validation" = [
+    {"R: pointblank" = "tools/pointblank.md"},
+    {"R: validate" = "tools/validate.md"},
+    {"Python: Great Expectations" = "tools/great-expectations.md"},
+  ]},
+  {"Linters" = [
+    {"R: jarl" = "tools/jarl.md"},
+    {"Python: ruff" = "tools/ruff.md"},
+  ]},
+  {"Spell check" = [
+    {"skyspell" = "tools/skyspell.md"},
   ]},
   {"Frontends" = "frontends.md"},
   {"Editors" = "editors.md"},
