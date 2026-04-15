@@ -39,12 +39,14 @@ jarl runs concurrently alongside any test tools in the same project.
 
 ## Plugin actions
 
-Press `a` in the TUI (or the action button in the web) to open the action palette. jarl defines two entries, both of which run across the whole suite:
+Enter the Detail view for a jarl warning to see a numbered chip row of fix actions. Press the digit to invoke:
 
-| Action | Description |
-|--------|-------------|
-| Jarl: fix all | Apply safe fixes to every file in the suite |
-| Jarl: fix all (unsafe) | Apply safe + unsafe fixes to every file in the suite |
+| Key | Action |
+|-----|--------|
+| `1` | Jarl: fix (this file) |
+| `2` | Jarl: fix (this file, unsafe) |
+| `3` | Jarl: fix all (suite) |
+| `4` | Jarl: fix all (suite, unsafe) |
 
 Both invoke `jarl` once with every matching file (after include / exclude filters) as trailing arguments. After a fix, the affected files are re-linted automatically.
 

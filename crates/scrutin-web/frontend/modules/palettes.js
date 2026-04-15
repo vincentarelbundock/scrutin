@@ -6,7 +6,7 @@ import { state } from "./state.js";
 import { $, escapeHtml } from "./util.js";
 import { SORT_OPTIONS, updateTestFiltered } from "./sort.js";
 import {
-  runAll, runVisible, rerunFailing, runMultiSelected, runPluginAction,
+  runAll, runVisible, rerunFailing, runMultiSelected,
 } from "./api.js";
 import {
   renderFilterList, renderLeftPane, renderRightPane,
@@ -111,24 +111,6 @@ export function toggleSortPalette() {
 }
 
 export const closeSortPalette = () => closePalette("sort-palette");
-
-export function toggleActionPalette() {
-  const f = state.selected ? state.files.get(state.selected) : null;
-  const suite = f ? (state.pkg?.suites ?? []).find((s) => s.name === f.suite) : null;
-  const actions = suite?.actions ?? [];
-  if (actions.length === 0) return;
-  togglePalette("action-palette", "Actions",
-    actions.map((a) => ({
-      id: a.name,
-      label: a.label,
-      desc: a.scope === "all" ? "all files" : "this file",
-    })),
-    "click to run \u00b7 a or Esc to close",
-    (picked) => { runPluginAction(picked); },
-  );
-}
-
-export const closeActionPalette = () => closePalette("action-palette");
 
 export function toggleRunPalette() {
   if (state.currentRun?.in_progress) return;

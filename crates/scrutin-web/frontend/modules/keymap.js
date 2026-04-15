@@ -7,11 +7,11 @@ import { $, toast } from "./util.js";
 import { currentLevel } from "./levels.js";
 import {
   cancelRun, rerunSelected, openInEditor, openSourceInEditor,
-  toggleWatch,
+  toggleWatch, applyCorrection, runPluginAction,
 } from "./api.js";
 import {
-  toggleSortPalette, toggleActionPalette, toggleRunPalette,
-  closeSortPalette, closeActionPalette, closeRunPalette,
+  toggleSortPalette, toggleRunPalette,
+  closeSortPalette, closeRunPalette,
 } from "./palettes.js";
 import { toggleHelp } from "./help.js";
 import {
@@ -40,9 +40,8 @@ export function resolveAction(keyStr, level) {
   const help = $("help");
   const sortPal = $("sort-palette");
   const runPal = $("run-palette");
-  const actionPal = $("action-palette");
-  if ((help && !help.classList.contains("hidden")) || sortPal || actionPal || runPal) {
-    if (["Esc", "q", "a", "?", "r", "s"].includes(keyStr)) return "pop";
+  if ((help && !help.classList.contains("hidden")) || sortPal || runPal) {
+    if (["Esc", "q", "?", "r", "s"].includes(keyStr)) return "pop";
     return null;
   }
   for (const b of state.keymap) {
@@ -66,7 +65,6 @@ export const ACTION_HANDLERS = {
     if (help && !help.classList.contains("hidden")) { toggleHelp(false); return; }
     if ($("run-palette"))    { closeRunPalette();    return; }
     if ($("sort-palette"))   { closeSortPalette();   return; }
-    if ($("action-palette")) { closeActionPalette(); return; }
     if (state.multiSelected.size > 0) { clearMultiSelect(); return; }
     currentLevel().onPop();
   },
@@ -141,14 +139,39 @@ export function wireKeyboard() {
     if (IS_EDITOR && BLOCKED_EDITOR_KEYS.has(keyStr)) return;
 
     const level = state.level;
+
+    // Detail level + 0-9: accept the Nth spell-check suggestion (1-9)
+    // or whitelist the word (0) when the cursor event has corrections.
+    // Falls through to the Nth plugin action (ruff/jarl fix variants)
+    // when no corrections are attached. Mirrors the TUI binding.
+    if (level === "detail" && /^[0-9]$/.test(e.key)) {
+      const tests = state.testFiltered ?? [];
+      const m = tests[state.testCursor];
+      const correction = m?.corrections?.[0];
+      const n = Number(e.key);
+      if (correction) {
+        e.preventDefault();
+        if (n === 0) {
+          applyCorrection(state.selected, correction, null);
+        } else {
+          const replacement = correction.suggestions?.[n - 1];
+          if (replacement != null) applyCorrection(state.selected, correction, replacement);
+        }
+        return;
+      }
+      if (n > 0 && state.selected) {
+        const f = state.files.get(state.selected);
+        const suite = f ? (state.pkg?.suites ?? []).find((s) => s.name === f.suite) : null;
+        const action = suite?.actions?.[n - 1];
+        if (action) {
+          e.preventDefault();
+          runPluginAction(action.name, state.selected);
+          return;
+        }
+      }
+    }
+
     const action = resolveAction(keyStr, level);
     if (action) { dispatchAction(action, e); return; }
-
-    // Plugin action palette: `a` when the selected file's suite has actions.
-    if (e.key === "a") {
-      const f = state.selected ? state.files.get(state.selected) : null;
-      const suite = f ? (state.pkg?.suites ?? []).find((s) => s.name === f.suite) : null;
-      if ((suite?.actions ?? []).length > 0) toggleActionPalette();
-    }
   });
 }

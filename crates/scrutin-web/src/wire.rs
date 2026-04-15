@@ -149,6 +149,9 @@ pub struct WireMessage {
     /// Quantitative metrics from data-validation plugins. Optional; `None`
     /// for unit-test events.
     pub metrics: Option<WireMetrics>,
+    /// Spell-check corrections (skyspell). Empty for every other plugin.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub corrections: Vec<WireCorrection>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -156,6 +159,15 @@ pub struct WireMetrics {
     pub total: Option<u64>,
     pub failed: Option<u64>,
     pub fraction: Option<f64>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct WireCorrection {
+    pub word: String,
+    pub line: u32,
+    pub col_start: u32,
+    pub col_end: u32,
+    pub suggestions: Vec<String>,
 }
 
 impl From<&CoreEvent> for WireMessage {
@@ -174,6 +186,17 @@ impl From<&CoreEvent> for WireMessage {
             failed: m.failed,
             fraction: m.fraction,
         });
+        let corrections = e
+            .corrections
+            .iter()
+            .map(|c| WireCorrection {
+                word: c.word.clone(),
+                line: c.line,
+                col_start: c.col_start,
+                col_end: c.col_end,
+                suggestions: c.suggestions.clone(),
+            })
+            .collect();
         Self {
             outcome: e.outcome.into(),
             test_name,
@@ -183,6 +206,7 @@ impl From<&CoreEvent> for WireMessage {
             message: e.message.clone(),
             duration_ms: e.duration_ms,
             metrics,
+            corrections,
         }
     }
 }

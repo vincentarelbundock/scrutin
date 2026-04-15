@@ -17,7 +17,8 @@ import {
   enterDetail, enterFailure,
   rangeSelect, toggleMultiSelect, clearMultiSelect,
 } from "./navigation.js";
-import { toggleActionPalette, toggleTestSortPalette } from "./palettes.js";
+import { toggleTestSortPalette } from "./palettes.js";
+import { applyCorrection, runPluginAction } from "./api.js";
 
 // ── Top-level dispatch ────────────────────────────────────────────────
 
@@ -351,14 +352,6 @@ export function renderRightPane() {
   });
 }
 
-function selectedSuiteActions() {
-  if (!state.selected) return [];
-  const f = state.files.get(state.selected);
-  if (!f) return [];
-  const suite = (state.pkg?.suites ?? []).find((s) => s.name === f.suite);
-  return suite?.actions ?? [];
-}
-
 function renderTestListRight() {
   const body = $("right-body");
   if (!body) return;
@@ -370,23 +363,16 @@ function renderTestListRight() {
   const f = state.files.get(state.selected);
   if (!f) { body.innerHTML = ""; return; }
 
-  const actions = selectedSuiteActions();
-  const actionBtn = actions.length > 0
-    ? `<button class="edit-btn action-btn" id="open-actions-btn" title="Plugin actions (f)">actions</button>`
-    : "";
-
   const header = `<div class="detail-file-header">
     <h2>${escapeHtml(f.name)}</h2>
     <span class="status-pill ${displayStatus(f)}">${displayStatus(f)}</span>
     <button class="edit-btn" data-edit="test" title="Edit test file (e)">edit test</button>
     <button class="edit-btn" data-edit="source" title="Edit source file (E)">edit source</button>
-    ${actionBtn}
   </div>`;
 
   if (!f.messages || f.messages.length === 0) {
     body.innerHTML = header + '<div class="detail-empty">no test messages yet \u2014 run this file to see results.</div>';
     wireEditButtons(body, f.id);
-    wireActionsButton(body);
     return;
   }
 
@@ -413,7 +399,6 @@ function renderTestListRight() {
   body.innerHTML = header + summary + `<ul class="test-list">${rows}</ul>`;
 
   wireEditButtons(body, f.id);
-  wireActionsButton(body);
 
   const sortLink = body.querySelector(".test-sort-link");
   if (sortLink) sortLink.addEventListener("click", (e) => { e.preventDefault(); toggleTestSortPalette(); });
@@ -424,11 +409,6 @@ function renderTestListRight() {
       enterDetail();
     });
   });
-}
-
-function wireActionsButton(body) {
-  const actBtn = body.querySelector("#open-actions-btn");
-  if (actBtn) actBtn.addEventListener("click", () => toggleActionPalette());
 }
 
 function renderTestDetail() {
@@ -464,6 +444,84 @@ function renderTestDetail() {
     </div>`;
   }
 
+  // Spell-check warnings carry `corrections` — render a chip row inline
+  // and skip the Test-source / Source sections (they're not meaningful
+  // for prose findings). Clicking a chip is the mouse equivalent of the
+  // 0-9 keybindings in Detail mode.
+  const correction = m.corrections && m.corrections[0];
+  if (correction) {
+    const chips = (correction.suggestions || [])
+      .slice(0, 9)
+      .map((sug, i) => {
+        const n = i + 1;
+        const best = i === 0 ? " suggestion--best" : "";
+        const star = i === 0 ? " \u2605" : "";
+        return `<button class="suggestion${best}" data-suggestion="${n}">
+          <span class="suggestion-key">[${n}]</span>
+          <span class="suggestion-word">${escapeHtml(sug)}${star}</span>
+        </button>`;
+      })
+      .join("");
+    html += `<div class="detail-section">
+      <div class="detail-section-header">Replace with</div>
+      <div class="suggestion-grid">${chips}</div>
+      <button class="suggestion suggestion--dict" data-suggestion="0">
+        <span class="suggestion-key">[0]</span>
+        <span class="suggestion-word">Add \u201c${escapeHtml(correction.word)}\u201d to dictionary</span>
+      </button>
+    </div>`;
+
+    // Compact context snippet around the misspelling so the user can see
+    // the quoted line in situ (matches the TUI's Context section).
+    html += `<div class="detail-section">
+      <div class="detail-section-header">
+        Context
+        <button class="edit-btn" data-edit="test" title="Edit file (e)">edit</button>
+      </div>
+      <div class="source-snippet" id="detail-test-source">${sourcePlaceholder()}</div>
+    </div>`;
+
+    body.innerHTML = html;
+    wireEditButtons(body, f.id, m.location?.line);
+    $("focus-failure-btn")?.addEventListener("click", () => enterFailure());
+    renderTestSourceInto("detail-test-source", f.id, m.location?.line);
+
+    // Wire chip clicks.
+    body.querySelectorAll("[data-suggestion]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const n = Number(btn.dataset.suggestion);
+        if (n === 0) {
+          applyCorrection(f.id, correction, null);
+        } else {
+          const replacement = correction.suggestions[n - 1];
+          if (replacement != null) applyCorrection(f.id, correction, replacement);
+        }
+      });
+    });
+    return;
+  }
+
+  // Plugin-level actions (ruff/jarl fix variants) as a chip row. Same
+  // shape as spell-check suggestions; keys 1-N invoke them.
+  const suite = f ? (state.pkg?.suites ?? []).find((s) => s.name === f.suite) : null;
+  const actions = suite?.actions ?? [];
+  if (actions.length > 0) {
+    const chips = actions
+      .slice(0, 9)
+      .map((a, i) => {
+        const n = i + 1;
+        return `<button class="suggestion" data-action="${escapeHtml(a.name)}">
+          <span class="suggestion-key">[${n}]</span>
+          <span class="suggestion-word">${escapeHtml(a.label)}</span>
+        </button>`;
+      })
+      .join("");
+    html += `<div class="detail-section">
+      <div class="detail-section-header">Actions</div>
+      <div class="suggestion-grid">${chips}</div>
+    </div>`;
+  }
+
   if (m.metrics) {
     html += `<div class="detail-section">
       <div class="detail-section-header">Metrics</div>
@@ -471,39 +529,63 @@ function renderTestDetail() {
     </div>`;
   }
 
-  html += `<div class="detail-section">
-    <div class="detail-section-header">
-      Test source
-      <button class="edit-btn" data-edit="test" title="Edit test file (e)">edit</button>
-    </div>
-    <div class="source-snippet" id="detail-test-source">${sourcePlaceholder()}</div>
-  </div>`;
+  // Warnings (skyspell, ruff, jarl) get a compact Context snippet around
+  // the flagged line. Failures/errors get the full Test-source + Source
+  // layout that's useful when reading failing code.
+  const isWarn = m.outcome === "warn";
 
-  html += `<div class="detail-section">
-    <div class="detail-section-header">
-      Source
-      <button class="edit-btn" data-edit="source" title="Edit source file (E)">edit</button>
-    </div>
-    <div class="source-snippet" id="detail-source-fn">${sourcePlaceholder()}</div>
-  </div>`;
+  if (isWarn) {
+    html += `<div class="detail-section">
+      <div class="detail-section-header">
+        Context
+        <button class="edit-btn" data-edit="test" title="Edit file (e)">edit</button>
+      </div>
+      <div class="source-snippet" id="detail-test-source">${sourcePlaceholder()}</div>
+    </div>`;
+  } else {
+    html += `<div class="detail-section">
+      <div class="detail-section-header">
+        Test source
+        <button class="edit-btn" data-edit="test" title="Edit test file (e)">edit</button>
+      </div>
+      <div class="source-snippet" id="detail-test-source">${sourcePlaceholder()}</div>
+    </div>`;
+
+    html += `<div class="detail-section">
+      <div class="detail-section-header">
+        Source
+        <button class="edit-btn" data-edit="source" title="Edit source file (E)">edit</button>
+      </div>
+      <div class="source-snippet" id="detail-source-fn">${sourcePlaceholder()}</div>
+    </div>`;
+  }
 
   body.innerHTML = html;
   wireEditButtons(body, f.id, m.location?.line);
 
+  // Wire plugin-action chip clicks.
+  body.querySelectorAll("[data-action]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      runPluginAction(btn.dataset.action, f.id);
+    });
+  });
+
   $("focus-failure-btn")?.addEventListener("click", () => enterFailure());
 
   renderTestSourceInto("detail-test-source", f.id, m.location?.line);
-  renderFnSourceInto("detail-source-fn", f.id, (path) => {
-    // Update the section header with the source file name.
-    const el = $("detail-source-fn");
-    const header = el?.closest(".detail-section")?.querySelector(".detail-section-header");
-    if (header) {
-      const editBtn = header.querySelector(".edit-btn");
-      header.textContent = `Source \u2014 ${path}`;
-      header.style.textTransform = "none";
-      if (editBtn) header.appendChild(editBtn);
-    }
-  });
+  if (!isWarn) {
+    renderFnSourceInto("detail-source-fn", f.id, (path) => {
+      // Update the section header with the source file name.
+      const el = $("detail-source-fn");
+      const header = el?.closest(".detail-section")?.querySelector(".detail-section-header");
+      if (header) {
+        const editBtn = header.querySelector(".edit-btn");
+        header.textContent = `Source \u2014 ${path}`;
+        header.style.textTransform = "none";
+        if (editBtn) header.appendChild(editBtn);
+      }
+    });
+  }
 }
 
 function renderFailureDetail() {

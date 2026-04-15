@@ -131,7 +131,6 @@ pub(super) enum Level {
 pub(super) enum Overlay {
     Help,
     Log,
-    ActionOutput,
     Palette(super::keymap::PaletteKind),
 }
 
@@ -142,7 +141,6 @@ pub(super) enum Mode {
     Failure,      // full failure view with source
     Help,         // keybinding overlay
     Log,          // subprocess stderr + internal messages
-    ActionOutput, // plugin action output overlay
     /// Unified command palette (filter input, run menu, config menu).
     Palette(super::keymap::PaletteKind),
 }
@@ -153,7 +151,7 @@ impl Mode {
     /// because Help is an overlay, not a level.
     pub(super) fn level(&self) -> Level {
         match self {
-            Mode::Normal | Mode::Help | Mode::Log | Mode::ActionOutput | Mode::Palette(_) => Level::Normal,
+            Mode::Normal | Mode::Help | Mode::Log | Mode::Palette(_) => Level::Normal,
             Mode::Detail  => Level::Detail,
             Mode::Failure => Level::Failure,
         }
@@ -163,22 +161,20 @@ impl Mode {
     /// level. None for Normal/Detail/Failure.
     pub(super) fn overlay_kind(&self) -> Option<Overlay> {
         match self {
-            Mode::Help          => Some(Overlay::Help),
-            Mode::Log           => Some(Overlay::Log),
-            Mode::ActionOutput  => Some(Overlay::ActionOutput),
-            Mode::Palette(k)    => Some(Overlay::Palette(*k)),
+            Mode::Help       => Some(Overlay::Help),
+            Mode::Log        => Some(Overlay::Log),
+            Mode::Palette(k) => Some(Overlay::Palette(*k)),
             _ => None,
         }
     }
 }
 
-/// Shared state for all overlay modes (Help, ActionOutput, menus).
-/// One instance lives in `AppState`; reset when pushing a new overlay.
+/// Shared state for overlay modes (Help + Run/Sort palettes). Content
+/// is rendered directly from `AppState` (the help overlay walks the
+/// default keymap; run/sort palettes derive their rows from run_groups
+/// / sort-mode tables), so this struct only tracks cursor / scroll /
+/// viewport bookkeeping.
 pub(super) struct OverlayState {
-    /// Title shown in the overlay border.
-    pub title: String,
-    /// Content lines (text overlays store content here; menus may too).
-    pub lines: Vec<String>,
     /// Scroll offset for text overlays.
     pub scroll: usize,
     /// Viewport height (set each frame by the draw function).
@@ -190,8 +186,6 @@ pub(super) struct OverlayState {
 impl Default for OverlayState {
     fn default() -> Self {
         Self {
-            title: String::new(),
-            lines: Vec::new(),
             scroll: 0,
             view_height: 20,
             cursor: None,
@@ -201,21 +195,13 @@ impl Default for OverlayState {
 
 impl OverlayState {
     /// Reset for a new text overlay (scrollable, no cursor).
-    pub fn text(title: impl Into<String>, lines: Vec<String>) -> Self {
-        Self {
-            title: title.into(),
-            lines,
-            scroll: 0,
-            view_height: 20,
-            cursor: None,
-        }
+    pub fn text() -> Self {
+        Self::default()
     }
 
     /// Reset for a new menu overlay (cursor, no scroll).
-    pub fn menu(title: impl Into<String>, lines: Vec<String>) -> Self {
+    pub fn menu() -> Self {
         Self {
-            title: title.into(),
-            lines,
             scroll: 0,
             view_height: 20,
             cursor: Some(0),
@@ -926,7 +912,7 @@ impl AppState {
                 let max = n.saturating_sub(self.nav.log_view_height.max(1));
                 self.nav.log_scroll = bounded(self.nav.log_scroll, max);
             }
-            Mode::Help | Mode::ActionOutput => {
+            Mode::Help => {
                 // Overlay scroll is clamped against actual content at draw
                 // time (via OverlayState::view_height), so we just bump the
                 // raw scroll counter here. usize::MAX/2 means "bottom".
@@ -1234,9 +1220,8 @@ mod tests {
         // Overlays always project to Normal level (they sit on top of it).
         assert_eq!(Mode::Help.level(), Level::Normal);
         assert_eq!(Mode::Log.level(), Level::Normal);
-        assert_eq!(Mode::ActionOutput.level(), Level::Normal);
         assert_eq!(
-            Mode::Palette(super::super::keymap::PaletteKind::Action).level(),
+            Mode::Palette(super::super::keymap::PaletteKind::Sort).level(),
             Level::Normal
         );
     }
@@ -1250,11 +1235,7 @@ mod tests {
         // Overlays return Some.
         assert!(matches!(Mode::Help.overlay_kind(), Some(Overlay::Help)));
         assert!(matches!(Mode::Log.overlay_kind(), Some(Overlay::Log)));
-        assert!(matches!(
-            Mode::ActionOutput.overlay_kind(),
-            Some(Overlay::ActionOutput)
-        ));
-        let palette = Mode::Palette(super::super::keymap::PaletteKind::Action);
+        let palette = Mode::Palette(super::super::keymap::PaletteKind::Sort);
         assert!(matches!(
             palette.overlay_kind(),
             Some(Overlay::Palette(_))
@@ -1265,7 +1246,7 @@ mod tests {
 
     #[test]
     fn overlay_scroll_by_saturates_at_zero() {
-        let mut o = OverlayState::text("title", vec!["a".into(), "b".into()]);
+        let mut o = OverlayState::text();
         assert_eq!(o.scroll, 0);
         o.scroll_by(false, 5); // scroll up from 0 must not underflow
         assert_eq!(o.scroll, 0);
@@ -1277,7 +1258,7 @@ mod tests {
 
     #[test]
     fn overlay_move_cursor_clamps_to_item_count() {
-        let mut o = OverlayState::menu("title", vec!["a".into(), "b".into(), "c".into()]);
+        let mut o = OverlayState::menu();
         assert_eq!(o.cursor_pos(), 0);
         o.move_cursor(true, 1, 3);
         assert_eq!(o.cursor_pos(), 1);
@@ -1289,7 +1270,7 @@ mod tests {
 
     #[test]
     fn overlay_move_cursor_no_op_on_empty_menu() {
-        let mut o = OverlayState::menu("title", Vec::<String>::new());
+        let mut o = OverlayState::menu();
         // cursor was initialized to Some(0) by ::menu even when empty.
         o.move_cursor(true, 1, 0);
         // n_items=0 must early-return without panicking.
@@ -1298,7 +1279,7 @@ mod tests {
 
     #[test]
     fn overlay_text_has_no_cursor() {
-        let o = OverlayState::text("title", vec!["x".into()]);
+        let o = OverlayState::text();
         assert!(o.cursor.is_none());
         // cursor_pos() falls back to 0 for text overlays.
         assert_eq!(o.cursor_pos(), 0);

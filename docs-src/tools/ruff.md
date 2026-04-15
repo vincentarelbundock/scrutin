@@ -49,12 +49,14 @@ ruff runs concurrently alongside any test tools in the same project. It uses com
 
 ## Plugin actions
 
-Press `a` in the TUI (or the action button in the web) to open the action palette. ruff defines two entries, both of which run across the whole suite:
+In the Detail view, ruff warnings show a numbered chip row of fix actions. Press the digit to invoke:
 
-| Action | Description |
-|--------|-------------|
-| Ruff: fix all | Apply safe fixes to every file in the suite |
-| Ruff: fix all (unsafe) | Apply safe + unsafe fixes to every file in the suite |
+| Key | Action |
+|-----|--------|
+| `1` | Ruff: fix (this file) |
+| `2` | Ruff: fix (this file, unsafe) |
+| `3` | Ruff: fix all (suite) |
+| `4` | Ruff: fix all (suite, unsafe) |
 
 Both invoke `ruff check --fix` once with every matching file (after include / exclude filters) as trailing arguments. After a fix, the affected files are re-linted automatically.
 

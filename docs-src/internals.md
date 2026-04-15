@@ -106,7 +106,7 @@ Each tool is compiled into the binary as a plugin. Plugins define how to detect 
 
 **Command mode** plugins (jarl, ruff) run an external CLI tool directly per file and parse the output in Rust. No persistent subprocess is needed. This is appropriate for tools that are fast enough to invoke per file.
 
-Plugins can define custom actions (e.g., jarl and ruff expose "fix all" and "fix all unsafe", which run across every file in the suite). Pressing `a` in the TUI or web opens an action palette listing all available actions for the selected file's tool.
+Plugins can define custom actions (e.g., jarl and ruff expose "fix", "fix (unsafe)", "fix all", "fix all (unsafe)"). The Detail view renders these as a numbered chip row under the warning message in both TUI and web; pressing `1`-`N` invokes the Nth action directly. Spell-check plugins (skyspell) attach per-warning `corrections` with ranked suggestions; those render as the same chip row, with `0` reserved for "add to dictionary".
 
 ## Frontends
 

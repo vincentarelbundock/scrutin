@@ -149,6 +149,23 @@ export async function runPluginAction(actionName, fileId) {
   }
 }
 
+/// Apply (or whitelist) a spell-check correction. Pass `replacement` to
+/// accept a suggestion; omit it to whitelist the word via `skyspell add`.
+export async function applyCorrection(fileId, correction, replacement) {
+  const body = {
+    file_id: String(fileId),
+    word: correction.word,
+    line: correction.line,
+    col_start: correction.col_start,
+    col_end: correction.col_end,
+  };
+  if (replacement != null) body.replacement = replacement;
+  const res = await postJSON("/api/correction", body);
+  if (res !== null) {
+    toast(res.message ?? "correction applied");
+  }
+}
+
 // ── Editor integrations (standalone POST vs VSCode webview postMessage) ──
 
 export async function openInEditor(fileId, line) {

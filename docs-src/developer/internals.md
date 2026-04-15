@@ -266,7 +266,7 @@ pub trait Plugin: Send + Sync {
     // UI hints
     fn supported_outcomes(&self) -> &'static [Outcome];
     fn subject_label(&self) -> &'static str;          // "test" / "step" / "check" / ...
-    fn actions(&self) -> Vec<PluginAction>;           // TUI/web action palette entries
+    fn actions(&self) -> Vec<PluginAction>;           // Detail-view chip actions (TUI + web)
 
     // Command-mode (opt-in, used by jarl + ruff)
     fn command_spec(&self, root: &Path) -> Option<CommandSpec>;

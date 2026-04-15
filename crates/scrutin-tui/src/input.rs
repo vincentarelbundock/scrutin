@@ -116,7 +116,7 @@ pub(super) fn handle_mouse(m: MouseEvent, state: &Arc<Mutex<AppState>>) {
     // Overlay modes consume all scroll events — scrolling behind a
     // palette/help overlay is confusing.
     match st.mode() {
-        Mode::Help | Mode::ActionOutput => {
+        Mode::Help => {
             scroll_overlay(&mut st, down, STEP);
             return;
         }
@@ -126,11 +126,6 @@ pub(super) fn handle_mouse(m: MouseEvent, state: &Arc<Mutex<AppState>>) {
         }
         Mode::Palette(PaletteKind::Run) => {
             let n = 4 + st.run_groups.len();
-            move_overlay_cursor(&mut st, down, 1, n);
-            return;
-        }
-        Mode::Palette(PaletteKind::Action) => {
-            let n = st.overlay.lines.len();
             move_overlay_cursor(&mut st, down, 1, n);
             return;
         }
@@ -171,7 +166,7 @@ pub(super) fn handle_mouse(m: MouseEvent, state: &Arc<Mutex<AppState>>) {
         Mode::Detail => scroll_test_cursor(&mut st, down, STEP),
         Mode::Log => scroll_log(&mut st, down, STEP),
         Mode::Failure => scroll_failure_error(&mut st, down, STEP),
-        Mode::Help | Mode::ActionOutput => scroll_overlay(&mut st, down, STEP),
+        Mode::Help => scroll_overlay(&mut st, down, STEP),
         _ => {}
     }
 }
@@ -275,29 +270,6 @@ pub(super) fn handle_key(
         return apply_action(action, state, pkg, event_tx, terminal);
     }
 
-    // Plugin action menu: `a` opens the action palette when the selected
-    // file's suite defines actions (Normal + Detail modes only).
-    if matches!(mode, Mode::Normal | Mode::Detail)
-        && matches!(key.code, KeyCode::Char('a'))
-        && key_mods_for_match == KeyModifiers::NONE
-    {
-        let mut st = state.lock().unwrap();
-        let has_actions = st
-            .selected_plugin_actions()
-            .is_some_and(|a| !a.is_empty());
-        if has_actions {
-            let labels: Vec<String> = st
-                .selected_plugin_actions()
-                .unwrap()
-                .iter()
-                .map(|a| a.label.to_string())
-                .collect();
-            st.overlay = OverlayState::menu("Actions", labels);
-            st.push_mode(Mode::Palette(PaletteKind::Action));
-            return Ok(false);
-        }
-    }
-
     // Fall back to per-mode extras for keys not in the binding table
     // (filter text input, character accumulation, terminal-suspend flows).
     match mode {
@@ -313,10 +285,6 @@ pub(super) fn handle_key(
             handle_log_key(key, state);
             Ok(false)
         }
-        Mode::ActionOutput => {
-            handle_action_output_key(key, state);
-            Ok(false)
-        }
         Mode::Detail => handle_detail_key(key, state, pkg, event_tx, terminal),
         Mode::Failure => handle_failure_key(key, state, terminal),
         Mode::Palette(PaletteKind::Run) => {
@@ -325,10 +293,6 @@ pub(super) fn handle_key(
         }
         Mode::Palette(PaletteKind::Sort) => {
             handle_sortmenu_key(key, state);
-            Ok(false)
-        }
-        Mode::Palette(PaletteKind::Action) => {
-            handle_action_menu_key(key, state, event_tx, terminal);
             Ok(false)
         }
         Mode::Normal => handle_normal_key(key, state, pkg, event_tx, terminal),
@@ -406,7 +370,7 @@ fn apply_action(
                     }
         }
         EnterHelp => {
-            st.overlay = OverlayState::text("Help", Vec::new());
+            st.overlay = OverlayState::text();
             st.push_mode(Mode::Help);
         }
         EnterLog => {
@@ -421,7 +385,7 @@ fn apply_action(
             }
             PaletteKind::Run => {
                 if !st.run.running {
-                    st.overlay = OverlayState::menu("Run", Vec::new());
+                    st.overlay = OverlayState::menu();
                     st.push_mode(Mode::Palette(PaletteKind::Run));
                 }
             }
@@ -438,13 +402,9 @@ fn apply_action(
                     .iter()
                     .position(|&m| m == active)
                     .unwrap_or(0);
-                st.overlay = OverlayState::menu("Sort", Vec::new());
+                st.overlay = OverlayState::menu();
                 st.overlay.cursor = Some(cursor);
                 st.push_mode(Mode::Palette(PaletteKind::Sort));
-            }
-            PaletteKind::Action => {
-                // Action menu is opened by the `f` key handler below,
-                // not through the binding table. This arm is a no-op.
             }
         },
         Pop => {
@@ -660,16 +620,6 @@ fn handle_help_key(_key: event::KeyEvent, _state: &Arc<Mutex<AppState>>) {
     // (Help mode shares the same navigation verbs as the other scroll views).
 }
 
-fn handle_action_output_key(key: event::KeyEvent, state: &Arc<Mutex<AppState>>) {
-    let mut st = state.lock().unwrap();
-    match key.code {
-        KeyCode::Char('j') | KeyCode::Down => scroll_overlay(&mut st, true, 1),
-        KeyCode::Char('k') | KeyCode::Up => scroll_overlay(&mut st, false, 1),
-        KeyCode::Esc | KeyCode::Char('q') => st.pop_mode(),
-        _ => {}
-    }
-}
-
 fn handle_log_key(_key: event::KeyEvent, _state: &Arc<Mutex<AppState>>) {
     // Fully handled via LOG_BINDINGS → apply_action.
 }
@@ -705,17 +655,65 @@ fn handle_detail_key(
         && c.is_ascii_digit()
         && key.modifiers == KeyModifiers::NONE
     {
-        match c {
-            '0' => add_word_to_dictionary(pkg, state, event_tx),
-            _ => {
-                // 1-9 accept the Nth suggestion (1-based in UI, 0-based in
-                // the `suggestions` vec).
-                let idx = (c as u8 - b'1') as usize;
-                accept_suggestion_in_detail(state, event_tx, idx);
+        // Digits route to spell-check suggestions when the cursor event
+        // has corrections; otherwise to the Nth plugin action (ruff/jarl
+        // fix variants). This keeps the chip row's numbering meaningful
+        // in both contexts without colliding.
+        let has_corrections = {
+            let st = state.lock().unwrap();
+            st.sorted_selected_tests()
+                .get(st.nav.test_cursor)
+                .is_some_and(|t| !t.corrections.is_empty())
+        };
+        if has_corrections {
+            match c {
+                '0' => add_word_to_dictionary(pkg, state, event_tx),
+                _ => {
+                    let idx = (c as u8 - b'1') as usize;
+                    accept_suggestion_in_detail(state, event_tx, idx);
+                }
             }
+        } else if c != '0' {
+            let idx = (c as u8 - b'1') as usize;
+            invoke_plugin_action_by_index(idx, state, event_tx, terminal);
         }
     }
     Ok(false)
+}
+
+/// Invoke the Nth `PluginAction` defined for the cursor file's suite,
+/// matching what the `a` palette would do when row `idx` was selected.
+/// Silently no-ops when the index is out of range.
+fn invoke_plugin_action_by_index(
+    idx: usize,
+    state: &Arc<Mutex<AppState>>,
+    event_tx: &tokio::sync::mpsc::UnboundedSender<TuiEvent>,
+    terminal: &mut Terminal<CrosstermBackend<io::Stderr>>,
+) {
+    use scrutin_core::project::plugin::ActionScope;
+    let action_paths_cwd = {
+        let st = state.lock().unwrap();
+        st.selected_plugin_actions()
+            .and_then(|actions| actions.get(idx).cloned())
+            .and_then(|pa| {
+                let file = st.selected_file()?;
+                let suite = file.suite.clone();
+                let cwd = st.suite_root(&suite);
+                let paths: Vec<PathBuf> = match pa.scope {
+                    ActionScope::File => vec![file.path.clone()],
+                    ActionScope::All => st
+                        .files
+                        .iter()
+                        .filter(|fe| fe.suite == suite)
+                        .map(|fe| fe.path.clone())
+                        .collect(),
+                };
+                Some((pa, paths, cwd))
+            })
+    };
+    if let Some((pa, paths, cwd)) = action_paths_cwd {
+        let _ = run_plugin_action(&pa, &paths, &cwd, state, event_tx, terminal);
+    }
 }
 
 /// Apply the Nth ranked suggestion (0-based) of the cursor test's first
@@ -737,7 +735,11 @@ fn accept_suggestion_in_detail(
         (file.path.clone(), correction, replacement)
     };
 
-    match apply_correction_to_file(&file_path, &correction, &replacement) {
+    match scrutin_core::prose::skyspell::apply_correction_to_file(
+        &file_path,
+        &correction,
+        &replacement,
+    ) {
         Ok(()) => {
             let st = state.lock().unwrap();
             st.log.push(
@@ -758,72 +760,16 @@ fn accept_suggestion_in_detail(
     }
 }
 
-/// Read `file_path`, replace the byte range described by `correction` with
-/// `replacement`, and write it back. Errors when the line isn't found, the
-/// range is out of bounds, or the bytes at that range don't match the word
-/// the correction was generated for (a mismatch means the file drifted
-/// since the spell-check run).
-///
-/// skyspell reports `col_start`/`col_end` as 1-based byte offsets within
-/// the line (exact for ASCII, approximate for multi-byte UTF-8 prose).
-fn apply_correction_to_file(
-    file_path: &Path,
-    correction: &scrutin_core::engine::protocol::Correction,
-    replacement: &str,
-) -> Result<(), String> {
-    let content = std::fs::read_to_string(file_path)
-        .map_err(|e| format!("read {}: {}", file_path.display(), e))?;
-
-    let mut line_start = if correction.line == 1 { Some(0) } else { None };
-    if line_start.is_none() {
-        let mut cur: u32 = 1;
-        for (i, b) in content.bytes().enumerate() {
-            if b == b'\n' {
-                cur += 1;
-                if cur == correction.line {
-                    line_start = Some(i + 1);
-                    break;
-                }
-            }
-        }
-    }
-    let line_start =
-        line_start.ok_or_else(|| format!("line {} not found", correction.line))?;
-
-    let byte_start = line_start + (correction.col_start as usize).saturating_sub(1);
-    let byte_end = line_start + correction.col_end as usize;
-    if byte_end > content.len() || byte_start >= byte_end {
-        return Err(format!("byte range {}..{} out of bounds", byte_start, byte_end));
-    }
-    let actual = &content[byte_start..byte_end];
-    if actual != correction.word {
-        return Err(format!(
-            "word mismatch at {}:{}: expected {:?}, found {:?}",
-            correction.line, correction.col_start, correction.word, actual
-        ));
-    }
-
-    let mut out = String::with_capacity(
-        content.len() + replacement.len().saturating_sub(correction.word.len()),
-    );
-    out.push_str(&content[..byte_start]);
-    out.push_str(replacement);
-    out.push_str(&content[byte_end..]);
-    std::fs::write(file_path, out)
-        .map_err(|e| format!("write {}: {}", file_path.display(), e))
-}
-
-/// Shell out to `skyspell --project-path <SUITE> <EXTRA_ARGS> add
-/// <ADD_ARGS> <WORD>`. Args come from `[skyspell]` in `.scrutin/config.toml`
-/// (plumbed through `Package`), defaulting to `["--lang", "en_US"]` +
-/// `["--project"]` so the whitelist lands in `<suite>/skyspell-ignore.toml`.
-/// No-op when the cursor test doesn't come from the skyspell suite or has
-/// no corrections attached.
+/// Shell out to skyspell's `add` subcommand via the shared helper and
+/// log the result. No-op when the cursor test doesn't come from the
+/// skyspell suite or has no corrections attached.
 fn add_word_to_dictionary(
     pkg: &Package,
     state: &Arc<Mutex<AppState>>,
     event_tx: &tokio::sync::mpsc::UnboundedSender<TuiEvent>,
 ) {
+    use scrutin_core::prose::skyspell::{add_word_to_dict, AddScope};
+
     let (file_path, word, suite_root) = {
         let st = state.lock().unwrap();
         let Some(file) = st.selected_file() else { return };
@@ -837,38 +783,27 @@ fn add_word_to_dictionary(
         (file.path.clone(), correction.word.clone(), suite_root)
     };
 
-    let mut cmd = std::process::Command::new("skyspell");
-    cmd.arg("--project-path")
-        .arg(&suite_root)
-        .args(&pkg.skyspell_extra_args)
-        .arg("add")
-        .args(&pkg.skyspell_add_args)
-        .arg(&word);
-    let result = cmd.output();
-
-    let st = state.lock().unwrap();
-    match result {
-        Ok(out) if out.status.success() => {
-            let scope = if pkg.skyspell_add_args.iter().any(|a| a == "--project") {
-                format!("{}/skyspell-ignore.toml", suite_root.display())
-            } else {
-                "skyspell global dictionary".into()
+    match add_word_to_dict(
+        &suite_root,
+        &pkg.skyspell_extra_args,
+        &pkg.skyspell_add_args,
+        &word,
+    ) {
+        Ok(scope) => {
+            let label = match scope {
+                AddScope::Project(path) => path.display().to_string(),
+                AddScope::Global => "skyspell global dictionary".into(),
             };
+            let st = state.lock().unwrap();
             st.log.push(
                 "scrutin",
-                &format!("spell: added '{}' to {}\n", word, scope),
+                &format!("spell: added '{}' to {}\n", word, label),
             );
             drop(st);
             let _ = event_tx.send(TuiEvent::WatchEvent(vec![file_path]));
         }
-        Ok(out) => {
-            let err = String::from_utf8_lossy(&out.stderr);
-            st.log.push(
-                "scrutin",
-                &format!("spell: add failed: {}\n", err.trim()),
-            );
-        }
         Err(e) => {
+            let st = state.lock().unwrap();
             st.log
                 .push("scrutin", &format!("spell: add failed: {}\n", e));
         }
@@ -994,58 +929,6 @@ fn handle_sortmenu_key(key: event::KeyEvent, state: &Arc<Mutex<AppState>>) {
                 st.nav.file_scroll = 0;
             }
             st.pop_mode();
-        }
-        _ => {}
-    }
-}
-
-fn handle_action_menu_key(
-    key: event::KeyEvent,
-    state: &Arc<Mutex<AppState>>,
-    event_tx: &tokio::sync::mpsc::UnboundedSender<TuiEvent>,
-    terminal: &mut Terminal<CrosstermBackend<io::Stderr>>,
-) {
-    let mut st = state.lock().unwrap();
-    let n_items = st.overlay.lines.len();
-    match key.code {
-        KeyCode::Esc | KeyCode::Char('q') => {
-            st.pop_mode();
-        }
-        KeyCode::Char('j') | KeyCode::Down => {
-            if st.overlay.cursor_pos() + 1 < n_items {
-                *st.overlay.cursor_mut() += 1;
-            }
-        }
-        KeyCode::Char('k') | KeyCode::Up => {
-            let c = st.overlay.cursor_mut();
-            *c = c.saturating_sub(1);
-        }
-        KeyCode::Enter => {
-            let sel = st.overlay.cursor_pos();
-            // Look up the action by index from the selected file's suite.
-            let action_paths_cwd = st.selected_plugin_actions().and_then(|actions| {
-                actions.get(sel).cloned()
-            }).and_then(|pa| {
-                use scrutin_core::project::plugin::ActionScope;
-                let file = st.selected_file()?;
-                let suite = file.suite.clone();
-                let cwd = st.suite_root(&suite);
-                let paths: Vec<PathBuf> = match pa.scope {
-                    ActionScope::File => vec![file.path.clone()],
-                    ActionScope::All => st
-                        .files
-                        .iter()
-                        .filter(|fe| fe.suite == suite)
-                        .map(|fe| fe.path.clone())
-                        .collect(),
-                };
-                Some((pa, paths, cwd))
-            });
-            st.pop_mode();
-            drop(st);
-            if let Some((pa, paths, cwd)) = action_paths_cwd {
-                let _ = run_plugin_action(&pa, &paths, &cwd, state, event_tx, terminal);
-            }
         }
         _ => {}
     }
@@ -1376,32 +1259,38 @@ fn run_plugin_action(
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped());
 
-    let mut lines: Vec<String> = Vec::new();
-    match cmd.output() {
-        Ok(output) => {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            for line in stderr.lines() {
-                lines.push(line.to_string());
-            }
-            for line in stdout.lines() {
-                lines.push(line.to_string());
-            }
-            if output.status.success() {
-                lines.push(format!("[scrutin] {label}: done"));
-            } else {
-                lines.push(format!("[scrutin] {label}: exited {}", output.status));
-            }
-        }
-        Err(e) => {
-            lines.push(format!("[scrutin] {label}: {e}"));
-        }
-    }
-
+    // Capture tool output into the shared log buffer so users can review
+    // it via Mode::Log (`L`). No separate overlay: fix actions should feel
+    // as invisible as possible when they succeed and be easy to inspect
+    // when they don't.
+    let tag = action.name;
+    let output = cmd.output();
     {
-        let mut st = state.lock().unwrap();
-        st.overlay = OverlayState::text(label, lines);
-        st.push_mode(Mode::ActionOutput);
+        let st = state.lock().unwrap();
+        st.log.push("scrutin", &format!("{label}: running\n"));
+        match &output {
+            Ok(out) => {
+                let stderr = String::from_utf8_lossy(&out.stderr);
+                let stdout = String::from_utf8_lossy(&out.stdout);
+                // Tool output (ruff --fix, jarl --fix) typically carries
+                // ANSI colors; strip them so the log pane stays readable.
+                for line in stderr.lines() {
+                    st.log.push(tag, &format!("{}\n", super::view::strip_ansi(line)));
+                }
+                for line in stdout.lines() {
+                    st.log.push(tag, &format!("{}\n", super::view::strip_ansi(line)));
+                }
+                if out.status.success() {
+                    st.log.push("scrutin", &format!("{label}: done\n"));
+                } else {
+                    st.log
+                        .push("scrutin", &format!("{label}: exited {}\n", out.status));
+                }
+            }
+            Err(e) => {
+                st.log.push("scrutin", &format!("{label}: {e}\n"));
+            }
+        }
     }
 
     if rerun {

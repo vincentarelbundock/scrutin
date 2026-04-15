@@ -648,6 +648,50 @@ body {
   border-left-color: var(--warn);
 }
 
+/* Spell-check suggestions (horizontal chip grid). --------------------------
+ * Matches the TUI's wrapping chip layout so hitting 0-9 feels the same in
+ * both frontends. Best match is colored + starred; the dictionary-add
+ * action lives on its own row underneath. */
+.suggestion-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.suggestion:hover {
+  background: var(--bg-3, var(--bg-2));
+  border-color: var(--accent, var(--fg-dim));
+}
+.suggestion-key {
+  color: var(--accent, var(--fg-dim));
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+}
+.suggestion--best .suggestion-word {
+  color: var(--pass);
+  font-weight: 600;
+}
+.suggestion--dict {
+  margin-top: 4px;
+}
+.suggestion--dict .suggestion-word {
+  color: var(--warn);
+}
+
 /* Failure view (3-pane: Test + Source side-by-side, Error below) --------- */
 /* When the right pane hosts the Failure view, drop .detail-body's padding
  * and scrolling and turn it into a flex column so the 3-pane grid can

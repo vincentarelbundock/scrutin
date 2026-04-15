@@ -39,7 +39,7 @@ The TUI and web share a single keybinding table, defined in `scrutin_core::keyma
 
 | Key | Action |
 |-----|--------|
-| `a` | Plugin action palette (jarl fix, ruff fix, ...) |
+| `0`-`9` | In Detail view, invoke the Nth chip action (plugin fixes for ruff/jarl; spell-check suggestions for skyspell; `0` adds a word to the dictionary) |
 | `e` | Open test file in `$EDITOR` |
 | `E` | Open source file in `$EDITOR` |
 | `y` | Yank failure message to clipboard |

@@ -285,8 +285,9 @@ the right frames; keybindings per table do what they claim.
 - Mode stack: push/pop round-trip; Esc pops exactly one frame.
 - Overlay on top of level: `level()` returns the level,
   `overlay_kind()` returns `Some(...)`.
-- Palette dispatch: `a` opens Action palette; selecting an item runs
-  the action and opens `ActionOutput`.
+- Chip dispatch: `1`-`N` in Detail view invokes the Nth plugin
+  action or spell-check suggestion; output streams into the log
+  buffer instead of a dedicated overlay.
 - Cursor dispatch: `move_cursor(mode, delta)` updates exactly the
   cursor for that mode.
 - Layout collapse: terminal width below `MIN_LIST_COLS + MIN_MAIN_COLS`

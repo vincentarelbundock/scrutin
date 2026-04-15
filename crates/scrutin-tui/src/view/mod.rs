@@ -32,6 +32,7 @@ mod failure;
 
 // External re-exports: only the entry points lib.rs/state.rs need.
 pub(crate) use sort::sort_tests;
+pub(crate) use overlays::strip_ansi;
 
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Style};
@@ -60,10 +61,6 @@ pub(super) fn draw(f: &mut ratatui::Frame, state: &mut AppState) {
             overlays::draw_help_overlay(f, state);
         }
         Mode::Log => log::draw_log(f, state),
-        Mode::ActionOutput => {
-            normal::draw_normal(f, state);
-            overlays::draw_action_output_overlay(f, state);
-        }
         Mode::Palette(kind) => {
             // Draw the underlying drill level beneath the palette overlay.
             // `state.level()` ignores any overlay frames on top, so this
@@ -77,7 +74,6 @@ pub(super) fn draw(f: &mut ratatui::Frame, state: &mut AppState) {
                 PaletteKind::Filter => {} // filter input rides in the hints bar
                 PaletteKind::Run    => overlays::draw_run_menu_overlay(f, state),
                 PaletteKind::Sort   => overlays::draw_sort_menu_overlay(f, state),
-                PaletteKind::Action => overlays::draw_action_menu_overlay(f, state),
             }
         }
     }

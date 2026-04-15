@@ -111,13 +111,12 @@ async fn file_source(
         let f = fmap.get(&id).ok_or(StatusCode::NOT_FOUND)?;
         state.pkg.root.join(&f.path)
     };
-    // Basic containment check: abs path must live under pkg.root. Prevents
-    // a compromised FileId from escaping the package root.
+    // `file_id` is a trusted key into the server-side file map, so no
+    // containment check against pkg.root is needed. In file-mode pkg.root
+    // is a scratch tempdir and the real file lives elsewhere, which made
+    // the old starts_with guard reject every legitimate request.
     let canon = std::fs::canonicalize(&path).map_err(|_| StatusCode::NOT_FOUND)?;
-    let root = std::fs::canonicalize(&state.pkg.root).map_err(|_| StatusCode::NOT_FOUND)?;
-    if !canon.starts_with(&root) {
-        return Err(StatusCode::FORBIDDEN);
-    }
+    let root = std::fs::canonicalize(&state.pkg.root).ok();
     let content = std::fs::read_to_string(&canon).map_err(|_| StatusCode::NOT_FOUND)?;
     let total = content.lines().count();
     let (start, end) = match q.line {
@@ -133,11 +132,15 @@ async fn file_source(
     };
     let ext = canon.extension().and_then(|e| e.to_str()).unwrap_or("");
     let lines = crate::highlight::highlight_slice(ext, &content, start, end);
+    let display = match &root {
+        Some(r) => canon.strip_prefix(r).unwrap_or(&canon).to_string_lossy(),
+        None => canon.to_string_lossy(),
+    };
     Ok(Json(serde_json::json!({
         "start_line": start + 1,
         "lines": lines,
         "highlight_line": q.line,
-        "path": canon.strip_prefix(&root).unwrap_or(&canon).to_string_lossy(),
+        "path": display,
     })))
 }
 

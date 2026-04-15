@@ -24,6 +24,7 @@ pub fn router() -> Router<AppState> {
         .route("/api/watch", post(watch))
         .route("/api/open-editor", post(open_editor))
         .route("/api/suite-action", post(suite_action))
+        .route("/api/correction", post(correction_action))
 }
 
 #[derive(Deserialize)]
@@ -169,8 +170,12 @@ async fn open_editor(
     State(state): State<AppState>,
     Json(body): Json<OpenEditorBody>,
 ) -> Result<Json<OpenEditorResponse>, (StatusCode, Json<ErrResp>)> {
-    let abs = if let Some(ref path) = body.path {
-        state.pkg.root.join(path)
+    // By `file_id`: the file is already in the trusted file map; its
+    // stored path is authoritative (absolute in file-mode, relative in
+    // project mode). By raw `path`: untrusted client input, must be
+    // confined under the project root to prevent traversal.
+    let (abs, trusted) = if let Some(ref path) = body.path {
+        (state.pkg.root.join(path), false)
     } else if let Some(ref file_id) = body.file_id {
         let fid: crate::wire::FileId = file_id
             .parse()
@@ -180,14 +185,17 @@ async fn open_editor(
             let f = fmap.get(&fid).ok_or_else(|| bad("unknown file_id"))?;
             f.path.clone()
         };
-        state.pkg.root.join(&rel_path)
+        (state.pkg.root.join(&rel_path), true)
     } else {
         return Err(bad("file_id or path required"));
     };
     let canon = std::fs::canonicalize(&abs).map_err(|_| bad("file not found"))?;
-    let root = std::fs::canonicalize(&state.pkg.root).map_err(|_| bad("root not found"))?;
-    if !canon.starts_with(&root) {
-        return Err(bad("path escapes project root"));
+    if !trusted {
+        let root =
+            std::fs::canonicalize(&state.pkg.root).map_err(|_| bad("root not found"))?;
+        if !canon.starts_with(&root) {
+            return Err(bad("path escapes project root"));
+        }
     }
 
     let path_str = canon.to_string_lossy().to_string();
@@ -337,12 +345,12 @@ async fn suite_action(
         let f = fmap.get(&file_id).ok_or_else(|| bad("unknown file_id"))?;
         f.path.clone()
     };
+    // `rel_path` came from the trusted file map (keyed by file_id we
+    // just validated), so no traversal check is needed. In file-mode the
+    // path is absolute and lives outside `pkg.root` (a tempdir); in
+    // project mode it's a root-relative string.
     let abs = state.pkg.root.join(&rel_path);
-    let canon = std::fs::canonicalize(&abs).map_err(|_| bad("file not found"))?;
-    let root = std::fs::canonicalize(&state.pkg.root).map_err(|_| bad("root not found"))?;
-    if !canon.starts_with(&root) {
-        return Err(bad("path escapes project root"));
-    }
+    let _ = std::fs::canonicalize(&abs).map_err(|_| bad("file not found"))?;
 
     // `suite_for` is the single source of truth: whichever suite owns
     // the targeted file decides both the action lookup and the spawn
@@ -404,6 +412,86 @@ async fn suite_action(
     Ok(Json(serde_json::json!({
         "success": status.success(),
         "rerun": rerun,
+    })))
+}
+
+#[derive(Deserialize)]
+struct CorrectionBody {
+    file_id: String,
+    word: String,
+    line: u32,
+    col_start: u32,
+    col_end: u32,
+    /// Non-empty replacement → accept that suggestion. When `None`, the
+    /// request is a whitelist-add: `skyspell add` the word instead of
+    /// editing the file.
+    #[serde(default)]
+    replacement: Option<String>,
+}
+
+/// Spell-check correction: either replace a misspelled word with a chosen
+/// suggestion (by rewriting the file in place) or whitelist the word via
+/// `skyspell add`. Triggers a rerun of the file so the refreshed findings
+/// drop the handled entry.
+async fn correction_action(
+    State(state): State<AppState>,
+    Json(body): Json<CorrectionBody>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<ErrResp>)> {
+    use scrutin_core::engine::protocol::Correction;
+    use scrutin_core::prose::skyspell;
+
+    let file_id: FileId = body
+        .file_id
+        .parse()
+        .map_err(|_| bad("invalid file_id"))?;
+
+    let (abs_path, suite_root) = {
+        let fmap = state.files.read().await;
+        let f = fmap.get(&file_id).ok_or_else(|| bad("unknown file_id"))?;
+        let abs = state.pkg.root.join(&f.path);
+        let suite_root = state
+            .pkg
+            .test_suites
+            .iter()
+            .find(|s| s.plugin.name() == f.suite)
+            .map(|s| s.root.clone())
+            .unwrap_or_else(|| state.pkg.root.clone());
+        (abs, suite_root)
+    };
+
+    let correction = Correction {
+        word: body.word.clone(),
+        line: body.line,
+        col_start: body.col_start,
+        col_end: body.col_end,
+        suggestions: Vec::new(),
+    };
+
+    let scope_label = if let Some(replacement) = body.replacement.as_deref() {
+        skyspell::apply_correction_to_file(&abs_path, &correction, replacement)
+            .map_err(|e| bad(&format!("apply failed: {}", e)))?;
+        format!("replaced with {:?}", replacement)
+    } else {
+        let scope = skyspell::add_word_to_dict(
+            &suite_root,
+            &state.pkg.skyspell_extra_args,
+            &state.pkg.skyspell_add_args,
+            &body.word,
+        )
+        .map_err(|e| bad(&format!("add failed: {}", e)))?;
+        match scope {
+            skyspell::AddScope::Project(path) => format!("added to {}", path.display()),
+            skyspell::AddScope::Global => "added to skyspell global dictionary".into(),
+        }
+    };
+
+    // Re-run the single file so the server-side findings refresh and the
+    // browser sees the warning disappear.
+    let _ = state.spawn_run(vec![abs_path]).await;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": scope_label,
     })))
 }
 

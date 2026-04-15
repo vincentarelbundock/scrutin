@@ -26,7 +26,6 @@ pub(super) enum PaletteKind {
     Filter,
     Run,
     Sort,
-    Action,
 }
 
 /// Verb-level actions triggered by key bindings. Pure and cheap to clone;
@@ -195,11 +194,9 @@ pub(super) fn mode_label(mode: &Mode) -> &'static str {
         Mode::Failure => "FAILURE",
         Mode::Help => "HELP",
         Mode::Log => "LOG",
-        Mode::ActionOutput => "ACTION",
         Mode::Palette(PaletteKind::Filter) => "PALETTE: filter",
         Mode::Palette(PaletteKind::Run) => "PALETTE: run",
         Mode::Palette(PaletteKind::Sort) => "PALETTE: sort",
-        Mode::Palette(PaletteKind::Action) => "PALETTE: action",
     }
 }
 
@@ -210,7 +207,7 @@ pub(super) fn mode_color(mode: &Mode) -> ratatui::style::Color {
         Mode::Detail => Color::Blue,
         Mode::Failure => Color::Red,
         Mode::Palette(_) => Color::Magenta,
-        Mode::Help | Mode::Log | Mode::ActionOutput => Color::Yellow,
+        Mode::Help | Mode::Log => Color::Yellow,
     }
 }
 
@@ -243,7 +240,6 @@ impl Action {
             OpenPalette(PaletteKind::Filter) => "open_filter",
             OpenPalette(PaletteKind::Run) => "open_run_menu",
             OpenPalette(PaletteKind::Sort) => "open_sort_menu",
-            OpenPalette(PaletteKind::Action) => "open_action_menu",
             Pop => "pop",
             ToggleSelect => "toggle_select",
             ToggleVisual => "toggle_visual",
@@ -284,7 +280,6 @@ impl Action {
             "open_filter" => OpenPalette(PaletteKind::Filter),
             "open_run_menu" => OpenPalette(PaletteKind::Run),
             "open_sort_menu" => OpenPalette(PaletteKind::Sort),
-            "open_action_menu" => OpenPalette(PaletteKind::Action),
             "pop" => Pop,
             "toggle_select" => ToggleSelect,
             "toggle_visual" => ToggleVisual,

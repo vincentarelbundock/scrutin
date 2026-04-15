@@ -729,4 +729,121 @@ mod tests {
         let other = std::fs::canonicalize(root).unwrap().join("a/test-other.R");
         assert!(!suite.owns_test_file(&other));
     }
+
+    // ── common_ancestor (file-mode suite root derivation) ─────────────────
+
+    #[test]
+    fn common_ancestor_same_directory() {
+        let a = PathBuf::from("/repo/docs/intro.md");
+        let b = PathBuf::from("/repo/docs/advanced.md");
+        assert_eq!(common_ancestor(&[a, b]), Some(PathBuf::from("/repo/docs")));
+    }
+
+    #[test]
+    fn common_ancestor_different_directories() {
+        let a = PathBuf::from("/repo/docs/intro.md");
+        let b = PathBuf::from("/repo/README.md");
+        assert_eq!(common_ancestor(&[a, b]), Some(PathBuf::from("/repo")));
+    }
+
+    #[test]
+    fn common_ancestor_single_file() {
+        let a = PathBuf::from("/repo/docs/intro.md");
+        assert_eq!(common_ancestor(&[a]), Some(PathBuf::from("/repo/docs")));
+    }
+
+    #[test]
+    fn common_ancestor_empty_returns_none() {
+        assert_eq!(common_ancestor(&[]), None);
+    }
+
+    // ── Package::from_files (file-mode) ────────────────────────────────────
+
+    #[test]
+    fn from_files_builds_single_suite_for_command_mode_tool() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let file = root.join("prose.md");
+        std::fs::write(&file, "sample\n").unwrap();
+
+        let pkg = Package::from_files(
+            root.to_path_buf(),
+            &[file.clone()],
+            "skyspell",
+            &[],
+            &[],
+            &[],
+            Vec::new(),
+            BTreeMap::new(),
+        )
+        .expect("skyspell is command-mode");
+
+        assert_eq!(pkg.test_suites.len(), 1);
+        let suite = &pkg.test_suites[0];
+        assert_eq!(suite.plugin.name(), "skyspell");
+        assert!(suite.run_set.is_match(&file));
+    }
+
+    #[test]
+    fn from_files_rejects_worker_mode_tool() {
+        let tmp = tempfile::tempdir().unwrap();
+        let file = tmp.path().join("test_foo.py");
+        std::fs::write(&file, "pass\n").unwrap();
+
+        let err = Package::from_files(
+            tmp.path().to_path_buf(),
+            &[file],
+            "pytest",
+            &[],
+            &[],
+            &[],
+            Vec::new(),
+            BTreeMap::new(),
+        )
+        .map(|_| ())
+        .expect_err("pytest is worker-mode and must be refused in file-mode");
+        let msg = err.to_string();
+        assert!(
+            msg.contains("project root"),
+            "error should explain why worker-mode plugins need a project root, got: {msg}",
+        );
+    }
+
+    #[test]
+    fn from_files_rejects_unknown_tool() {
+        let tmp = tempfile::tempdir().unwrap();
+        let file = tmp.path().join("x.md");
+        std::fs::write(&file, "x\n").unwrap();
+        let err = Package::from_files(
+            tmp.path().to_path_buf(),
+            &[file],
+            "nope",
+            &[],
+            &[],
+            &[],
+            Vec::new(),
+            BTreeMap::new(),
+        )
+        .map(|_| ())
+        .expect_err("unknown tool name must error");
+        assert!(err.to_string().to_lowercase().contains("unknown"));
+    }
+
+    #[test]
+    fn from_files_rejects_empty_input() {
+        let tmp = tempfile::tempdir().unwrap();
+        let err = Package::from_files(
+            tmp.path().to_path_buf(),
+            &[],
+            "skyspell",
+            &[],
+            &[],
+            &[],
+            Vec::new(),
+            BTreeMap::new(),
+        )
+        .map(|_| ())
+        .expect_err("empty file list must error");
+        assert!(err.to_string().to_lowercase().contains("at least one"));
+    }
 }

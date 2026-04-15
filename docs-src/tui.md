@@ -22,7 +22,6 @@ The TUI separates drill **level** (Files / Detail / Failure) from transient **ov
 | Filter palette | `/` | `Esc` / `Enter` | Live filter by basename |
 | Run palette | `r` at Files level, `R` at Detail/Failure | `Esc` / `Enter` | Run all / failing / selection |
 | Sort palette | `s` | `Esc` / `Enter` | Pick sort mode |
-| Action palette | `a` | `Esc` / `Enter` | Plugin actions (jarl fix, ruff fix, ...) |
 | Help overlay | `?` | `Esc` / `q` / `?` | Keybinding reference |
 | Log overlay | `L` | `Esc` / `q` | Subprocess stderr and internal messages |
 
@@ -79,7 +78,7 @@ These are the defaults, compiled into `scrutin_core::keymap::DEFAULT_KEYMAP` and
 
 | Key | Action |
 |-----|--------|
-| `a` | Plugin action palette (jarl fix, ruff fix, ...) |
+| `0`-`9` | In Detail view, invoke the Nth chip action (plugin fixes for ruff/jarl; spell-check suggestions for skyspell; `0` adds a word to the dictionary) |
 | `e` | Open test file in `$EDITOR` |
 | `E` | Open source file in `$EDITOR` |
 | `y` | Yank failure message to clipboard |

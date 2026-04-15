@@ -132,16 +132,6 @@ pub(super) fn draw_sort_menu_overlay(f: &mut ratatui::Frame, state: &AppState) {
     draw_palette_overlay(f, title, &rows, "j/k move  Enter select/reverse  Esc close", state.overlay.cursor_pos());
 }
 
-pub(super) fn draw_action_menu_overlay(f: &mut ratatui::Frame, state: &AppState) {
-    let rows: Vec<PaletteRow> = state
-        .overlay
-        .lines
-        .iter()
-        .map(|label| PaletteRow { label: label.clone(), desc: String::new(), enabled: true, active: false })
-        .collect();
-    draw_palette_overlay(f, "Actions", &rows, "j/k move  Enter run  Esc cancel", state.overlay.cursor_pos());
-}
-
 pub(super) fn draw_help_overlay(f: &mut ratatui::Frame, state: &mut AppState) {
     use scrutin_core::keymap::{DEFAULT_KEYMAP, Level};
 
@@ -232,11 +222,10 @@ pub(super) fn draw_text_overlay(
     ov.view_height = visible_h;
     let max_scroll = total.saturating_sub(visible_h);
     if ov.scroll > max_scroll { ov.scroll = max_scroll; }
-    let base_title = if ov.title.is_empty() { fallback_title.to_string() } else { ov.title.clone() };
     let title = if max_scroll == 0 {
-        format!("{base_title} (Esc to close)")
+        format!("{fallback_title} (Esc to close)")
     } else {
-        format!("{base_title} ({}/{} \u{00b7} j/k scroll \u{00b7} Esc to close)",
+        format!("{fallback_title} ({}/{} \u{00b7} j/k scroll \u{00b7} Esc to close)",
             (ov.scroll + 1).min(max_scroll + 1), max_scroll + 1)
     };
     let widget = Paragraph::new(lines)
@@ -245,16 +234,8 @@ pub(super) fn draw_text_overlay(
     f.render_widget(widget, area);
 }
 
-pub(super) fn draw_action_output_overlay(f: &mut ratatui::Frame, state: &mut AppState) {
-    let lines: Vec<Line> = state.overlay.lines.clone()
-        .into_iter()
-        .map(|l| Line::from(strip_ansi(&l)))
-        .collect();
-    draw_text_overlay(f, &mut state.overlay, "Action output", lines, 70, 80);
-}
-
 /// Strip ANSI escape sequences (SGR, OSC hyperlinks) from a string.
-pub(super) fn strip_ansi(s: &str) -> String {
+pub(crate) fn strip_ansi(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut chars = s.chars().peekable();
     while let Some(c) = chars.next() {

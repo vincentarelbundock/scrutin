@@ -541,6 +541,35 @@ PATH = "b"
     }
 
     #[test]
+    fn skyspell_config_defaults_include_en_us_lang_and_project_scope() {
+        // Empty [skyspell] table falls back to the defaults documented in
+        // the plugin: `--lang en_US` pre-subcommand, `--project` for add.
+        let cfg = parse("").unwrap();
+        assert_eq!(cfg.skyspell.extra_args, vec!["--lang", "en_US"]);
+        assert_eq!(cfg.skyspell.add_args, vec!["--project"]);
+    }
+
+    #[test]
+    fn skyspell_config_overrides_are_verbatim() {
+        let cfg = parse(
+            r#"
+[skyspell]
+extra_args = ["--lang", "fr_FR", "--project-path", "/custom"]
+add_args = []
+"#,
+        )
+        .unwrap();
+        assert_eq!(
+            cfg.skyspell.extra_args,
+            vec!["--lang", "fr_FR", "--project-path", "/custom"]
+        );
+        assert!(
+            cfg.skyspell.add_args.is_empty(),
+            "users who want the global dictionary set add_args = []"
+        );
+    }
+
+    #[test]
     fn set_override_typed_values() {
         let mut cfg = Config::default();
         cfg.apply_set_overrides(&[

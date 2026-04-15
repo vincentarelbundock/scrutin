@@ -159,54 +159,142 @@ fn render_detail_main_pane(
         }
         content.push(Line::from(""));
     }
-    // Spell-check: numbered suggestions directly under the message so users
-    // can press 1-9 to accept one (or 0 to add the word to the dictionary)
-    // without drilling into a separate mode.
+    // Spell-check: suggestions rendered as a horizontal chip grid wrapping
+    // to pane width, so a word like `excercise` with 9 candidates fits in
+    // one or two lines instead of a 10-row stack. Press [N] to accept,
+    // [0] to whitelist.
+    let has_corrections = cur_test.is_some_and(|t| !t.corrections.is_empty());
     if let Some(correction) = cur_test.and_then(|t| t.corrections.first()) {
         content.push(Line::from(Span::styled(
-            "suggestions:",
+            "Replace with:",
             Style::default().fg(Color::DarkGray),
         )));
+        let pane_width = inner.width as usize;
+        let indent = "  ";
+        let mut spans: Vec<Span> = vec![Span::raw(indent)];
+        let mut width: usize = indent.len();
         for (i, sug) in correction.suggestions.iter().take(9).enumerate() {
             let n = i + 1;
-            let style = if i == 0 {
-                Style::default().fg(Color::Green)
+            let is_best = i == 0;
+            // "[N] word" + optional " \u{2605}" star for the best match.
+            let chip_text_len = 4 + sug.chars().count() + if is_best { 2 } else { 0 };
+            let sep_len = if spans.len() > 1 { 3 } else { 0 };
+            if width + sep_len + chip_text_len > pane_width && spans.len() > 1 {
+                content.push(Line::from(std::mem::take(&mut spans)));
+                spans.push(Span::raw(indent));
+                width = indent.len();
+            }
+            if spans.len() > 1 {
+                spans.push(Span::raw("   "));
+                width += 3;
+            }
+            spans.push(Span::styled(
+                format!("[{}]", n),
+                Style::default().fg(Color::Cyan),
+            ));
+            spans.push(Span::raw(" "));
+            let word_style = if is_best {
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::default()
             };
-            let tail = if i == 0 {
-                Span::styled("  (best match)", Style::default().fg(Color::DarkGray))
-            } else {
-                Span::raw("")
-            };
-            content.push(Line::from(vec![
-                Span::styled(format!("  {}  ", n), Style::default().fg(Color::Cyan)),
-                Span::styled(sug.clone(), style),
-                tail,
-            ]));
+            spans.push(Span::styled(sug.clone(), word_style));
+            if is_best {
+                spans.push(Span::styled(
+                    " \u{2605}",
+                    Style::default().fg(Color::Green),
+                ));
+            }
+            width += chip_text_len;
         }
+        if spans.len() > 1 {
+            content.push(Line::from(spans));
+        }
+        content.push(Line::from(""));
         content.push(Line::from(vec![
-            Span::styled("  0  ", Style::default().fg(Color::Cyan)),
+            Span::styled("[0]", Style::default().fg(Color::Cyan)),
+            Span::raw(" "),
             Span::styled(
-                "add to dictionary",
+                format!("Add \u{201c}{}\u{201d} to dictionary", correction.word),
                 Style::default().fg(Color::Magenta),
-            ),
-            Span::styled(
-                format!("  ({})", correction.word),
-                Style::default().fg(Color::DarkGray),
             ),
         ]));
         content.push(Line::from(""));
     }
+
+    // Plugin-level actions (ruff/jarl fix variants) as a chip grid. Only
+    // shown when the cursor file's suite has actions AND the current event
+    // isn't a spell-check one (whose digits 1-9 are already bound). Each
+    // chip corresponds to `[N] <label>` and is invoked by pressing N.
+    let actions = state
+        .selected_file()
+        .and_then(|f| state.suite_actions.get(&f.suite))
+        .filter(|v| !v.is_empty())
+        .filter(|_| !has_corrections);
+    if let Some(actions) = actions {
+        content.push(Line::from(Span::styled(
+            "Actions:",
+            Style::default().fg(Color::DarkGray),
+        )));
+        let pane_width = inner.width as usize;
+        let indent = "  ";
+        let mut spans: Vec<Span> = vec![Span::raw(indent)];
+        let mut width: usize = indent.len();
+        for (i, action) in actions.iter().take(9).enumerate() {
+            let n = i + 1;
+            let chip_text_len = 4 + action.label.chars().count();
+            let sep_len = if spans.len() > 1 { 3 } else { 0 };
+            if width + sep_len + chip_text_len > pane_width && spans.len() > 1 {
+                content.push(Line::from(std::mem::take(&mut spans)));
+                spans.push(Span::raw(indent));
+                width = indent.len();
+            }
+            if spans.len() > 1 {
+                spans.push(Span::raw("   "));
+                width += 3;
+            }
+            spans.push(Span::styled(
+                format!("[{}]", n),
+                Style::default().fg(Color::Cyan),
+            ));
+            spans.push(Span::raw(" "));
+            spans.push(Span::raw(action.label.to_string()));
+            width += chip_text_len;
+        }
+        if spans.len() > 1 {
+            content.push(Line::from(spans));
+        }
+        content.push(Line::from(""));
+    }
+    // Source-context window. Warnings (skyspell suggestions, ruff/jarl
+    // lint diagnostics) get a compact 7-line snippet centered on the
+    // flagged line: just enough to see the quote in situ without pushing
+    // the chip row off screen. Failures and errors instead fill whatever
+    // pane space is left, which is what the user wants when they're
+    // reading failing code.
+    let is_warning = cur_test.is_some_and(|t| matches!(
+        t.outcome,
+        scrutin_core::engine::protocol::Outcome::Warn
+    ));
     let auto = (inner.height as usize).saturating_sub(content.len());
     let remaining = if state.nav.source_context_lines > 0 {
         state.nav.source_context_lines.min(auto)
+    } else if is_warning {
+        7.min(auto)
     } else {
         auto
     };
     if let Some(path) = file_path
         && remaining > 0
     {
+        if is_warning {
+            content.push(Line::from(Span::styled(
+                "Context:",
+                Style::default().fg(Color::DarkGray),
+            )));
+        }
         content.extend(load_source_context_ex(
             &path, cur_line, remaining,
             state.nav.source_scroll, state.nav.source_hscroll,
