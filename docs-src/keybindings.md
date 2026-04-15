@@ -28,8 +28,8 @@ The TUI and web share a single keybinding table, defined in `scrutin_core::keyma
 |-----|--------|
 | `/` | Filter palette |
 | `s` | Sort palette (sequential, status, name, suite, time) |
-| `t` / `T` | Cycle status filter |
-| `p` / `P` | Cycle suite filter |
+| `o` / `O` | Cycle status filter (all / failures / errors / passes / running / ...) |
+| `t` / `T` | Cycle tool filter (all / testthat / pytest / ...) |
 | `Space` | Toggle selection on current file |
 | `v` | Visual select mode |
 | `-` | Toggle vertical / horizontal split |

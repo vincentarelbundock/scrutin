@@ -36,6 +36,16 @@ h1#__skip {
   text-align: center;
 }
 
+.hero-examples {
+  text-align: center !important;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin-top: -0.25rem;
+  margin-bottom: 1rem;
+}
+
 
 .hero-logo {
   display: block;
@@ -119,8 +129,10 @@ h1#__skip {
   font-size: 0.9rem;
 }
 
-/* 2-column wide cards */
-.grid.cards.wide > ul {
+/* 2-column wide cards. Material's `.grid.cards > ul` is `display:
+   contents`, so the grid template lives on `.grid` itself — target that
+   (with `.md-typeset` for specificity over the theme's default). */
+.md-typeset .grid.cards.wide {
   grid-template-columns: repeat(2, 1fr);
 }
 
@@ -156,7 +168,7 @@ h1#__skip {
     flex-direction: column;
   }
 
-  .grid.cards.wide > ul {
+  .md-typeset .grid.cards.wide {
     grid-template-columns: 1fr;
   }
 }

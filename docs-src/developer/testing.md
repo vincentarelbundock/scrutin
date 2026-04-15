@@ -42,7 +42,7 @@ the tests exercise.
 | Layer                                 | What lives here                                                                                                               | Runtime budget  | Target count |
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------ |
 | **Unit**                              | Pure functions: glob matching, config merging, outcome rank, protocol encode/decode, filter, git SHA parse, hashing           | under 5ms each  | ~250         |
-| **Module-integration** (no subprocess) | Engine pool with fake runner, dep-map against an in-memory package, watcher against tempdir, DuckDB schema round-trip        | under 500ms each | ~60         |
+| **Module-integration** (no subprocess) | Engine pool with fake runner, dep-map against an in-memory package, watcher against tempdir, SQLite schema round-trip        | under 500ms each | ~60         |
 | **E2E fixture**                       | scrutin binary against `demo/` or a purpose-built fixture, real `Rscript`/`pytest` subprocess                                 | 1 to 10s each   | ~30          |
 | **Snapshot**                          | TUI view trees, JUnit XML, CTRF JSON, web wire types, compared byte-for-byte against a golden file                            | under 50ms each | ~40          |
 
@@ -227,7 +227,7 @@ files** (not K expectations), and cancels all suites.
   file in output, both pools cancelled.
 - `max_fail` counts a file with 10 failed expectations as 1, not 10.
 
-### 3.10 DuckDB history (`storage/db.rs`)
+### 3.10 SQLite history (`storage/sqlite.rs`)
 
 **Lock:** schema is stable or versioned; a run inserts the expected
 rows; reads are deterministic.
@@ -340,7 +340,7 @@ counts and exits correctly.
   round-trip; we do not test testthat.
 - **Cross-OS matrix.** Windows support is on the TODO; testing it is
   gated on that landing.
-- **DuckDB version pinning.** We test our schema; we do not test duckdb.
+- **SQLite version pinning.** We test our schema; we do not test rusqlite / SQLite itself.
 
 ## 5. Rollout order
 

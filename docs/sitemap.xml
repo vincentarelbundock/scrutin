@@ -16,40 +16,46 @@
         <loc>https://scrutin.dev/tools/tinytest/</loc>
       </url>
       <url>
+        <loc>https://scrutin.dev/tools/pytest/</loc>
+      </url>
+      <url>
         <loc>https://scrutin.dev/tools/pointblank/</loc>
       </url>
       <url>
         <loc>https://scrutin.dev/tools/validate/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/jarl/</loc>
+        <loc>https://scrutin.dev/tools/great-expectations/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/pytest/</loc>
+        <loc>https://scrutin.dev/tools/jarl/</loc>
       </url>
       <url>
         <loc>https://scrutin.dev/tools/ruff/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/great-expectations/</loc>
+        <loc>https://scrutin.dev/tools/skyspell/</loc>
+      </url>
+      <url>
+        <loc>https://scrutin.dev/tools/typos/</loc>
       </url>
       <url>
         <loc>https://scrutin.dev/frontends/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/editors/</loc>
+        <loc>https://scrutin.dev/reporters/</loc>
       </url>
       <url>
         <loc>https://scrutin.dev/watch-mode/</loc>
+      </url>
+      <url>
+        <loc>https://scrutin.dev/parallelism/</loc>
       </url>
       <url>
         <loc>https://scrutin.dev/filtering/</loc>
       </url>
       <url>
         <loc>https://scrutin.dev/keybindings/</loc>
-      </url>
-      <url>
-        <loc>https://scrutin.dev/internals/</loc>
       </url>
       <url>
         <loc>https://scrutin.dev/history/</loc>
@@ -62,5 +68,8 @@
       </url>
       <url>
         <loc>https://scrutin.dev/roadmap/</loc>
+      </url>
+      <url>
+        <loc>https://scrutin.dev/internals/</loc>
       </url>
 </urlset>

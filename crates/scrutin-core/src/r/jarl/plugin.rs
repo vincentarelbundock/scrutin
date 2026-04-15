@@ -32,10 +32,8 @@ impl Plugin for JarlPlugin {
     fn language(&self) -> &'static str {
         "r"
     }
-    fn detect(&self, root: &Path) -> bool {
-        root.join(super::MARKER).is_file()
-            && root.join("DESCRIPTION").is_file()
-            && root.join(super::LINT_DIR).is_dir()
+    fn detect(&self, _root: &Path) -> bool {
+        false
     }
     fn project_name(&self, root: &Path) -> String {
         parse_r_package_name(root)

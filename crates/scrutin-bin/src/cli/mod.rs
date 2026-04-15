@@ -303,8 +303,11 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
     // in a throwaway tempdir so we don't pollute the user's CWD or the
     // file's parent. In dir-mode the sole positional path is the project
     // root. `config_root` is where `Config::load` looks for `.scrutin/
-    // config.toml`; in file-mode that's the tempdir (no user config picked
-    // up), so users must pass `--tool` and `-s run.*` on the CLI.
+    // config.toml`; in file-mode that's the tempdir, so project-local
+    // config is skipped. The user-level fallback (`dirs::config_dir()`)
+    // still applies, so global preferences carry over. `--tool` is still
+    // required in file-mode because there are no project markers to
+    // auto-detect from.
     let tempdir_guard: Option<tempfile::TempDir> = if file_mode {
         Some(tempfile::tempdir().context("creating file-mode tempdir")?)
     } else {
@@ -376,9 +379,24 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
             cfg.env.clone(),
         )?
     } else if !cfg.suites.is_empty() {
+        let filtered: Vec<_> = if cfg.run.tool == "auto" {
+            cfg.suites.clone()
+        } else {
+            cfg.suites
+                .iter()
+                .filter(|s| s.tool == cfg.run.tool)
+                .cloned()
+                .collect()
+        };
+        if filtered.is_empty() {
+            anyhow::bail!(
+                "No [[suite]] entries match --set run.tool={:?}",
+                cfg.run.tool
+            );
+        }
         Package::from_suites(
             root,
-            &cfg.suites,
+            &filtered,
             &cfg.pytest.extra_args,
             &cfg.skyspell.extra_args,
             &cfg.skyspell.add_args,

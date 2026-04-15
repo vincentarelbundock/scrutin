@@ -23,9 +23,11 @@ hide:
   <text x="93" y="54.2" font-family="Menlo, ui-monospace, SFMono-Regular, monospace" font-size="48" font-weight="500" fill="currentColor" letter-spacing="-1">Scrutin</text>
 </svg>
 
-## Quality dashboard, file watcher, and parallel runner.
+## A Unified Dashboard and Orchestrator for Quality Checks.
 
-Scrutin discovers your R and Python unit tests, linters, and data validators automatically. It watches files for any edit you make, and uses dependency mapping to re-run only the checks that relate to your changes. The results are streamed live to a terminal UI, web browser dashboard, or into your editor.
+<p class="hero-examples">Unit tests · Data validation · Linting · Spell check</p>
+
+Scrutin watches your R and Python projects, figures out which checks each edit affects, runs them in parallel, and streams results live to a terminal UI, a browser dashboard, or your editor.
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
 
@@ -37,7 +39,7 @@ Scrutin discovers your R and Python unit tests, linters, and data validators aut
 
 ## See everything in one place
 
-Every test, lint, and data validation result in a single dashboard. Filter by status, sort by name, time, or suite, and drill into failures to see expected vs. actual values with the failing line highlighted. Press `e` to jump straight into your editor.
+Every test, lint, data-validation, and spell-check result in a single dashboard. Filter by status or by tool, sort by name, time, or suite, and drill into findings to see expected vs. actual values, source context, and numbered fix actions you can invoke with a keystroke. Press `e` to jump straight into your editor.
 
 </div>
 
@@ -57,7 +59,7 @@ Every test, lint, and data validation result in a single dashboard. Filter by st
 
 </div>
 
-<div class="grid cards" markdown>
+<div class="grid cards wide" markdown>
 
 -   :material-test-tube: **Unit tests**
 
@@ -66,14 +68,6 @@ Every test, lint, and data validation result in a single dashboard. Filter by st
     Run your test suites in isolated workers with live result streaming.
     Supports **pytest**, **testthat**, and **tinytest**.
 
--   :material-magnify-scan: **Code quality**
-
-    ---
-
-    Lint checks run through the same pipeline as tests, with diagnostics
-    mapped to warnings and fix actions exposed as keyboard shortcuts.
-    Supports **jarl** (R linter) and **ruff** (Python linter).
-
 -   :material-database-check: **Data validation**
 
     ---
@@ -81,6 +75,23 @@ Every test, lint, and data validation result in a single dashboard. Filter by st
     Data quality checks run alongside code quality checks with the same
     outcome taxonomy (pass/fail/warn/skip/error) and rerun logic.
     Supports **pointblank** (R), **validate** (R), and **Great Expectations** (Python).
+
+-   :material-magnify-scan: **Linters**
+
+    ---
+
+    Lint diagnostics map to warnings in the same dashboard; fix actions
+    appear as numbered chips in the Detail view so `1`, `2`, `3` invokes
+    them directly. Supports **jarl** (R) and **ruff** (Python).
+
+-   :material-spellcheck: **Spell checks**
+
+    ---
+
+    Prose, docs, and comments go through the same engine. Misspellings
+    render with ranked suggestions as chips: press `1`-`9` to replace or
+    `0` to add the word to a committable project dictionary.
+    Supports **skyspell** and **typos**.
 
 </div>
 
@@ -92,9 +103,9 @@ Every test, lint, and data validation result in a single dashboard. Filter by st
 
 **Re-run only what changed.** Scrutin watches your project for file changes and uses dependency mapping to figure out which checks are affected. Edit a source file, and only the tests that depend on it re-run.
 
-**Parallel execution.** Test files run concurrently across isolated workers. One crash never takes down the rest. Failing files are automatically retried to catch flaky tests.
+**Parallel execution.** Within each tool, files run concurrently across isolated workers; one crash never takes down the rest. Opt in to automatic retries (`run.reruns`) and failing-but-passes-on-retry files get flagged as flaky.
 
-**R and Python side by side.** Multiple tools can coexist in the same project. Scrutin detects each one automatically, runs them concurrently, and merges results into a single view.
+**Any mix of tools, side by side.** Test and data-validation tools auto-detect from marker files (`DESCRIPTION`, `pyproject.toml`, ...) the moment you run scrutin. Linters and spell checkers opt in through a one-line `[[suite]]` entry. Every active tool streams into the same dashboard.
 
 </div>
 
@@ -109,21 +120,21 @@ Every test, lint, and data validation result in a single dashboard. Filter by st
 <div class="screenshot-row three" markdown>
 
 <div class="screenshot-card" markdown>
-[![VS Code](assets/screenshot_editor_vscode.png){ .screenshot }](editors.md)
+[![VS Code](assets/screenshot_editor_vscode.png){ .screenshot }](frontends.md#vs-code)
 
 **VS Code**
 { .screenshot-label }
 </div>
 
 <div class="screenshot-card" markdown>
-[![Positron](assets/screenshot_editor_positron.png){ .screenshot }](editors.md)
+[![Positron](assets/screenshot_editor_positron.png){ .screenshot }](frontends.md#positron)
 
 **Positron**
 { .screenshot-label }
 </div>
 
 <div class="screenshot-card" markdown>
-[![RStudio](assets/screenshot_editor_rstudio.png){ .screenshot }](editors.md)
+[![RStudio](assets/screenshot_editor_rstudio.png){ .screenshot }](frontends.md#rstudio)
 
 **RStudio**
 { .screenshot-label }
@@ -146,7 +157,8 @@ Every test, lint, and data validation result in a single dashboard. Filter by st
     ---
 
     Install a single binary. Works on macOS, Linux, and Windows.
-    Just make sure R or Python are available on your system.
+    Install the underlying R / Python tools you actually use separately,
+    through their own package managers.
 
 -   :material-file-document-outline: **Continuous integration**
 
@@ -159,7 +171,7 @@ Every test, lint, and data validation result in a single dashboard. Filter by st
 
     ---
 
-    Every run is saved to a local DuckDB database. Track flaky tests,
+    Every run is saved to a local SQLite database. Track flaky tests,
     spot regressions, and compare run times across commits.
 
 </div>

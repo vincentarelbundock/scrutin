@@ -47,6 +47,12 @@ pub struct TestSuite {
     /// engine reads this file instead of the embedded default. Set from
     /// `[[suite]].runner` or `[<tool>].runner` in .scrutin/config.toml.
     pub runner_override: Option<PathBuf>,
+    /// True when the caller enumerated an explicit file list (file-mode).
+    /// In that case `owns_test_file` skips the plugin's `is_test_file`
+    /// predicate: the user already chose which files to run, so the
+    /// predicate (which is meant for auto-walked trees) would only drop
+    /// legitimate inputs (e.g. skyspell on `.R`, `.py`, `.rs` sources).
+    pub explicit_files: bool,
 }
 
 impl TestSuite {
@@ -82,6 +88,7 @@ impl TestSuite {
             watch_set,
             worker_hooks,
             runner_override,
+            explicit_files: false,
         })
     }
 
@@ -92,8 +99,14 @@ impl TestSuite {
     /// The glob-match is authoritative for which suite (monorepo routing);
     /// the predicate rejects files that happen to live in the tree but
     /// aren't inputs (e.g. `conftest.py` under a pytest `run = "tests/**/*.py"`).
+    ///
+    /// In file-mode (`explicit_files = true`) the predicate is bypassed
+    /// because the caller already enumerated exactly which files to run.
     pub fn owns_test_file(&self, path: &Path) -> bool {
-        self.plugin.is_test_file(path) && self.run_set.is_match(path)
+        if !self.run_set.is_match(path) {
+            return false;
+        }
+        self.explicit_files || self.plugin.is_test_file(path)
     }
 
     /// Directories to walk when discovering files. Computed as the
@@ -196,6 +209,7 @@ impl Package {
                 watch_set,
                 worker_hooks,
                 runner_override: sc.runner.clone(),
+                explicit_files: false,
             });
         }
 
@@ -256,6 +270,7 @@ impl Package {
                 watch_set,
                 worker_hooks,
                 runner_override,
+                explicit_files: false,
             });
         }
 
@@ -347,6 +362,7 @@ impl Package {
             watch_set,
             worker_hooks: WorkerHookPaths::default(),
             runner_override: None,
+            explicit_files: true,
         };
 
         Ok(Package {

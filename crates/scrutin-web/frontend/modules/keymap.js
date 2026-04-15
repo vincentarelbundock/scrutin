@@ -82,8 +82,8 @@ export const ACTION_HANDLERS = {
   open_sort_menu:           () => toggleSortPalette(),
   cycle_status_filter:      () => cycleStatus(+1),
   cycle_status_filter_back: () => cycleStatus(-1),
-  cycle_suite_filter:       () => cyclePlugin(+1),
-  cycle_suite_filter_back:  () => cyclePlugin(-1),
+  cycle_tool_filter:        () => cyclePlugin(+1),
+  cycle_tool_filter_back:   () => cyclePlugin(-1),
 
   // Actions \u2192 also delegated to the current level handler.
   edit_test:    () => openInEditor(),

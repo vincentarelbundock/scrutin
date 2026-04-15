@@ -27,19 +27,6 @@ export function activate(context: vscode.ExtensionContext): void {
   register("scrutin.start", () => startScrutin(context));
   register("scrutin.stop", stopScrutin);
   register("scrutin.showPanel", () => showPanel(context));
-  register("scrutin.runAll", () => scrutinProcess?.postJson("/api/run"));
-  register("scrutin.rerunFailing", () =>
-    scrutinProcess?.postJson("/api/rerun-failing"),
-  );
-  register("scrutin.cancel", () => scrutinProcess?.postJson("/api/cancel"));
-  register("scrutin.toggleWatch", async () => {
-    const snap = await scrutinProcess?.fetchJson<{ watching: boolean }>(
-      "/api/config",
-    );
-    // Toggle the current watch state.
-    const watching = (snap as Record<string, unknown>)?.["watching"] === true;
-    await scrutinProcess?.postJson("/api/watch", { enabled: !watching });
-  });
 
   // Auto-start if configured.
   const cfg = vscode.workspace.getConfiguration("scrutin");
@@ -89,14 +76,10 @@ async function startScrutin(context: vscode.ExtensionContext): Promise<void> {
     }
   });
 
-  const cfg = vscode.workspace.getConfiguration("scrutin");
-  const watch = cfg.get<boolean>("watchOnStart", true);
-
   try {
     const baseUrl = await scrutinProcess.start(
       binaryPath,
       folder.uri.fsPath,
-      watch,
     );
     if (statusBar) {
       statusBar.text = "$(beaker) scrutin";

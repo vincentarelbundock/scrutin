@@ -35,8 +35,8 @@ impl Plugin for RuffPlugin {
     fn language(&self) -> &'static str {
         "python"
     }
-    fn detect(&self, root: &Path) -> bool {
-        super::has_ruff_config(root)
+    fn detect(&self, _root: &Path) -> bool {
+        false
     }
     fn project_name(&self, root: &Path) -> String {
         py_project_name_or_dir(root)

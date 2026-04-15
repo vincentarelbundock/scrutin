@@ -12,9 +12,9 @@ flowchart TD
     end
 
     E --> P
-    subgraph UI [Frontends]
+    subgraph UI [Outputs]
         direction LR
-        U1[TUI] ~~~ U2[Web] ~~~ U3[IDE] ~~~ U4[Plain] ~~~ U5[GitHub] ~~~ U6[JUnit]
+        U1[TUI] ~~~ U2[Web] ~~~ U3[Editors] ~~~ U4[Plain] ~~~ U5[GitHub] ~~~ U6[JUnit]
     end
 
     P --> UI
@@ -50,7 +50,7 @@ If no mapping is found for a changed file, all test files re-run.
 
 ## Run engine
 
-The run engine is the core of scrutin. It takes a list of test files, partitions them by tool, and runs them through the appropriate plugin. Each tool gets its own pool of worker subprocesses running concurrently. A project with testthat + pytest gets two pools at once. All pools share a single cancel signal, so cancelling a run stops everything.
+The run engine is the core of scrutin. It takes a list of test files, partitions them by tool, and runs them through the appropriate plugin. Each tool gets its own pool of worker subprocesses, but the pools run **sequentially**: one suite's workers come up, process every file assigned to that suite (in parallel up to the pool size), shut down, and the next suite's pool takes its place. Running the pools concurrently would mean paying the interpreter warm-up cost (`pkgload::load_all()`, `import mypkg`, ...) multiple times in parallel, which adds up fast. All pools share a single cancel signal, so cancelling a run stops everything.
 
 The engine communicates with worker subprocesses via NDJSON (newline-delimited JSON). File paths go to the worker on stdin; results come back from the forked child on a loopback TCP socket in fork mode, or on stdout in the non-fork / Windows fallback. Four message types flow back:
 
@@ -63,12 +63,9 @@ Every tool emits the same message format, so the engine and all frontends are to
 
 ### Worker lifecycle
 
-Workers are long-lived processes that keep your project loaded in memory. When a test file needs to run, scrutin sends the file path to an idle worker over stdin.
+Workers are subprocesses that load the language interpreter, run one or more test files, and emit results back to the engine. Startup runs an embedded runner script that loads your project (`pkgload::load_all()` for R, `import` for Python) and waits for file paths on stdin.
 
-- **Startup**: the worker starts the language interpreter, runs an embedded runner script, and loads the project (`pkgload::load_all()` for R, `import` for Python). It then waits for file paths on stdin.
-- **Fork isolation** (opt-in): by default (`fork_workers: false`), workers are killed and respawned after every file. This is the safe choice but pays the project-load cost on every file. Set `fork_workers: true` to keep workers alive and `fork()` a copy-on-write child per file: the project loads once, each child runs the test in an isolated COW clone, and exits. Fork mode is Linux/macOS only and is automatically disabled on Windows.
-
-  **Why fork mode is opt-in**: forking a process that is already multithreaded, or whose test code itself spawns forked workers, can deadlock or crash the child. Common offenders are R's `parallel::mclapply` / `parallel::mcparallel`, Python's `multiprocessing` with the default `fork` start method, and BLAS/OpenMP-backed numerical libraries that hold internal thread pools. POSIX is explicit that only async-signal-safe code is legal between `fork()` and `exec()` in a multithreaded process; most R/Python packages do not respect that, so the safe default is to spawn fresh.
+- **Isolation**: by default every test file runs in a fresh subprocess (slow but bulletproof); an opt-in fork mode keeps one parent loaded and forks a copy-on-write child per file (fast but risky around code that itself forks). See [Parallelism](parallelism.md) for the tradeoffs.
 - **Crashes**: if a worker crashes mid-test, the error is recorded and the worker is automatically replaced. One crash never takes down the rest of the run.
 - **Timeouts**: per-file timeouts are disabled by default. Set `timeout_file_ms` in config to any positive value to kill and replace workers that don't return within that many milliseconds.
 
@@ -89,40 +86,22 @@ A file is considered failing when `failed > 0 || errored > 0`. This determines t
 
 ## Tool plugins
 
-Each tool is compiled into the binary as a plugin. Plugins define how to detect the project, spawn workers, discover test files, and map source files to test files. Multiple plugins can be active simultaneously in the same project.
+Each supported tool is compiled into the binary as a plugin. A plugin knows how to detect the right kind of project, discover files the tool should operate on, launch the tool, and map its output into scrutin's common event format. Multiple plugins can be active in the same run; see [Projects and Files](project-discovery.md) for the full list and for which tools auto-detect versus opt in.
 
-| Plugin | Language | Type | Mode |
-|--------|----------|------|------|
-| testthat | R | Unit testing | Worker |
-| tinytest | R | Unit testing | Worker |
-| pointblank | R | Data validation | Worker |
-| validate | R | Data validation | Worker |
-| jarl | R | Linting | Command |
-| pytest | Python | Unit testing | Worker |
-| ruff | Python | Linting | Command |
-| Great Expectations | Python | Data validation | Worker |
+Plugins come in two flavors:
 
-**Worker mode** plugins use long-lived subprocesses that communicate via NDJSON, as described above.
+- **Interpreter-integrated** (testthat, tinytest, pointblank, validate, pytest, Great Expectations). The test code runs inside a long-lived R or Python subprocess with your package imported, so you get the fastest iteration but the tool and your package must be installed in that interpreter.
+- **Standalone CLI** (jarl, ruff, skyspell, typos). scrutin shells out to the tool's binary per file and parses its output. No interpreter coupling; just put the binary on `PATH`.
 
-**Command mode** plugins (jarl, ruff) run an external CLI tool directly per file and parse the output in Rust. No persistent subprocess is needed. This is appropriate for tools that are fast enough to invoke per file.
+Plugins can expose per-file actions (e.g. jarl / ruff / typos "fix" variants). In the Detail view they render as a numbered chip row under the warning; pressing `1`-`N` invokes the Nth action. Spell-check plugins attach per-warning suggestions to the same chip row, with `0` reserved for "add to dictionary" (skyspell only).
 
-Plugins can define custom actions (e.g., jarl and ruff expose "fix", "fix (unsafe)", "fix all", "fix all (unsafe)"). The Detail view renders these as a numbered chip row under the warning message in both TUI and web; pressing `1`-`N` invokes the Nth action directly. Spell-check plugins (skyspell) attach per-warning `corrections` with ranked suggestions; those render as the same chip row, with `0` reserved for "add to dictionary".
+## Frontends and reporters
 
-## Frontends
-
-The run engine streams results to whichever frontend is active. One frontend per invocation, selected with `--reporter` (`-r`):
-
-- **TUI** (default): interactive terminal UI with file list, test detail, filtering, sorting, and keyboard navigation.
-- **Web**: browser dashboard served on localhost with live updates via server-sent events.
-- **IDE**: VS Code, Positron, and RStudio extensions that embed the web frontend.
-- **Plain**: streaming text output for terminals and CI logs.
-- **GitHub**: GitHub Actions annotations, log groups, and step summary.
-- **JUnit**: XML report file compatible with CI systems that consume JUnit format.
+The run engine streams results to whichever output is active, picked with `-r` / `--reporter`. [Frontends](frontends.md) are interactive (TUI, web dashboard, VS Code / Positron / RStudio embeds); [Reporters](reporters.md) are one-shot outputs for CI and scripting (plain text, JUnit XML, GitHub Actions annotations, list). All of them consume the same event stream from the engine, so adding a new output is a matter of writing one more consumer; none of the tool plugins or the engine have to change.
 
 ## The `.scrutin/` directory
 
 Created automatically in your project root. This directory should be gitignored (`scrutin init` adds it for you).
 
-- **`state.db`**: DuckDB database storing run history and run metadata (git SHA, branch, hostname, CI provider, custom labels). Written via the `duckdb` CLI on a best-effort basis (no CLI = no history). Powers `scrutin stats` for flaky test detection and slow test ranking. Schema migrations drop and recreate tables, so version bumps may reset history.
-- **`depmap.json` / `hashes.json`**: JSON cache for the runtime-traced source-to-test map and the xxhash64 file fingerprints that invalidate it. Written atomically after every run.
+- **`state.db`**: embedded SQLite database (via `rusqlite` with the `bundled` feature, so no external binary is required). Holds run history and run metadata (git SHA, branch, hostname, CI provider, CI build identifiers, custom labels), the source-to-test dependency map, and xxhash64 file fingerprints used to invalidate that map. Powers `scrutin stats` for flaky-test detection and slow-test ranking. See the [History](history.md) page for the full schema. The file is the single source of truth for local caches: delete it for a clean slate.
 - **`runner_*.R` / `runner_*.py`**: embedded runner scripts, written at subprocess startup.

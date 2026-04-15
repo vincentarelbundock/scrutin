@@ -4,6 +4,22 @@ Every scrutin invocation records its outcome to an embedded SQLite database at `
 
 No external binary is required: scrutin links SQLite in via `rusqlite` (with the `bundled` feature), so the DB always works regardless of what's installed on the host.
 
+## Reruns and flaky tests
+
+Set `run.reruns` to re-execute failing files:
+
+```bash
+scrutin --set run.reruns=2
+```
+
+A file that fails and then passes on rerun is marked **flaky**. Flaky results are persisted in the `results` table (via the `retries` column, plus the final `outcome`), surfaced in the plain-mode summary, tagged `scrutin.flaky="true"` in JUnit XML, and queryable via `scrutin stats` (whose flaky-test query is embedded below under [Typical queries](#typical-queries)).
+
+## Run metadata
+
+scrutin records provenance for every run: version, OS, hostname, git SHA, branch, dirty state, CI provider, and CI build identifiers. These values populate the `runs` table (see [Schema](#schema)) and also land in the JUnit `<properties>` block.
+
+Add custom labels with `--set extras.key=value` on the command line, or an `[extras]` section in `.scrutin/config.toml`. Disable provenance capture entirely with `[metadata] enabled = false`.
+
 ## Schema
 
 The DDL below is the authoritative schema, loaded verbatim at startup via `CREATE TABLE IF NOT EXISTS`. The same file lives at `crates/scrutin-core/src/storage/sql/schema.sql` and is embedded into the binary with `include_str!`.

@@ -72,10 +72,7 @@ fn check_run_globs(pkg: &Package) -> Result<()> {
     for suite in &pkg.test_suites {
         let dirs = suite.run_search_dirs();
         let hit = dirs.iter().filter(|d| d.is_dir()).any(|dir| {
-            !crate::analysis::walk::collect_files(dir, |p| {
-                suite.run_set.is_match(p) && suite.plugin.is_test_file(p)
-            })
-            .is_empty()
+            !crate::analysis::walk::collect_files(dir, |p| suite.owns_test_file(p)).is_empty()
         });
         if !hit {
             anyhow::bail!(

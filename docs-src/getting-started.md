@@ -12,7 +12,7 @@ scrutin -r web                   # browser dashboard
 scrutin --set watch.enabled=false  # TUI, one-shot
 ```
 
-If your project uses both R and Python, all suites run concurrently in a single invocation.
+If your project uses both R and Python, scrutin runs every active tool in a single invocation. Within each tool, files run in parallel; across tools, they run one after another so the interpreter only has to warm up once per tool. See [Parallelism](parallelism.md) for the tradeoffs and the opt-in fork mode that removes the warm-up cost.
 
 ## Installation
 
@@ -32,29 +32,43 @@ powershell -ExecutionPolicy Bypass -c "irm https://github.com/vincentarelbundock
 
 ## External tool dependencies
 
-Most tools scrutin wraps ship as their own binaries. Scrutin detects them at startup and refuses to run a suite whose binary is missing (turn this off with `[preflight] command_tools = false` if you know better).
+scrutin orchestrates third-party tools but does not ship them. Follow each tool's own install instructions on its project page:
 
-| Tool | Kind | Install |
-| ---- | ---- | ------- |
-| [testthat](tools/testthat.md), [tinytest](tools/tinytest.md), [pointblank](tools/pointblank.md), [validate](tools/validate.md) | R packages | `install.packages("<name>")` in R |
-| [jarl](tools/jarl.md) | Rust binary | `cargo install jarl` |
-| [pytest](tools/pytest.md) | Python package | `pip install pytest` (or `uv add --dev pytest`) |
-| [Great Expectations](tools/great-expectations.md) | Python package | `pip install great_expectations` |
-| [ruff](tools/ruff.md) | Rust binary | `pip install ruff`, `brew install ruff`, or `cargo install ruff` |
-| [skyspell](tools/skyspell.md) | Rust binary | `cargo install skyspell`; macOS additionally needs `brew install enchant hunspell` |
+| Tool | Kind | Homepage |
+| ---- | ---- | -------- |
+| testthat | R package | <https://testthat.r-lib.org/> |
+| tinytest | R package | <https://cran.r-project.org/package=tinytest> |
+| pointblank | R package | <https://rstudio.github.io/pointblank/> |
+| validate | R package | <https://cran.r-project.org/package=validate> |
+| jarl | Rust binary | <https://github.com/vincentarelbundock/jarl> |
+| pytest | Python package | <https://docs.pytest.org/> |
+| Great Expectations | Python package | <https://greatexpectations.io/> |
+| ruff | Rust binary | <https://docs.astral.sh/ruff/> |
+| skyspell | Rust binary | <https://codeberg.org/your-tools/skyspell> |
+| typos | Rust binary | <https://github.com/crate-ci/typos> |
 
-Worker-mode tools (testthat, tinytest, pytest, ...) are imported by scrutin's runner subprocess and must be resolvable in the worker's language environment. Command-mode tools (jarl, ruff, skyspell) just need to be on `PATH`.
+Test and data-validation tools (testthat, tinytest, pointblank, validate, pytest, Great Expectations) run inside an R or Python interpreter, so they must be installed as importable packages in the language environment scrutin uses for that suite (the active R library, or the suite's resolved Python virtualenv). Linters and spell checkers (jarl, ruff, skyspell, typos) are standalone binaries: just put them on `PATH`.
+
+scrutin checks for the required binaries at startup and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Turn that preflight off with `[preflight] command_tools = false` if you have a reason to bypass it.
 
 ## Supported tools
 
-Scrutin supports the following tools. Each tool page includes a minimal example with directory structure and configuration. All matching tools activate automatically. See [Project Discovery](project-discovery.md) for the detection rules.
+Each tool page includes a minimal example with directory structure and configuration. Test and data-validation tools activate automatically when their marker files are present; linters and spell checkers are opt-in via an explicit `[[suite]]` entry. See [Projects and Files](project-discovery.md) for the detection rules.
 
-| Language | Unit tests | Data validation | Linter | Spell check |
-| -------- | ---------- | --------------- | ------ | ----------- |
-| R        | [testthat](tools/testthat.md), [tinytest](tools/tinytest.md) | [pointblank](tools/pointblank.md), [validate](tools/validate.md) | [jarl](tools/jarl.md) | [skyspell](tools/skyspell.md) |
-| Python   | [pytest](tools/pytest.md) | [Great Expectations](tools/great-expectations.md) | [ruff](tools/ruff.md) | [skyspell](tools/skyspell.md) |
+| Tool | Language | Category | Auto-detect |
+| ---- | -------- | -------- | :---------: |
+| [testthat](tools/testthat.md) | R | Unit tests | yes |
+| [tinytest](tools/tinytest.md) | R | Unit tests | yes |
+| [pointblank](tools/pointblank.md) | R | Data validation | yes |
+| [validate](tools/validate.md) | R | Data validation | yes |
+| [pytest](tools/pytest.md) | Python | Unit tests | yes |
+| [Great Expectations](tools/great-expectations.md) | Python | Data validation | yes |
+| [jarl](tools/jarl.md) | R | Linter | opt-in |
+| [ruff](tools/ruff.md) | Python | Linter | opt-in |
+| [skyspell](tools/skyspell.md) | Prose | Spell check | opt-in |
+| [typos](tools/typos.md) | Any | Spell check | opt-in |
 
-To restrict to one tool: `--set run.tool=testthat`.
+To restrict to one tool: `scrutin --tool testthat` (short form `-t`).
 
 ## Quick setup
 

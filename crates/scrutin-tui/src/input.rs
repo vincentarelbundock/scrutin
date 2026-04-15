@@ -446,12 +446,12 @@ fn apply_action(
             st.nav.file_cursor = 0;
             st.nav.file_scroll = 0;
         }
-        CycleSuiteFilter => {
+        CycleToolFilter => {
             st.filter.suite.cycle_next();
             st.nav.file_cursor = 0;
             st.nav.file_scroll = 0;
         }
-        CycleSuiteFilterBack => {
+        CycleToolFilterBack => {
             st.filter.suite.cycle_prev();
             st.nav.file_cursor = 0;
             st.nav.file_scroll = 0;

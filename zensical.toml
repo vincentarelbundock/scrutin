@@ -10,34 +10,38 @@ extra_css = ["stylesheets/home.css"]
 nav = [
   {"Home" = "index.md"},
   {"Getting Started" = "getting-started.md"},
-  {"Project Discovery" = "project-discovery.md"},
-  {"Unit tests" = [
-    {"R: testthat" = "tools/testthat.md"},
-    {"R: tinytest" = "tools/tinytest.md"},
-    {"Python: pytest" = "tools/pytest.md"},
+  {"Projects and Files" = "project-discovery.md"},
+{"Tools" = [
+  {"Unit Tests" = [
+    {"testthat (R)" = "tools/testthat.md"},
+    {"tinytest (R)" = "tools/tinytest.md"},
+    {"pytest (Python)" = "tools/pytest.md"},
   ]},
-  {"Data validation" = [
-    {"R: pointblank" = "tools/pointblank.md"},
-    {"R: validate" = "tools/validate.md"},
-    {"Python: Great Expectations" = "tools/great-expectations.md"},
+  {"Data Validation" = [
+    {"pointblank (R)" = "tools/pointblank.md"},
+    {"validate (R)" = "tools/validate.md"},
+    {"Great Expectations (Python)" = "tools/great-expectations.md"},
   ]},
   {"Linters" = [
-    {"R: jarl" = "tools/jarl.md"},
-    {"Python: ruff" = "tools/ruff.md"},
+    {"jarl (R)" = "tools/jarl.md"},
+    {"ruff (Python)" = "tools/ruff.md"},
   ]},
-  {"Spell check" = [
+  {"Spell Check" = [
     {"skyspell" = "tools/skyspell.md"},
+    {"typos" = "tools/typos.md"},
+  ]},
   ]},
   {"Frontends" = "frontends.md"},
-  {"Editors" = "editors.md"},
-  {"Watch Mode" = "watch-mode.md"},
-  {"Filtering" = "filtering.md"},
+  {"Reporters" = "reporters.md"},
+  {"Watch" = "watch-mode.md"},
+  {"Parallelism" = "parallelism.md"},
+  {"Filter" = "filtering.md"},
   {"Keybindings" = "keybindings.md"},
-  {"How It Works" = "internals.md"},
   {"History" = "history.md"},
   {"Configuration" = "reference/configuration.md"},
   {"Command-Line" = "reference/cli.md"},
   {"Roadmap" = "roadmap.md"},
+  {"How It Works" = "internals.md"},
 ]
 
 [project.theme]

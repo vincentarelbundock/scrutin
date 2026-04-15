@@ -1,4 +1,4 @@
-.PHONY: help install demo tinytable watch depmap web sync-webview vscode positron rstudio editors docs docs-serve revert stage-docs release version bump
+.PHONY: help install demo tinytable watch depmap web sync-webview vscode positron rstudio editors docs docs-serve inject-docs revert release version bump
 
 .DEFAULT_GOAL := help
 
@@ -113,38 +113,39 @@ editors: vscode positron rstudio ## Install all editor extensions (VS Code + Pos
 # ==============================================================================
 # Documentation
 #
-# docs-src/ is the lean source tree. Before zensical runs we:
-#   1. Regenerate the CLI + config template via `scrutin generate-docs`.
-#   2. Materialize a staged copy of docs-src at target/staged-docs-src/,
-#      then inject the rendered TOML between the <!-- BEGIN/END
-#      init_template.toml --> markers in the staged configuration.md.
-#   3. Rewrite zensical.toml into target/staged-zensical.toml pointing
-#      at the staged tree, and run zensical against that.
-# The working tree's docs-src/ is never mutated by the build.
+# Three pages are generated from inputs outside docs-src/ and are gitignored:
+#
+#   docs-src/reference/cli.md           <- target/docs/cli-reference.md
+#                                          (from `cargo run -- generate-docs`)
+#   docs-src/reference/configuration.md <- docs-src/reference/configuration.md.in
+#                                          + target/docs/configuration-template.toml
+#   docs-src/history.md                 <- docs-src/history.md.in
+#                                          + crates/scrutin-core/src/storage/sql/*.sql
+#
+# `make inject-docs` regenerates all three in place. Both `docs` and
+# `docs-serve` depend on it. `docs-serve` then runs `zensical serve` directly
+# on docs-src/ so live-reload picks up every edit instantly. Edits to the
+# *.md.in templates or cargo-produced inputs require re-running
+# `make inject-docs` to refresh the generated pages.
 # ==============================================================================
 
-STAGED_DOCS     := target/staged-docs-src
-# Placed at the repo root (not under target/) because zensical resolves
-# docs_dir and site_dir relative to the config file and rejects "..".
-STAGED_ZENSICAL := .zensical-staged.toml
 CONFIG_TEMPLATE := target/docs/configuration-template.toml
-CONFIG_MD       := $(STAGED_DOCS)/reference/configuration.md
-CLI_MD          := $(STAGED_DOCS)/reference/cli.md
-HISTORY_MD      := $(STAGED_DOCS)/history.md
+CLI_SRC         := target/docs/cli-reference.md
+CONFIG_MD       := docs-src/reference/configuration.md
+CONFIG_IN       := $(CONFIG_MD).in
+CLI_MD          := docs-src/reference/cli.md
+HISTORY_MD      := docs-src/history.md
+HISTORY_IN      := $(HISTORY_MD).in
 SQL_DIR         := crates/scrutin-core/src/storage/sql
 
-stage-docs: ## Stage docs-src/ with injected CLI/config/SQL into target/
+inject-docs: ## Regenerate injected docs pages (CLI / config / SQL schema) in docs-src/
 	cargo run --features generate-docs -- generate-docs target/docs
-	rm -rf $(STAGED_DOCS)
-	cp -R docs-src $(STAGED_DOCS)
-	cp target/docs/cli-reference.md $(CLI_MD)
-	sed 's/^# Command-Line Help for .*/# Command-Line/; s/—/: /g; s/–/-/g; s/:  /: /g' $(CLI_MD) > $(CLI_MD).tmp
-	mv $(CLI_MD).tmp $(CLI_MD)
+	sed 's/^# Command-Line Help for .*/# Command-Line/; s/—/: /g; s/–/-/g; s/:  /: /g' $(CLI_SRC) > $(CLI_MD)
 	@awk 'BEGIN{s=0} \
 	/^<!-- BEGIN init_template.toml -->/{print; print "```toml"; while((getline l < "$(CONFIG_TEMPLATE)") > 0) print l; print "```"; s=1; next} \
 	/^<!-- END init_template.toml -->/{s=0} \
-	!s' $(CONFIG_MD) > $(CONFIG_MD).tmp
-	@mv $(CONFIG_MD).tmp $(CONFIG_MD)
+	!s' $(CONFIG_IN) > $(CONFIG_MD)
+	@cp $(HISTORY_IN) $(HISTORY_MD)
 	@for f in $(SQL_DIR)/*.sql; do \
 	    name=$$(basename $$f); \
 	    awk -v path="$$f" -v name="$$name" ' \
@@ -153,11 +154,11 @@ stage-docs: ## Stage docs-src/ with injected CLI/config/SQL into target/
 	        $$0 ~ endre { skip=0 } \
 	        !skip { print }' $(HISTORY_MD) > $(HISTORY_MD).tmp && mv $(HISTORY_MD).tmp $(HISTORY_MD); \
 	done
-	sed 's|docs_dir = "docs-src"|docs_dir = "$(STAGED_DOCS)"|' zensical.toml > $(STAGED_ZENSICAL)
 
-docs: stage-docs ## Build the documentation site
-	uv run zensical build -f $(STAGED_ZENSICAL)
+docs: inject-docs ## Build the static documentation site
+	uv run zensical build
+	@# zensical copies *.md.in templates into the output verbatim; strip them.
+	@find docs -name '*.md.in' -delete
 
-docs-serve: stage-docs ## Serve the documentation site locally
-	uv run zensical serve -f $(STAGED_ZENSICAL)
+docs-serve: inject-docs ## Serve docs-src/ with live-reload on edits
 	uv run zensical serve

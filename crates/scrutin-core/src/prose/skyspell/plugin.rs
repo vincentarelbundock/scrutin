@@ -33,8 +33,8 @@ impl Plugin for SkyspellPlugin {
     fn language(&self) -> &'static str {
         "prose"
     }
-    fn detect(&self, root: &Path) -> bool {
-        root.join(super::MARKER).is_file()
+    fn detect(&self, _root: &Path) -> bool {
+        false
     }
     fn project_name(&self, root: &Path) -> String {
         root.file_name()

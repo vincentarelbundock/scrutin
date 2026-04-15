@@ -1,4 +1,4 @@
-# Test Filtering
+# Filter
 
 Filtering controls which test files are included in a run. All glob patterns match against test file **basenames** (not full paths) and are evaluated before files are dispatched to a worker.
 
@@ -49,7 +49,7 @@ Selecting any group **replaces** the top-level `[filter]` include/exclude/tools 
 
 Press `/` to open the filter palette. The file list narrows as you type. Enter confirms, Esc cancels. The TUI filter is session-only and stacks with any `[filter]` rules from config.
 
-`t` / `T` cycles the status filter (all → failures → errors → passes → ...). `p` / `P` cycles the suite filter when a project has more than one tool.
+`o` / `O` cycles the status filter (all → failures → errors → passes → running → ...). `t` / `T` cycles the tool filter when a project has more than one tool.
 
 ## Interaction with dependency tracking
 

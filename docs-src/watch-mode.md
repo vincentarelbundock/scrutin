@@ -1,4 +1,4 @@
-# Watch Mode
+# Watch
 
 In watch mode, scrutin monitors your project and re-runs affected tests every time you save a file. It's on by default in the TUI and web: just run `scrutin` and start editing. Set `watch.enabled = false` in `.scrutin/config.toml` (or pass `--set watch.enabled=false`) to opt out. The plain, GitHub, JUnit, and list reporters are always one-shot regardless.
 
@@ -14,9 +14,9 @@ In watch mode, scrutin monitors your project and re-runs affected tests every ti
 
 Scrutin doesn't re-run your entire test suite on every change. It tracks which test files depend on which source files.
 
-**R**: Runtime instrumentation. On the first watch run (or when source / test files have changed since the last build), scrutin instruments every function in the package namespace, runs each test file, and records which functions were called. The map is cached as JSON under `.scrutin/` and invalidated when file contents change. Multi-suite aware: editing `R/math.R` correctly invalidates test files under both `tests/testthat/` and `inst/tinytest/`.
+**R**: Runtime instrumentation. On the first watch run (or when source / test files have changed since the last build), scrutin instruments every function in the package namespace, runs each test file, and records which functions were called. The map is persisted in SQLite (`.scrutin/state.db`, tables `dependencies` and `hashes`) and invalidated when file contents change. Multi-suite aware: editing `R/math.R` correctly invalidates test files under both `tests/testthat/` and `inst/tinytest/`.
 
-**Python**: Static import analysis. Source and test files are scanned by a line-based Rust parser (`scrutin_core::python::imports`) for `import` and `from ... import` statements, building an inverted index from source modules to test files. Python dep analysis is rebuilt each invocation.
+**Python**: Static import analysis. scrutin scans every `.py` file for `import` and `from ... import` statements and inverts the graph into a "source module → test files" index. Transitive: if `test_x.py` imports `helpers.py` which imports `core.py`, editing `core.py` triggers `test_x.py`. Dynamic imports (`importlib.import_module`) are missed; unresolved edits fall back to the filename heuristic or a full suite re-run. The Python index is rebuilt from scratch on every invocation (cheap enough that caching isn't worth the staleness risk).
 
 **Fallback**: When no mapping exists for a changed file, all test files re-run.
 
@@ -32,10 +32,4 @@ debounce_ms = 50
 ignore = [".git", "*.Rhistory", "renv/"]
 ```
 
-## Worker pool
-
-Scrutin keeps warm subprocesses with your project pre-loaded, so re-runs start instantly. The default pool size is `min(available_parallelism, 8)` with a minimum of 2. Each tool gets its own pool.
-
-By default (`[run] fork_workers = false`), workers are killed and respawned after every file. Crashed workers are replaced automatically. On Linux/macOS you can opt into `fork_workers = true`: each suite then keeps one long-lived parent that `fork()`s a copy-on-write child per test file, giving fast startup and full process isolation.
-
-Fork mode is dangerous when the code under test forks on its own: R's `parallel::mclapply` / `mcparallel`, Python's `multiprocessing` with the default `fork` start method, and any BLAS/OpenMP-threaded numerical library can deadlock or crash the child when forked from an already-multithreaded parent. Leave `fork_workers = false` unless you know none of your tests (or their dependencies) do that. Fork mode is auto-forced off on Windows.
+See [Parallelism](parallelism.md) for how scrutin schedules workers across suites, and the safe-spawn vs. fast-fork tradeoff.

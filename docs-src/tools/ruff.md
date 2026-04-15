@@ -1,12 +1,14 @@
 # ruff
 
-A fast Python linter written in Rust. Like [jarl](jarl.md) for R, ruff is not a test framework: lint diagnostics map to `warn` events, clean files produce a synthetic `pass`, and lint issues appear alongside test results in the TUI and web dashboard. Scrutin auto-detects ruff when a ruff configuration marker is present (`ruff.toml`, `.ruff.toml`, or a `[tool.ruff]` section in `pyproject.toml`).
+A fast Python linter written in Rust. Like [jarl](jarl.md) for R, ruff is not a test framework: lint diagnostics map to `warn` events, clean files produce a synthetic `pass`, and lint issues appear alongside test results in the TUI and web dashboard. ruff is opt-in: enable it with an explicit `[[suite]] tool = "ruff"` entry in `.scrutin/config.toml`, or pass files on the command line with `-t ruff` in [file mode](../project-discovery.md#file-mode).
 
 ## Directory structure
 
 ```
 myproject/
-├── pyproject.toml
+├── .scrutin/
+│   └── config.toml     # [[suite]] tool = "ruff"
+├── pyproject.toml      # optional: ruff's own config under [tool.ruff]
 └── src/
     └── myproject/
         ├── __init__.py
@@ -15,18 +17,23 @@ myproject/
 
 ## Minimal example
 
-**pyproject.toml**
+**.scrutin/config.toml**
 
 ```toml
-[project]
-name = "myproject"
-version = "0.1.0"
+[[suite]]
+tool = "ruff"
+```
 
+**pyproject.toml** (optional)
+
+`pyproject.toml`'s `[tool.ruff]` section, or a standalone `ruff.toml` / `.ruff.toml` at the suite root, is read by ruff itself (not by scrutin) to tune rules:
+
+```toml
 [tool.ruff]
 line-length = 88
 ```
 
-The `[tool.ruff]` section is enough to opt in. Alternatively, place a `ruff.toml` or `.ruff.toml` at the project root.
+Omit it to use ruff's built-in defaults.
 
 **src/myproject/utils.py**
 
@@ -45,7 +52,7 @@ scrutin myproject              # TUI
 scrutin -r plain myproject     # text output
 ```
 
-ruff runs concurrently alongside any test tools in the same project. It uses command mode (calling `ruff check --output-format json` directly), so no Python subprocess is needed.
+ruff runs as its own suite alongside any other suites you've declared; suites run one at a time, but within the ruff suite every matched file is linted in parallel. It uses command mode (calling `ruff check --output-format json` directly), so no Python subprocess is needed.
 
 ## Plugin actions
 
@@ -58,11 +65,11 @@ In the Detail view, ruff warnings show a numbered chip row of fix actions. Press
 | `3` | Ruff: fix all (suite) |
 | `4` | Ruff: fix all (suite, unsafe) |
 
-Both invoke `ruff check --fix` once with every matching file (after include / exclude filters) as trailing arguments. After a fix, the affected files are re-linted automatically.
+All four invoke `ruff check --fix` once with every matching file (after include / exclude filters) as trailing arguments. After a fix, the affected files are re-linted automatically.
 
 ## Configuration
 
-No scrutin-specific configuration is required beyond the ruff config marker. ruff's own configuration (`ruff.toml`, `.ruff.toml`, or `[tool.ruff]` in `pyproject.toml`) controls which rules are enabled, excluded paths, and other linter settings.
+The minimal suite entry is just `tool = "ruff"`. ruff's own configuration (`ruff.toml`, `.ruff.toml`, or `[tool.ruff]` in `pyproject.toml`) controls which rules are enabled, excluded paths, and other linter settings; scrutin doesn't interpret it.
 
 To override the default suite in `.scrutin/config.toml`:
 

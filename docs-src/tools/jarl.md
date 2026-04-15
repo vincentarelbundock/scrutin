@@ -1,13 +1,15 @@
 # jarl
 
-An R linter that scrutin can drive as a plugin. Unlike test tools, jarl checks code style rather than correctness. It maps lint diagnostics to `warn` events, so lint issues appear alongside test results in the TUI and web dashboard. Scrutin auto-detects jarl when a `jarl.toml` file, a `DESCRIPTION` file, and an `R/` directory are all present.
+An R linter that scrutin can drive as a plugin. Unlike test tools, jarl checks code style rather than correctness. It maps lint diagnostics to `warn` events, so lint issues appear alongside test results in the TUI and web dashboard. jarl is opt-in: enable it with an explicit `[[suite]] tool = "jarl"` entry in `.scrutin/config.toml`, or pass files on the command line with `-t jarl` in [file mode](../project-discovery.md#file-mode).
 
 ## Directory structure
 
 ```
 mypackage/
+├── .scrutin/
+│   └── config.toml    # [[suite]] tool = "jarl"
 ├── DESCRIPTION
-├── jarl.toml
+├── jarl.toml          # optional: jarl's own config (rules, per-check knobs)
 └── R/
     ├── math.R
     └── strings.R
@@ -15,9 +17,16 @@ mypackage/
 
 ## Minimal example
 
-**jarl.toml**
+**.scrutin/config.toml**
 
-An empty file is enough to opt in. jarl uses its built-in rule set by default.
+```toml
+[[suite]]
+tool = "jarl"
+```
+
+**jarl.toml** (optional)
+
+`jarl.toml` is read by jarl itself (not by scrutin) if you want to tune rules. Omit it to use jarl's built-in defaults.
 
 **R/math.R**
 
@@ -35,7 +44,7 @@ scrutin mypackage              # TUI
 scrutin -r plain mypackage     # text output
 ```
 
-jarl runs concurrently alongside any test tools in the same project.
+jarl runs as its own suite alongside any other suites you've declared; suites run one at a time, but within the jarl suite every matched file is linted in parallel.
 
 ## Plugin actions
 
@@ -48,11 +57,11 @@ Enter the Detail view for a jarl warning to see a numbered chip row of fix actio
 | `3` | Jarl: fix all (suite) |
 | `4` | Jarl: fix all (suite, unsafe) |
 
-Both invoke `jarl` once with every matching file (after include / exclude filters) as trailing arguments. After a fix, the affected files are re-linted automatically.
+All four invoke `jarl` once with every matching file (after include / exclude filters) as trailing arguments. After a fix, the affected files are re-linted automatically.
 
 ## Configuration
 
-No configuration is required beyond the `jarl.toml` marker file. To override defaults in `.scrutin/config.toml`:
+The minimal suite entry is just `tool = "jarl"`. Override defaults on the same block:
 
 ```toml
 [[suite]]

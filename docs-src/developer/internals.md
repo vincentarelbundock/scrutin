@@ -143,7 +143,7 @@ Multi-suite aware: each R suite (testthat *and* tinytest) emits its own `deps` m
 
 There is no standalone dep-map build step and no `scrutin-dependency-map.R` script. A previous tree-sitter-based static analyzer (`r/parse.rs`) has been removed in favor of this runtime approach.
 
-**Storage**: persisted via `storage/json_cache.rs` under `.scrutin/`. Loaded into an in-memory `HashMap<PathBuf, Vec<PathBuf>>` on startup and updated after every test run that reports new edges.
+**Storage**: persisted in `.scrutin/state.db` (SQLite, `storage/sqlite.rs`) in the `dependencies` table. Loaded into an in-memory `HashMap<PathBuf, Vec<PathBuf>>` on startup and updated after every test run that reports new edges.
 
 **Cache invalidation**: files are hashed with xxhash64. On change, only the changed file is re-hashed; hash mismatch marks its entries as stale so the next run repopulates them.
 
@@ -337,25 +337,21 @@ For an R **worker-mode** tool, drop a `runner_<name>.R` next to the existing one
 
 ## Persistent Storage
 
-Two stores, both under `.scrutin/` and gitignored.
+One store: `.scrutin/state.db`, an embedded SQLite database via `rusqlite` with the `bundled` feature (`storage/sqlite.rs`). No external binary is required, so writes always succeed. Any legacy JSON artifacts (`depmap.json`, `hashes.json`) left over from earlier builds are cleaned up on open.
 
-**DuckDB run history** (`.scrutin/state.db`) via the `duckdb` CLI (`storage/duckdb_cli.rs`):
+Tables in the DB:
 
-- **Run history**: every test event from every run, with outcome, duration, git SHA, and optional metrics.
-- **Run metadata**: key-value provenance and user labels per run.
+- **`runs`**: one row per invocation with provenance (git SHA, branch, dirty state, hostname, CI provider, CI build identifiers, OS, scrutin version).
+- **`results`**: one row per `(run, file, subject)` with outcome, duration, retry count, tool, tool version, and data-validation expectation counts.
+- **`extras`**: key/value labels from `[extras]` / `--set extras.KEY=VALUE`.
+- **`dependencies`**: source-to-test edges for watch mode (no `run_id`: project-wide cache, not per-run state).
+- **`hashes`**: per-file xxhash64 fingerprints for dep-map staleness detection.
 
-Writes are best-effort: if the `duckdb` binary is not on PATH, history is silently skipped. Schema migration policy: drop and recreate on version mismatch (acceptable for pre-release; users lose history on schema bumps).
-
-**JSON dep-map cache** (`storage/json_cache.rs`):
-
-- **`depmap.json`**: `source_file → [test_files]` edges accumulated from runtime `deps` messages.
-- **`hashes.json`**: per-file xxhash64 fingerprints for staleness detection.
-
-Both files are rewritten atomically (write to `.tmp`, rename) after every run.
+Schema migration policy: drop and recreate on version mismatch (acceptable for pre-release; users lose history on schema bumps). The authoritative DDL lives at `crates/scrutin-core/src/storage/sql/schema.sql` and is embedded via `include_str!`.
 
 Key queries powered by the DB:
 
-- `scrutin stats`: flaky test detection (alternating pass/fail in recent history), slow test ranking.
-- `--failed-first`: last-run failures from `test_runs`.
+- `scrutin stats`: flaky-test detection (alternating pass/fail in recent history via `results.retries` and `results.outcome`), slow-test ranking via `AVG(duration_ms)`.
+- `--failed-first`: last-run failures from `results`.
 
-Dep-map load/store goes through `json_cache::{load_dep_map, store_dep_map}`, not the DB.
+See the user-facing [History](../history.md) page for the full schema with column sources.

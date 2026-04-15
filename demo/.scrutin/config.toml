@@ -1,0 +1,29 @@
+# scrutin config for the demo project.
+#
+# testthat + tinytest + pytest still auto-detect from their marker files
+# (DESCRIPTION + tests/testthat/, DESCRIPTION + inst/tinytest/,
+# pyproject.toml + tests/). jarl, ruff, and skyspell are opt-in, so we
+# declare them here to keep the demo exercising all six tools as the
+# canonical multi-suite smoke test.
+#
+# Declaring any [[suite]] skips auto-detection entirely, so we also
+# re-declare the three test-runner suites that would otherwise be
+# picked up automatically.
+
+[[suite]]
+tool = "testthat"
+
+[[suite]]
+tool = "tinytest"
+
+[[suite]]
+tool = "pytest"
+
+[[suite]]
+tool = "jarl"
+
+[[suite]]
+tool = "ruff"
+
+[[suite]]
+tool = "skyspell"

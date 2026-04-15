@@ -1,12 +1,21 @@
 # Reporters
 
-Scrutin supports several output modes, selected with `-r` / `--reporter`. It defaults to `tui` when stderr is a tty, and `plain` otherwise.
+Reporters are one-shot outputs meant for CI and scripting. They run through your test files once, emit a structured result, and exit: no watch mode, no interactive drill-in. Pick one with `-r` / `--reporter`:
 
-Available reporters: `tui`, `plain`, `github`, `web[:ADDR]`, `junit:PATH`, `list`.
+```bash
+scrutin -r plain                 # compact text summary
+scrutin -r junit:report.xml      # JUnit XML + plain text
+scrutin -r github                # GitHub Actions annotations + step summary
+scrutin -r list                  # list matching files, no execution
+```
+
+Exit code is 0 when every file passes and 1 when any file fails, so reporters slot cleanly into shell pipelines and CI gates.
+
+For live, interactive views of a run (terminal UI, browser dashboard, editor panels), see [Frontends](frontends.md).
 
 ## Plain
 
-A compact text summary, suitable for CI and scripting. Exit code is 0 if all pass, 1 if any fail.
+A compact text summary, suitable for CI and scripting.
 
 ```bash
 scrutin -r plain
@@ -25,31 +34,6 @@ scrutin -r plain
 7 passed  1 failed  0 skipped  ∷  143ms
 ```
 
-Plain mode is one-shot. Use the TUI (the default) for live watch-mode feedback at the terminal.
-
-## Web dashboard
-
-A browser-based dashboard with live updates. The frontend is embedded in the binary: no Node.js or build step required.
-
-```bash
-scrutin -r web                   # binds to 127.0.0.1:7878
-scrutin -r web:0.0.0.0:3000     # custom address
-```
-
-The dashboard uses server-sent events to stream results as they arrive. It binds to localhost only by default.
-
-The same dashboard is available inside [VS Code, Positron, and RStudio](editors.md) through editor extensions.
-
-## GitHub Actions
-
-Emits `::group::` / `::endgroup::` blocks per file, `::error` and `::warning` annotations that surface inline on pull requests, and a Markdown summary written to `$GITHUB_STEP_SUMMARY`.
-
-```bash
-scrutin -r github
-```
-
-Single-shot: no watch loop, no reruns.
-
 ## JUnit XML
 
 Writes a JUnit XML report alongside plain text output. Useful for CI platforms that parse JUnit results.
@@ -60,6 +44,17 @@ scrutin -r junit:report.xml
 
 The report includes run metadata in `<properties>` and marks flaky tests.
 
+## GitHub Actions
+
+Purpose-built for GitHub Actions CI runs. Streams `::group::` / `::endgroup::` markers per file so the job log has collapsible sections, emits `::error` and `::warning` workflow commands so failures and lint warnings appear as inline annotations on the pull request, and writes a Markdown summary (a pass/fail/error table plus the full failure messages) to `$GITHUB_STEP_SUMMARY` so it renders on the job summary page.
+
+```yaml
+- name: Run tests
+  run: scrutin -r github
+```
+
+Falls back gracefully on non-GitHub runners: the annotations are just echoed into stdout, and the summary write is skipped when the env var is missing.
+
 ## List
 
 Lists the test files that would run without actually running them. Useful for verifying filter patterns.
@@ -67,19 +62,3 @@ Lists the test files that would run without actually running them. Useful for ve
 ```bash
 scrutin -r list
 ```
-
-## Flaky test detection
-
-Set `run.reruns` to re-execute failing files:
-
-```bash
-scrutin --set run.reruns=2
-```
-
-A file that fails and then passes on rerun is marked **flaky**. Flaky results appear in the plain-mode summary, JUnit XML (`scrutin.flaky="true"`), and `scrutin stats` output.
-
-## Run metadata
-
-Scrutin records provenance for every run: version, OS, hostname, git SHA, branch, dirty state, and CI provider. This is written to JUnit XML and the local DuckDB history database.
-
-Add custom labels with `--set metadata.extra.key=value`. Disable provenance capture with `[metadata] enabled = false` in `.scrutin/config.toml`.

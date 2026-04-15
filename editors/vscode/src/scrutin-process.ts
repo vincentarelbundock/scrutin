@@ -20,18 +20,13 @@ export class ScrutinProcess {
   async start(
     binaryPath: string,
     projectRoot: string,
-    watch: boolean,
   ): Promise<string> {
     if (this.running) {
       return this._baseUrl!;
     }
 
     const port = await findFreePort();
-    const args = ["-r", `web:127.0.0.1:${port}`, "--no-open"];
-    if (watch) {
-      args.push("-w");
-    }
-    args.push(projectRoot);
+    const args = ["-r", `web:127.0.0.1:${port}`, "--no-open", projectRoot];
 
     this.child = spawn(binaryPath, args, {
       stdio: ["ignore", "pipe", "pipe"],
@@ -90,49 +85,6 @@ export class ScrutinProcess {
         const detail = tail ? `: ${tail}` : "";
         reject(new Error(`scrutin exited with code ${code} before ready${detail}`));
       });
-    });
-  }
-
-  /** Fetch JSON from the scrutin API. */
-  async fetchJson<T>(path: string): Promise<T | null> {
-    if (!this._baseUrl) return null;
-    const url = `${this._baseUrl}${path}`;
-    return new Promise((resolve) => {
-      http.get(url, (res) => {
-        let body = "";
-        res.on("data", (c: Buffer) => (body += c.toString()));
-        res.on("end", () => {
-          try {
-            resolve(JSON.parse(body));
-          } catch {
-            resolve(null);
-          }
-        });
-      }).on("error", () => resolve(null));
-    });
-  }
-
-  /** POST JSON to the scrutin API. */
-  async postJson(path: string, data?: unknown): Promise<void> {
-    if (!this._baseUrl) return;
-    const url = new URL(path, this._baseUrl);
-    const payload = data ? JSON.stringify(data) : undefined;
-    return new Promise((resolve) => {
-      const req = http.request(
-        {
-          hostname: url.hostname,
-          port: url.port,
-          path: url.pathname,
-          method: "POST",
-          headers: payload
-            ? { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(payload) }
-            : {},
-        },
-        () => resolve(),
-      );
-      req.on("error", () => resolve());
-      if (payload) req.write(payload);
-      req.end();
     });
   }
 

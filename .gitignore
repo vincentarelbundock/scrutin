@@ -16,7 +16,10 @@ __pycache__/
 # Zensical build output is committed in docs/ for GitHub Pages
 uv.lock
 
-# Staged zensical config written by `make stage-docs` (docs_dir remapped
-# to target/staged-docs-src). Lives at the repo root because zensical
-# rejects ".." in docs_dir / site_dir.
-.zensical-staged.toml
+# Docs pages generated from templates + cargo-emitted inputs by
+# `make inject-docs`. Source of truth is the *.md.in template (for
+# configuration.md and history.md) or target/docs/cli-reference.md
+# (for cli.md), produced by `cargo run --features generate-docs`.
+docs-src/reference/cli.md
+docs-src/reference/configuration.md
+docs-src/history.md
