@@ -1,14 +1,59 @@
 name: Release VS Code Extension
+
+# Triggered after the cargo-dist "Release" workflow completes, so the
+# GitHub Release (which we upload VSIXs to) already exists. This removes
+# the race between this workflow and release.yml creating the release.
+#
+# On workflow_run:
+#   - github.ref is refs/heads/<default-branch> (not the tag)
+#   - github.sha is the default branch HEAD (not the tagged commit)
+# So every job checks out using the triggering workflow's head_sha and
+# reads the tag name from `git tag --points-at HEAD`.
 on:
-  push:
-    tags: ['**[0-9]+.[0-9]+.[0-9]+*']
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  # Resolve the tag from the triggering workflow's commit. Skip if that
+  # commit has no tag (e.g. cargo-dist workflow ran on a PR) or if the
+  # triggering workflow failed.
+  gate:
+    runs-on: ubuntu-22.04
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      sha: ${{ steps.resolve.outputs.sha }}
+      proceed: ${{ steps.resolve.outputs.proceed }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+      - id: resolve
+        shell: bash
+        run: |
+          SHA=$(git rev-parse HEAD)
+          TAG=$(git tag --points-at HEAD | head -1)
+          if [ -z "$TAG" ]; then
+            echo "No tag at $SHA; skipping."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Tag: $TAG at $SHA"
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -21,6 +66,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.gate.outputs.sha }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.rust }}
@@ -62,9 +109,13 @@ jobs:
           path: editors/vscode/dist/*.vsix
 
   build-universal:
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.gate.outputs.sha }}
       - uses: actions/setup-node@v6
         with:
           node-version: '20'
@@ -81,11 +132,13 @@ jobs:
           path: editors/vscode/dist/*.vsix
 
   publish:
-    needs: [build, build-universal]
-    if: startsWith(github.ref, 'refs/tags/')
+    needs: [gate, build, build-universal]
+    if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.gate.outputs.sha }}
       - uses: actions/setup-node@v6
         with:
           node-version: '20'
@@ -106,7 +159,9 @@ jobs:
             exit 0
           fi
           for v in editors/vscode/dist/*.vsix; do
-            npx --prefix editors/vscode vsce publish --no-dependencies --packagePath "$v" -p "$VSCE_PAT"
+            if ! npx --prefix editors/vscode vsce publish --no-dependencies --packagePath "$v" -p "$VSCE_PAT"; then
+              echo "vsce publish failed for $v (likely already published); continuing"
+            fi
           done
 
       - name: Publish to Open VSX
@@ -114,10 +169,13 @@ jobs:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: |
           for v in editors/vscode/dist/*.vsix; do
-            npx --prefix editors/vscode ovsx publish "$v" -p "$OVSX_PAT"
+            if ! npx --prefix editors/vscode ovsx publish "$v" -p "$OVSX_PAT"; then
+              echo "ovsx publish failed for $v (likely already published); continuing"
+            fi
           done
 
       - name: Attach VSIX to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${GITHUB_REF_NAME}" editors/vscode/dist/*.vsix --clobber
+          TAG: ${{ needs.gate.outputs.tag }}
+        run: gh release upload "$TAG" editors/vscode/dist/*.vsix --clobber
