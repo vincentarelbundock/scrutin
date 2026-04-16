@@ -1944,14 +1944,10 @@
 <h2 id="package-loading">Package loading<a class="headerlink" href="#package-loading" title="Permanent link">&para;</a></h2>
 <p>Workers call <code>pkgload::load_all()</code> to load the package. When a source file changes in watch mode, the engine reloads the package automatically before running affected tests. If you add or change <code>@export</code> or <code>@importFrom</code> tags, run <code>devtools::document()</code> separately: <em>Scrutin</em> does not invoke roxygen.</p>
 <h2 id="custom-runner">Custom runner<a class="headerlink" href="#custom-runner" title="Permanent link">&para;</a></h2>
-<p><code>scrutin init</code> writes the default runner to <code>.scrutin/testthat/runner.R</code>. To use an edited copy, point to it either globally (applies to every testthat suite) or on the specific <code>[[suite]]</code>:</p>
-<div class="language-toml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">[testthat]</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">runner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;.scrutin/testthat/runner.R&quot;</span>
-</span></code></pre></div>
-<p>or</p>
-<div class="language-toml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">[[suite]]</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">tool</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;testthat&quot;</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">runner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;.scrutin/testthat/runner.R&quot;</span>
+<p><code>scrutin init</code> writes the default runner to <code>.scrutin/runners/testthat.R</code>. Edit that file in place: the engine automatically prefers it over the embedded default whenever it exists, no config change needed. To point at a different path (e.g. a shared runner in a sibling directory), set <code>runner</code> on an explicit suite:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">[[suite]]</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">tool</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;testthat&quot;</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">runner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;shared/testthat-runner.R&quot;</span>
 </span></code></pre></div>
 
 

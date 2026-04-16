@@ -52,10 +52,12 @@ pub trait Plugin: Send + Sync {
     }
 
     /// Subprocess command to spawn (argv-style). The first element is
-    /// the binary. Worker-mode plugins must override; command-mode
-    /// plugins (those that return `Some` from [`Plugin::command_spec`])
-    /// are never consulted here.
-    fn subprocess_cmd(&self, _root: &Path) -> Vec<String> {
+    /// the binary; `runner_path` is the absolute path the engine has
+    /// already materialised the runner script to, to be placed wherever
+    /// the plugin's command line expects it. Worker-mode plugins must
+    /// override; command-mode plugins (those that return `Some` from
+    /// [`Plugin::command_spec`]) are never consulted here.
+    fn subprocess_cmd(&self, _root: &Path, _runner_path: &str) -> Vec<String> {
         Vec::new()
     }
 
@@ -72,11 +74,14 @@ pub trait Plugin: Send + Sync {
         ""
     }
 
-    /// Basename of the runner script written under `.scrutin/`. Two plugins
-    /// in the same project must use distinct basenames so they don't clobber
-    /// each other's runner scripts. Default: `runner.<ext>`.
-    fn runner_basename(&self) -> String {
-        format!("runner.{}", self.script_extension())
+    /// Filename of the runner script: `<tool>.<ext>` by default, e.g.
+    /// `testthat.R`, `pytest.py`. Used as the on-disk name under both
+    /// `.scrutin/runners/` (project-level override) and the per-project
+    /// cache dir (where the engine materialises the embedded default).
+    /// Every plugin has a unique `name()`, so the default is always
+    /// collision-free.
+    fn runner_filename(&self) -> String {
+        format!("{}.{}", self.name(), self.script_extension())
     }
 
     /// Human name of the project/package at `root` (reads DESCRIPTION,

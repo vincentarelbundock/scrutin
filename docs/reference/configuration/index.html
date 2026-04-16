@@ -1955,166 +1955,163 @@
 </span><span id="__span-0-289"><a id="__codelineno-0-289" name="__codelineno-0-289" href="#__codelineno-0-289"></a><span class="c1"># ---------------------------------------------------------------------------</span>
 </span><span id="__span-0-290"><a id="__codelineno-0-290" name="__codelineno-0-290" href="#__codelineno-0-290"></a><span class="c1"># Per-tool config</span>
 </span><span id="__span-0-291"><a id="__codelineno-0-291" name="__codelineno-0-291" href="#__codelineno-0-291"></a><span class="c1"># ---------------------------------------------------------------------------</span>
-</span><span id="__span-0-292"><a id="__codelineno-0-292" name="__codelineno-0-292" href="#__codelineno-0-292"></a><span class="c1"># Uncomment `runner` to use a custom runner script instead of the</span>
-</span><span id="__span-0-293"><a id="__codelineno-0-293" name="__codelineno-0-293" href="#__codelineno-0-293"></a><span class="c1"># built-in default. `scrutin init` writes the defaults to</span>
-</span><span id="__span-0-294"><a id="__codelineno-0-294" name="__codelineno-0-294" href="#__codelineno-0-294"></a><span class="c1"># .scrutin/&lt;tool&gt;/ so you can edit them (e.g. replace</span>
-</span><span id="__span-0-295"><a id="__codelineno-0-295" name="__codelineno-0-295" href="#__codelineno-0-295"></a><span class="c1"># pkgload::load_all() with library(), add project-specific setup).</span>
-</span><span id="__span-0-296"><a id="__codelineno-0-296" name="__codelineno-0-296" href="#__codelineno-0-296"></a><span class="c1">#</span>
-</span><span id="__span-0-297"><a id="__codelineno-0-297" name="__codelineno-0-297" href="#__codelineno-0-297"></a><span class="c1"># [testthat]</span>
-</span><span id="__span-0-298"><a id="__codelineno-0-298" name="__codelineno-0-298" href="#__codelineno-0-298"></a><span class="c1"># runner = &quot;.scrutin/testthat/runner.R&quot;</span>
-</span><span id="__span-0-299"><a id="__codelineno-0-299" name="__codelineno-0-299" href="#__codelineno-0-299"></a><span class="c1">#</span>
-</span><span id="__span-0-300"><a id="__codelineno-0-300" name="__codelineno-0-300" href="#__codelineno-0-300"></a><span class="c1"># [tinytest]</span>
-</span><span id="__span-0-301"><a id="__codelineno-0-301" name="__codelineno-0-301" href="#__codelineno-0-301"></a><span class="c1"># runner = &quot;.scrutin/tinytest/runner.R&quot;</span>
-</span><span id="__span-0-302"><a id="__codelineno-0-302" name="__codelineno-0-302" href="#__codelineno-0-302"></a><span class="c1">#</span>
-</span><span id="__span-0-303"><a id="__codelineno-0-303" name="__codelineno-0-303" href="#__codelineno-0-303"></a><span class="c1"># [pytest]</span>
-</span><span id="__span-0-304"><a id="__codelineno-0-304" name="__codelineno-0-304" href="#__codelineno-0-304"></a><span class="c1"># runner     = &quot;.scrutin/pytest/runner.py&quot;</span>
-</span><span id="__span-0-305"><a id="__codelineno-0-305" name="__codelineno-0-305" href="#__codelineno-0-305"></a><span class="c1"># extra_args = []                 # appended verbatim to pytest.main(),</span>
-</span><span id="__span-0-306"><a id="__codelineno-0-306" name="__codelineno-0-306" href="#__codelineno-0-306"></a><span class="c1">#                                 # e.g. [&quot;--tb=short&quot;, &quot;-vv&quot;]</span>
-</span><span id="__span-0-307"><a id="__codelineno-0-307" name="__codelineno-0-307" href="#__codelineno-0-307"></a>
-</span><span id="__span-0-308"><a id="__codelineno-0-308" name="__codelineno-0-308" href="#__codelineno-0-308"></a>
-</span><span id="__span-0-309"><a id="__codelineno-0-309" name="__codelineno-0-309" href="#__codelineno-0-309"></a><span class="c1"># ---------------------------------------------------------------------------</span>
-</span><span id="__span-0-310"><a id="__codelineno-0-310" name="__codelineno-0-310" href="#__codelineno-0-310"></a><span class="c1"># [keymap.&lt;mode&gt;]: TUI keybindings (replace semantics)</span>
-</span><span id="__span-0-311"><a id="__codelineno-0-311" name="__codelineno-0-311" href="#__codelineno-0-311"></a><span class="c1"># ---------------------------------------------------------------------------</span>
-</span><span id="__span-0-312"><a id="__codelineno-0-312" name="__codelineno-0-312" href="#__codelineno-0-312"></a><span class="c1"># Each [keymap.&lt;mode&gt;] subtable fully replaces the default bindings</span>
-</span><span id="__span-0-313"><a id="__codelineno-0-313" name="__codelineno-0-313" href="#__codelineno-0-313"></a><span class="c1"># for that mode (replace, not overlay): deleting a line unbinds the</span>
-</span><span id="__span-0-314"><a id="__codelineno-0-314" name="__codelineno-0-314" href="#__codelineno-0-314"></a><span class="c1"># key; deleting the whole subtable restores scrutin&#39;s built-in</span>
-</span><span id="__span-0-315"><a id="__codelineno-0-315" name="__codelineno-0-315" href="#__codelineno-0-315"></a><span class="c1"># defaults for that mode. Modes: normal, detail, failure, help, log.</span>
-</span><span id="__span-0-316"><a id="__codelineno-0-316" name="__codelineno-0-316" href="#__codelineno-0-316"></a><span class="c1">#</span>
-</span><span id="__span-0-317"><a id="__codelineno-0-317" name="__codelineno-0-317" href="#__codelineno-0-317"></a><span class="c1"># Key syntax: single chars (`j`, `J`), named keys (`Enter`, `Esc`,</span>
-</span><span id="__span-0-318"><a id="__codelineno-0-318" name="__codelineno-0-318" href="#__codelineno-0-318"></a><span class="c1"># `Tab`, `Space`, `Up`, `Down`, `PageUp`, `Backspace`, `F1`..`F12`),</span>
-</span><span id="__span-0-319"><a id="__codelineno-0-319" name="__codelineno-0-319" href="#__codelineno-0-319"></a><span class="c1"># and modifiers (`ctrl+x`, `alt+x`, `shift+x`). Action names live</span>
-</span><span id="__span-0-320"><a id="__codelineno-0-320" name="__codelineno-0-320" href="#__codelineno-0-320"></a><span class="c1"># in scrutin-tui::keymap::Action.</span>
-</span><span id="__span-0-321"><a id="__codelineno-0-321" name="__codelineno-0-321" href="#__codelineno-0-321"></a><span class="c1">#</span>
-</span><span id="__span-0-322"><a id="__codelineno-0-322" name="__codelineno-0-322" href="#__codelineno-0-322"></a><span class="c1"># The defaults for every mode are written out below by `scrutin init`</span>
-</span><span id="__span-0-323"><a id="__codelineno-0-323" name="__codelineno-0-323" href="#__codelineno-0-323"></a><span class="c1"># so you can edit in place rather than reconstructing them from docs.</span>
-</span><span id="__span-0-324"><a id="__codelineno-0-324" name="__codelineno-0-324" href="#__codelineno-0-324"></a>
-</span><span id="__span-0-325"><a id="__codelineno-0-325" name="__codelineno-0-325" href="#__codelineno-0-325"></a><span class="c1"># [keymap.normal]</span>
-</span><span id="__span-0-326"><a id="__codelineno-0-326" name="__codelineno-0-326" href="#__codelineno-0-326"></a><span class="c1"># &quot;j&quot;        = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-327"><a id="__codelineno-0-327" name="__codelineno-0-327" href="#__codelineno-0-327"></a><span class="c1"># &quot;k&quot;        = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328" href="#__codelineno-0-328"></a><span class="c1"># &quot;Down&quot;     = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329" href="#__codelineno-0-329"></a><span class="c1"># &quot;Up&quot;       = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330" href="#__codelineno-0-330"></a><span class="c1"># &quot;Right&quot;    = &quot;enter_detail&quot;</span>
-</span><span id="__span-0-331"><a id="__codelineno-0-331" name="__codelineno-0-331" href="#__codelineno-0-331"></a><span class="c1"># &quot;Enter&quot;    = &quot;enter_detail&quot;</span>
-</span><span id="__span-0-332"><a id="__codelineno-0-332" name="__codelineno-0-332" href="#__codelineno-0-332"></a><span class="c1"># &quot;l&quot;        = &quot;enter_detail&quot;</span>
-</span><span id="__span-0-333"><a id="__codelineno-0-333" name="__codelineno-0-333" href="#__codelineno-0-333"></a><span class="c1"># &quot;Left&quot;     = &quot;pop&quot;</span>
-</span><span id="__span-0-334"><a id="__codelineno-0-334" name="__codelineno-0-334" href="#__codelineno-0-334"></a><span class="c1"># &quot;Esc&quot;      = &quot;pop&quot;</span>
-</span><span id="__span-0-335"><a id="__codelineno-0-335" name="__codelineno-0-335" href="#__codelineno-0-335"></a><span class="c1"># &quot;q&quot;        = &quot;quit&quot;</span>
-</span><span id="__span-0-336"><a id="__codelineno-0-336" name="__codelineno-0-336" href="#__codelineno-0-336"></a><span class="c1"># &quot;g&quot;        = &quot;cursor_top&quot;</span>
-</span><span id="__span-0-337"><a id="__codelineno-0-337" name="__codelineno-0-337" href="#__codelineno-0-337"></a><span class="c1"># &quot;G&quot;        = &quot;cursor_bottom&quot;</span>
-</span><span id="__span-0-338"><a id="__codelineno-0-338" name="__codelineno-0-338" href="#__codelineno-0-338"></a><span class="c1"># &quot;Home&quot;     = &quot;cursor_top&quot;</span>
-</span><span id="__span-0-339"><a id="__codelineno-0-339" name="__codelineno-0-339" href="#__codelineno-0-339"></a><span class="c1"># &quot;End&quot;      = &quot;cursor_bottom&quot;</span>
-</span><span id="__span-0-340"><a id="__codelineno-0-340" name="__codelineno-0-340" href="#__codelineno-0-340"></a><span class="c1"># &quot;PageUp&quot;   = &quot;full_page_up&quot;</span>
-</span><span id="__span-0-341"><a id="__codelineno-0-341" name="__codelineno-0-341" href="#__codelineno-0-341"></a><span class="c1"># &quot;PageDown&quot; = &quot;full_page_down&quot;</span>
-</span><span id="__span-0-342"><a id="__codelineno-0-342" name="__codelineno-0-342" href="#__codelineno-0-342"></a><span class="c1"># &quot;J&quot;        = &quot;source_scroll_down&quot;</span>
-</span><span id="__span-0-343"><a id="__codelineno-0-343" name="__codelineno-0-343" href="#__codelineno-0-343"></a><span class="c1"># &quot;K&quot;        = &quot;source_scroll_up&quot;</span>
-</span><span id="__span-0-344"><a id="__codelineno-0-344" name="__codelineno-0-344" href="#__codelineno-0-344"></a><span class="c1"># &quot;r&quot;        = &quot;open_run_menu&quot;</span>
-</span><span id="__span-0-345"><a id="__codelineno-0-345" name="__codelineno-0-345" href="#__codelineno-0-345"></a><span class="c1"># &quot;x&quot;        = &quot;cancel_file&quot;</span>
-</span><span id="__span-0-346"><a id="__codelineno-0-346" name="__codelineno-0-346" href="#__codelineno-0-346"></a><span class="c1"># &quot;X&quot;        = &quot;cancel_all&quot;</span>
-</span><span id="__span-0-347"><a id="__codelineno-0-347" name="__codelineno-0-347" href="#__codelineno-0-347"></a><span class="c1"># &quot;/&quot;        = &quot;filter_name&quot;</span>
-</span><span id="__span-0-348"><a id="__codelineno-0-348" name="__codelineno-0-348" href="#__codelineno-0-348"></a><span class="c1"># &quot;o&quot;        = &quot;filter_status&quot;</span>
-</span><span id="__span-0-349"><a id="__codelineno-0-349" name="__codelineno-0-349" href="#__codelineno-0-349"></a><span class="c1"># &quot;O&quot;        = &quot;filter_status_back&quot;</span>
-</span><span id="__span-0-350"><a id="__codelineno-0-350" name="__codelineno-0-350" href="#__codelineno-0-350"></a><span class="c1"># &quot;t&quot;        = &quot;filter_tool&quot;</span>
-</span><span id="__span-0-351"><a id="__codelineno-0-351" name="__codelineno-0-351" href="#__codelineno-0-351"></a><span class="c1"># &quot;T&quot;        = &quot;filter_tool_back&quot;</span>
-</span><span id="__span-0-352"><a id="__codelineno-0-352" name="__codelineno-0-352" href="#__codelineno-0-352"></a><span class="c1"># &quot;f&quot;        = &quot;filter_group&quot;</span>
-</span><span id="__span-0-353"><a id="__codelineno-0-353" name="__codelineno-0-353" href="#__codelineno-0-353"></a><span class="c1"># &quot;F&quot;        = &quot;filter_group_back&quot;</span>
-</span><span id="__span-0-354"><a id="__codelineno-0-354" name="__codelineno-0-354" href="#__codelineno-0-354"></a><span class="c1"># &quot;s&quot;        = &quot;open_sort_menu&quot;</span>
-</span><span id="__span-0-355"><a id="__codelineno-0-355" name="__codelineno-0-355" href="#__codelineno-0-355"></a><span class="c1"># &quot;-&quot;        = &quot;toggle_orientation&quot;</span>
-</span><span id="__span-0-356"><a id="__codelineno-0-356" name="__codelineno-0-356" href="#__codelineno-0-356"></a><span class="c1"># &quot;(&quot;        = &quot;shrink_list&quot;</span>
-</span><span id="__span-0-357"><a id="__codelineno-0-357" name="__codelineno-0-357" href="#__codelineno-0-357"></a><span class="c1"># &quot;)&quot;        = &quot;grow_list&quot;</span>
-</span><span id="__span-0-358"><a id="__codelineno-0-358" name="__codelineno-0-358" href="#__codelineno-0-358"></a><span class="c1"># &quot;Space&quot;    = &quot;toggle_select&quot;</span>
-</span><span id="__span-0-359"><a id="__codelineno-0-359" name="__codelineno-0-359" href="#__codelineno-0-359"></a><span class="c1"># &quot;v&quot;        = &quot;toggle_visual&quot;</span>
-</span><span id="__span-0-360"><a id="__codelineno-0-360" name="__codelineno-0-360" href="#__codelineno-0-360"></a><span class="c1"># &quot;e&quot;        = &quot;edit_test&quot;</span>
-</span><span id="__span-0-361"><a id="__codelineno-0-361" name="__codelineno-0-361" href="#__codelineno-0-361"></a><span class="c1"># &quot;y&quot;        = &quot;yank_message&quot;</span>
-</span><span id="__span-0-362"><a id="__codelineno-0-362" name="__codelineno-0-362" href="#__codelineno-0-362"></a><span class="c1"># &quot;L&quot;        = &quot;enter_log&quot;</span>
-</span><span id="__span-0-363"><a id="__codelineno-0-363" name="__codelineno-0-363" href="#__codelineno-0-363"></a><span class="c1"># &quot;?&quot;        = &quot;enter_help&quot;</span>
-</span><span id="__span-0-364"><a id="__codelineno-0-364" name="__codelineno-0-364" href="#__codelineno-0-364"></a>
-</span><span id="__span-0-365"><a id="__codelineno-0-365" name="__codelineno-0-365" href="#__codelineno-0-365"></a><span class="c1"># [keymap.detail]</span>
-</span><span id="__span-0-366"><a id="__codelineno-0-366" name="__codelineno-0-366" href="#__codelineno-0-366"></a><span class="c1"># &quot;j&quot;        = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-367"><a id="__codelineno-0-367" name="__codelineno-0-367" href="#__codelineno-0-367"></a><span class="c1"># &quot;k&quot;        = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-368"><a id="__codelineno-0-368" name="__codelineno-0-368" href="#__codelineno-0-368"></a><span class="c1"># &quot;Down&quot;     = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-369"><a id="__codelineno-0-369" name="__codelineno-0-369" href="#__codelineno-0-369"></a><span class="c1"># &quot;Up&quot;       = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-370"><a id="__codelineno-0-370" name="__codelineno-0-370" href="#__codelineno-0-370"></a><span class="c1"># &quot;Right&quot;    = &quot;enter_failure&quot;</span>
-</span><span id="__span-0-371"><a id="__codelineno-0-371" name="__codelineno-0-371" href="#__codelineno-0-371"></a><span class="c1"># &quot;Enter&quot;    = &quot;enter_failure&quot;</span>
-</span><span id="__span-0-372"><a id="__codelineno-0-372" name="__codelineno-0-372" href="#__codelineno-0-372"></a><span class="c1"># &quot;l&quot;        = &quot;enter_failure&quot;</span>
-</span><span id="__span-0-373"><a id="__codelineno-0-373" name="__codelineno-0-373" href="#__codelineno-0-373"></a><span class="c1"># &quot;Left&quot;     = &quot;pop&quot;</span>
-</span><span id="__span-0-374"><a id="__codelineno-0-374" name="__codelineno-0-374" href="#__codelineno-0-374"></a><span class="c1"># &quot;Esc&quot;      = &quot;pop&quot;</span>
-</span><span id="__span-0-375"><a id="__codelineno-0-375" name="__codelineno-0-375" href="#__codelineno-0-375"></a><span class="c1"># &quot;h&quot;        = &quot;pop&quot;</span>
-</span><span id="__span-0-376"><a id="__codelineno-0-376" name="__codelineno-0-376" href="#__codelineno-0-376"></a><span class="c1"># &quot;q&quot;        = &quot;quit&quot;</span>
-</span><span id="__span-0-377"><a id="__codelineno-0-377" name="__codelineno-0-377" href="#__codelineno-0-377"></a><span class="c1"># &quot;g&quot;        = &quot;cursor_top&quot;</span>
-</span><span id="__span-0-378"><a id="__codelineno-0-378" name="__codelineno-0-378" href="#__codelineno-0-378"></a><span class="c1"># &quot;G&quot;        = &quot;cursor_bottom&quot;</span>
-</span><span id="__span-0-379"><a id="__codelineno-0-379" name="__codelineno-0-379" href="#__codelineno-0-379"></a><span class="c1"># &quot;Home&quot;     = &quot;cursor_top&quot;</span>
-</span><span id="__span-0-380"><a id="__codelineno-0-380" name="__codelineno-0-380" href="#__codelineno-0-380"></a><span class="c1"># &quot;End&quot;      = &quot;cursor_bottom&quot;</span>
-</span><span id="__span-0-381"><a id="__codelineno-0-381" name="__codelineno-0-381" href="#__codelineno-0-381"></a><span class="c1"># &quot;PageUp&quot;   = &quot;full_page_up&quot;</span>
-</span><span id="__span-0-382"><a id="__codelineno-0-382" name="__codelineno-0-382" href="#__codelineno-0-382"></a><span class="c1"># &quot;PageDown&quot; = &quot;full_page_down&quot;</span>
-</span><span id="__span-0-383"><a id="__codelineno-0-383" name="__codelineno-0-383" href="#__codelineno-0-383"></a><span class="c1"># &quot;J&quot;        = &quot;source_scroll_down&quot;</span>
-</span><span id="__span-0-384"><a id="__codelineno-0-384" name="__codelineno-0-384" href="#__codelineno-0-384"></a><span class="c1"># &quot;K&quot;        = &quot;source_scroll_up&quot;</span>
-</span><span id="__span-0-385"><a id="__codelineno-0-385" name="__codelineno-0-385" href="#__codelineno-0-385"></a><span class="c1"># &quot;r&quot;        = &quot;run_current_file&quot;</span>
-</span><span id="__span-0-386"><a id="__codelineno-0-386" name="__codelineno-0-386" href="#__codelineno-0-386"></a><span class="c1"># &quot;R&quot;        = &quot;open_run_menu&quot;</span>
-</span><span id="__span-0-387"><a id="__codelineno-0-387" name="__codelineno-0-387" href="#__codelineno-0-387"></a><span class="c1"># &quot;x&quot;        = &quot;cancel_file&quot;</span>
-</span><span id="__span-0-388"><a id="__codelineno-0-388" name="__codelineno-0-388" href="#__codelineno-0-388"></a><span class="c1"># &quot;X&quot;        = &quot;cancel_all&quot;</span>
-</span><span id="__span-0-389"><a id="__codelineno-0-389" name="__codelineno-0-389" href="#__codelineno-0-389"></a><span class="c1"># &quot;/&quot;        = &quot;filter_name&quot;</span>
-</span><span id="__span-0-390"><a id="__codelineno-0-390" name="__codelineno-0-390" href="#__codelineno-0-390"></a><span class="c1"># &quot;o&quot;        = &quot;filter_status&quot;</span>
-</span><span id="__span-0-391"><a id="__codelineno-0-391" name="__codelineno-0-391" href="#__codelineno-0-391"></a><span class="c1"># &quot;O&quot;        = &quot;filter_status_back&quot;</span>
-</span><span id="__span-0-392"><a id="__codelineno-0-392" name="__codelineno-0-392" href="#__codelineno-0-392"></a><span class="c1"># &quot;t&quot;        = &quot;filter_tool&quot;</span>
-</span><span id="__span-0-393"><a id="__codelineno-0-393" name="__codelineno-0-393" href="#__codelineno-0-393"></a><span class="c1"># &quot;T&quot;        = &quot;filter_tool_back&quot;</span>
-</span><span id="__span-0-394"><a id="__codelineno-0-394" name="__codelineno-0-394" href="#__codelineno-0-394"></a><span class="c1"># &quot;f&quot;        = &quot;filter_group&quot;</span>
-</span><span id="__span-0-395"><a id="__codelineno-0-395" name="__codelineno-0-395" href="#__codelineno-0-395"></a><span class="c1"># &quot;F&quot;        = &quot;filter_group_back&quot;</span>
-</span><span id="__span-0-396"><a id="__codelineno-0-396" name="__codelineno-0-396" href="#__codelineno-0-396"></a><span class="c1"># &quot;s&quot;        = &quot;open_sort_menu&quot;</span>
-</span><span id="__span-0-397"><a id="__codelineno-0-397" name="__codelineno-0-397" href="#__codelineno-0-397"></a><span class="c1"># &quot;-&quot;        = &quot;toggle_orientation&quot;</span>
-</span><span id="__span-0-398"><a id="__codelineno-0-398" name="__codelineno-0-398" href="#__codelineno-0-398"></a><span class="c1"># &quot;(&quot;        = &quot;shrink_list&quot;</span>
-</span><span id="__span-0-399"><a id="__codelineno-0-399" name="__codelineno-0-399" href="#__codelineno-0-399"></a><span class="c1"># &quot;)&quot;        = &quot;grow_list&quot;</span>
-</span><span id="__span-0-400"><a id="__codelineno-0-400" name="__codelineno-0-400" href="#__codelineno-0-400"></a><span class="c1"># &quot;e&quot;        = &quot;edit_test&quot;</span>
-</span><span id="__span-0-401"><a id="__codelineno-0-401" name="__codelineno-0-401" href="#__codelineno-0-401"></a><span class="c1"># &quot;E&quot;        = &quot;edit_source&quot;</span>
-</span><span id="__span-0-402"><a id="__codelineno-0-402" name="__codelineno-0-402" href="#__codelineno-0-402"></a><span class="c1"># &quot;y&quot;        = &quot;yank_message&quot;</span>
-</span><span id="__span-0-403"><a id="__codelineno-0-403" name="__codelineno-0-403" href="#__codelineno-0-403"></a><span class="c1"># &quot;L&quot;        = &quot;enter_log&quot;</span>
-</span><span id="__span-0-404"><a id="__codelineno-0-404" name="__codelineno-0-404" href="#__codelineno-0-404"></a><span class="c1"># &quot;?&quot;        = &quot;enter_help&quot;</span>
-</span><span id="__span-0-405"><a id="__codelineno-0-405" name="__codelineno-0-405" href="#__codelineno-0-405"></a>
-</span><span id="__span-0-406"><a id="__codelineno-0-406" name="__codelineno-0-406" href="#__codelineno-0-406"></a><span class="c1"># [keymap.failure]</span>
-</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407" href="#__codelineno-0-407"></a><span class="c1"># &quot;j&quot;    = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-408"><a id="__codelineno-0-408" name="__codelineno-0-408" href="#__codelineno-0-408"></a><span class="c1"># &quot;k&quot;    = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-409"><a id="__codelineno-0-409" name="__codelineno-0-409" href="#__codelineno-0-409"></a><span class="c1"># &quot;Down&quot; = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-410"><a id="__codelineno-0-410" name="__codelineno-0-410" href="#__codelineno-0-410"></a><span class="c1"># &quot;Up&quot;   = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-411"><a id="__codelineno-0-411" name="__codelineno-0-411" href="#__codelineno-0-411"></a><span class="c1"># &quot;Left&quot; = &quot;pop&quot;</span>
-</span><span id="__span-0-412"><a id="__codelineno-0-412" name="__codelineno-0-412" href="#__codelineno-0-412"></a><span class="c1"># &quot;Esc&quot;  = &quot;pop&quot;</span>
-</span><span id="__span-0-413"><a id="__codelineno-0-413" name="__codelineno-0-413" href="#__codelineno-0-413"></a><span class="c1"># &quot;h&quot;    = &quot;pop&quot;</span>
-</span><span id="__span-0-414"><a id="__codelineno-0-414" name="__codelineno-0-414" href="#__codelineno-0-414"></a><span class="c1"># &quot;q&quot;    = &quot;quit&quot;</span>
-</span><span id="__span-0-415"><a id="__codelineno-0-415" name="__codelineno-0-415" href="#__codelineno-0-415"></a><span class="c1"># &quot;r&quot;    = &quot;run_current_file&quot;</span>
-</span><span id="__span-0-416"><a id="__codelineno-0-416" name="__codelineno-0-416" href="#__codelineno-0-416"></a><span class="c1"># &quot;R&quot;    = &quot;open_run_menu&quot;</span>
-</span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417" href="#__codelineno-0-417"></a><span class="c1"># &quot;x&quot;    = &quot;cancel_file&quot;</span>
-</span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418" href="#__codelineno-0-418"></a><span class="c1"># &quot;X&quot;    = &quot;cancel_all&quot;</span>
-</span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419" href="#__codelineno-0-419"></a><span class="c1"># &quot;/&quot;    = &quot;filter_name&quot;</span>
-</span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420" href="#__codelineno-0-420"></a><span class="c1"># &quot;e&quot;    = &quot;edit_test&quot;</span>
-</span><span id="__span-0-421"><a id="__codelineno-0-421" name="__codelineno-0-421" href="#__codelineno-0-421"></a><span class="c1"># &quot;E&quot;    = &quot;edit_source&quot;</span>
-</span><span id="__span-0-422"><a id="__codelineno-0-422" name="__codelineno-0-422" href="#__codelineno-0-422"></a><span class="c1"># &quot;y&quot;    = &quot;yank_message&quot;</span>
-</span><span id="__span-0-423"><a id="__codelineno-0-423" name="__codelineno-0-423" href="#__codelineno-0-423"></a><span class="c1"># &quot;L&quot;    = &quot;enter_log&quot;</span>
-</span><span id="__span-0-424"><a id="__codelineno-0-424" name="__codelineno-0-424" href="#__codelineno-0-424"></a><span class="c1"># &quot;?&quot;    = &quot;enter_help&quot;</span>
-</span><span id="__span-0-425"><a id="__codelineno-0-425" name="__codelineno-0-425" href="#__codelineno-0-425"></a>
-</span><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426" href="#__codelineno-0-426"></a><span class="c1"># [keymap.help]</span>
-</span><span id="__span-0-427"><a id="__codelineno-0-427" name="__codelineno-0-427" href="#__codelineno-0-427"></a><span class="c1"># &quot;j&quot;        = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-428"><a id="__codelineno-0-428" name="__codelineno-0-428" href="#__codelineno-0-428"></a><span class="c1"># &quot;k&quot;        = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-429"><a id="__codelineno-0-429" name="__codelineno-0-429" href="#__codelineno-0-429"></a><span class="c1"># &quot;Down&quot;     = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-430"><a id="__codelineno-0-430" name="__codelineno-0-430" href="#__codelineno-0-430"></a><span class="c1"># &quot;Up&quot;       = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-431"><a id="__codelineno-0-431" name="__codelineno-0-431" href="#__codelineno-0-431"></a><span class="c1"># &quot;g&quot;        = &quot;cursor_top&quot;</span>
-</span><span id="__span-0-432"><a id="__codelineno-0-432" name="__codelineno-0-432" href="#__codelineno-0-432"></a><span class="c1"># &quot;G&quot;        = &quot;cursor_bottom&quot;</span>
-</span><span id="__span-0-433"><a id="__codelineno-0-433" name="__codelineno-0-433" href="#__codelineno-0-433"></a><span class="c1"># &quot;PageDown&quot; = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-434"><a id="__codelineno-0-434" name="__codelineno-0-434" href="#__codelineno-0-434"></a><span class="c1"># &quot;PageUp&quot;   = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-435"><a id="__codelineno-0-435" name="__codelineno-0-435" href="#__codelineno-0-435"></a><span class="c1"># &quot;Esc&quot;      = &quot;pop&quot;</span>
-</span><span id="__span-0-436"><a id="__codelineno-0-436" name="__codelineno-0-436" href="#__codelineno-0-436"></a><span class="c1"># &quot;q&quot;        = &quot;pop&quot;</span>
-</span><span id="__span-0-437"><a id="__codelineno-0-437" name="__codelineno-0-437" href="#__codelineno-0-437"></a><span class="c1"># &quot;?&quot;        = &quot;pop&quot;</span>
-</span><span id="__span-0-438"><a id="__codelineno-0-438" name="__codelineno-0-438" href="#__codelineno-0-438"></a>
-</span><span id="__span-0-439"><a id="__codelineno-0-439" name="__codelineno-0-439" href="#__codelineno-0-439"></a><span class="c1"># [keymap.log]</span>
-</span><span id="__span-0-440"><a id="__codelineno-0-440" name="__codelineno-0-440" href="#__codelineno-0-440"></a><span class="c1"># &quot;j&quot;        = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-441"><a id="__codelineno-0-441" name="__codelineno-0-441" href="#__codelineno-0-441"></a><span class="c1"># &quot;k&quot;        = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-442"><a id="__codelineno-0-442" name="__codelineno-0-442" href="#__codelineno-0-442"></a><span class="c1"># &quot;Down&quot;     = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-443"><a id="__codelineno-0-443" name="__codelineno-0-443" href="#__codelineno-0-443"></a><span class="c1"># &quot;Up&quot;       = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-444"><a id="__codelineno-0-444" name="__codelineno-0-444" href="#__codelineno-0-444"></a><span class="c1"># &quot;g&quot;        = &quot;cursor_top&quot;</span>
-</span><span id="__span-0-445"><a id="__codelineno-0-445" name="__codelineno-0-445" href="#__codelineno-0-445"></a><span class="c1"># &quot;G&quot;        = &quot;cursor_bottom&quot;</span>
-</span><span id="__span-0-446"><a id="__codelineno-0-446" name="__codelineno-0-446" href="#__codelineno-0-446"></a><span class="c1"># &quot;PageDown&quot; = &quot;cursor_down&quot;</span>
-</span><span id="__span-0-447"><a id="__codelineno-0-447" name="__codelineno-0-447" href="#__codelineno-0-447"></a><span class="c1"># &quot;PageUp&quot;   = &quot;cursor_up&quot;</span>
-</span><span id="__span-0-448"><a id="__codelineno-0-448" name="__codelineno-0-448" href="#__codelineno-0-448"></a><span class="c1"># &quot;Esc&quot;      = &quot;pop&quot;</span>
-</span><span id="__span-0-449"><a id="__codelineno-0-449" name="__codelineno-0-449" href="#__codelineno-0-449"></a><span class="c1"># &quot;q&quot;        = &quot;pop&quot;</span>
-</span><span id="__span-0-450"><a id="__codelineno-0-450" name="__codelineno-0-450" href="#__codelineno-0-450"></a><span class="c1"># &quot;?&quot;        = &quot;pop&quot;</span>
-</span><span id="__span-0-451"><a id="__codelineno-0-451" name="__codelineno-0-451" href="#__codelineno-0-451"></a><span class="c1"># &quot;L&quot;        = &quot;pop&quot;</span>
+</span><span id="__span-0-292"><a id="__codelineno-0-292" name="__codelineno-0-292" href="#__codelineno-0-292"></a><span class="c1"># Custom runner scripts: `scrutin init` writes the embedded defaults to</span>
+</span><span id="__span-0-293"><a id="__codelineno-0-293" name="__codelineno-0-293" href="#__codelineno-0-293"></a><span class="c1"># .scrutin/runners/&lt;tool&gt;.&lt;ext&gt; (e.g. .scrutin/runners/testthat.R,</span>
+</span><span id="__span-0-294"><a id="__codelineno-0-294" name="__codelineno-0-294" href="#__codelineno-0-294"></a><span class="c1"># .scrutin/runners/pytest.py). Edit those files in place to swap package</span>
+</span><span id="__span-0-295"><a id="__codelineno-0-295" name="__codelineno-0-295" href="#__codelineno-0-295"></a><span class="c1"># loading, add project setup, or tweak the reporter; the engine picks</span>
+</span><span id="__span-0-296"><a id="__codelineno-0-296" name="__codelineno-0-296" href="#__codelineno-0-296"></a><span class="c1"># them up automatically over the embedded default whenever present.</span>
+</span><span id="__span-0-297"><a id="__codelineno-0-297" name="__codelineno-0-297" href="#__codelineno-0-297"></a><span class="c1"># Delete a file in that directory to fall back to the built-in runner.</span>
+</span><span id="__span-0-298"><a id="__codelineno-0-298" name="__codelineno-0-298" href="#__codelineno-0-298"></a><span class="c1"># To point at a runner somewhere else in the repo, set `runner` on an</span>
+</span><span id="__span-0-299"><a id="__codelineno-0-299" name="__codelineno-0-299" href="#__codelineno-0-299"></a><span class="c1"># explicit [[suite]] entry instead (see `runner` under [[suite]]).</span>
+</span><span id="__span-0-300"><a id="__codelineno-0-300" name="__codelineno-0-300" href="#__codelineno-0-300"></a><span class="c1">#</span>
+</span><span id="__span-0-301"><a id="__codelineno-0-301" name="__codelineno-0-301" href="#__codelineno-0-301"></a><span class="c1"># [pytest]</span>
+</span><span id="__span-0-302"><a id="__codelineno-0-302" name="__codelineno-0-302" href="#__codelineno-0-302"></a><span class="c1"># extra_args = []                 # appended verbatim to pytest.main(),</span>
+</span><span id="__span-0-303"><a id="__codelineno-0-303" name="__codelineno-0-303" href="#__codelineno-0-303"></a><span class="c1">#                                 # e.g. [&quot;--tb=short&quot;, &quot;-vv&quot;]</span>
+</span><span id="__span-0-304"><a id="__codelineno-0-304" name="__codelineno-0-304" href="#__codelineno-0-304"></a>
+</span><span id="__span-0-305"><a id="__codelineno-0-305" name="__codelineno-0-305" href="#__codelineno-0-305"></a>
+</span><span id="__span-0-306"><a id="__codelineno-0-306" name="__codelineno-0-306" href="#__codelineno-0-306"></a><span class="c1"># ---------------------------------------------------------------------------</span>
+</span><span id="__span-0-307"><a id="__codelineno-0-307" name="__codelineno-0-307" href="#__codelineno-0-307"></a><span class="c1"># [keymap.&lt;mode&gt;]: TUI keybindings (replace semantics)</span>
+</span><span id="__span-0-308"><a id="__codelineno-0-308" name="__codelineno-0-308" href="#__codelineno-0-308"></a><span class="c1"># ---------------------------------------------------------------------------</span>
+</span><span id="__span-0-309"><a id="__codelineno-0-309" name="__codelineno-0-309" href="#__codelineno-0-309"></a><span class="c1"># Each [keymap.&lt;mode&gt;] subtable fully replaces the default bindings</span>
+</span><span id="__span-0-310"><a id="__codelineno-0-310" name="__codelineno-0-310" href="#__codelineno-0-310"></a><span class="c1"># for that mode (replace, not overlay): deleting a line unbinds the</span>
+</span><span id="__span-0-311"><a id="__codelineno-0-311" name="__codelineno-0-311" href="#__codelineno-0-311"></a><span class="c1"># key; deleting the whole subtable restores scrutin&#39;s built-in</span>
+</span><span id="__span-0-312"><a id="__codelineno-0-312" name="__codelineno-0-312" href="#__codelineno-0-312"></a><span class="c1"># defaults for that mode. Modes: normal, detail, failure, help, log.</span>
+</span><span id="__span-0-313"><a id="__codelineno-0-313" name="__codelineno-0-313" href="#__codelineno-0-313"></a><span class="c1">#</span>
+</span><span id="__span-0-314"><a id="__codelineno-0-314" name="__codelineno-0-314" href="#__codelineno-0-314"></a><span class="c1"># Key syntax: single chars (`j`, `J`), named keys (`Enter`, `Esc`,</span>
+</span><span id="__span-0-315"><a id="__codelineno-0-315" name="__codelineno-0-315" href="#__codelineno-0-315"></a><span class="c1"># `Tab`, `Space`, `Up`, `Down`, `PageUp`, `Backspace`, `F1`..`F12`),</span>
+</span><span id="__span-0-316"><a id="__codelineno-0-316" name="__codelineno-0-316" href="#__codelineno-0-316"></a><span class="c1"># and modifiers (`ctrl+x`, `alt+x`, `shift+x`). Action names live</span>
+</span><span id="__span-0-317"><a id="__codelineno-0-317" name="__codelineno-0-317" href="#__codelineno-0-317"></a><span class="c1"># in scrutin-tui::keymap::Action.</span>
+</span><span id="__span-0-318"><a id="__codelineno-0-318" name="__codelineno-0-318" href="#__codelineno-0-318"></a><span class="c1">#</span>
+</span><span id="__span-0-319"><a id="__codelineno-0-319" name="__codelineno-0-319" href="#__codelineno-0-319"></a><span class="c1"># The defaults for every mode are written out below by `scrutin init`</span>
+</span><span id="__span-0-320"><a id="__codelineno-0-320" name="__codelineno-0-320" href="#__codelineno-0-320"></a><span class="c1"># so you can edit in place rather than reconstructing them from docs.</span>
+</span><span id="__span-0-321"><a id="__codelineno-0-321" name="__codelineno-0-321" href="#__codelineno-0-321"></a>
+</span><span id="__span-0-322"><a id="__codelineno-0-322" name="__codelineno-0-322" href="#__codelineno-0-322"></a><span class="c1"># [keymap.normal]</span>
+</span><span id="__span-0-323"><a id="__codelineno-0-323" name="__codelineno-0-323" href="#__codelineno-0-323"></a><span class="c1"># &quot;j&quot;        = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-324"><a id="__codelineno-0-324" name="__codelineno-0-324" href="#__codelineno-0-324"></a><span class="c1"># &quot;k&quot;        = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-325"><a id="__codelineno-0-325" name="__codelineno-0-325" href="#__codelineno-0-325"></a><span class="c1"># &quot;Down&quot;     = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-326"><a id="__codelineno-0-326" name="__codelineno-0-326" href="#__codelineno-0-326"></a><span class="c1"># &quot;Up&quot;       = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-327"><a id="__codelineno-0-327" name="__codelineno-0-327" href="#__codelineno-0-327"></a><span class="c1"># &quot;Right&quot;    = &quot;enter_detail&quot;</span>
+</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328" href="#__codelineno-0-328"></a><span class="c1"># &quot;Enter&quot;    = &quot;enter_detail&quot;</span>
+</span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329" href="#__codelineno-0-329"></a><span class="c1"># &quot;l&quot;        = &quot;enter_detail&quot;</span>
+</span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330" href="#__codelineno-0-330"></a><span class="c1"># &quot;Left&quot;     = &quot;pop&quot;</span>
+</span><span id="__span-0-331"><a id="__codelineno-0-331" name="__codelineno-0-331" href="#__codelineno-0-331"></a><span class="c1"># &quot;Esc&quot;      = &quot;pop&quot;</span>
+</span><span id="__span-0-332"><a id="__codelineno-0-332" name="__codelineno-0-332" href="#__codelineno-0-332"></a><span class="c1"># &quot;q&quot;        = &quot;quit&quot;</span>
+</span><span id="__span-0-333"><a id="__codelineno-0-333" name="__codelineno-0-333" href="#__codelineno-0-333"></a><span class="c1"># &quot;g&quot;        = &quot;cursor_top&quot;</span>
+</span><span id="__span-0-334"><a id="__codelineno-0-334" name="__codelineno-0-334" href="#__codelineno-0-334"></a><span class="c1"># &quot;G&quot;        = &quot;cursor_bottom&quot;</span>
+</span><span id="__span-0-335"><a id="__codelineno-0-335" name="__codelineno-0-335" href="#__codelineno-0-335"></a><span class="c1"># &quot;Home&quot;     = &quot;cursor_top&quot;</span>
+</span><span id="__span-0-336"><a id="__codelineno-0-336" name="__codelineno-0-336" href="#__codelineno-0-336"></a><span class="c1"># &quot;End&quot;      = &quot;cursor_bottom&quot;</span>
+</span><span id="__span-0-337"><a id="__codelineno-0-337" name="__codelineno-0-337" href="#__codelineno-0-337"></a><span class="c1"># &quot;PageUp&quot;   = &quot;full_page_up&quot;</span>
+</span><span id="__span-0-338"><a id="__codelineno-0-338" name="__codelineno-0-338" href="#__codelineno-0-338"></a><span class="c1"># &quot;PageDown&quot; = &quot;full_page_down&quot;</span>
+</span><span id="__span-0-339"><a id="__codelineno-0-339" name="__codelineno-0-339" href="#__codelineno-0-339"></a><span class="c1"># &quot;J&quot;        = &quot;source_scroll_down&quot;</span>
+</span><span id="__span-0-340"><a id="__codelineno-0-340" name="__codelineno-0-340" href="#__codelineno-0-340"></a><span class="c1"># &quot;K&quot;        = &quot;source_scroll_up&quot;</span>
+</span><span id="__span-0-341"><a id="__codelineno-0-341" name="__codelineno-0-341" href="#__codelineno-0-341"></a><span class="c1"># &quot;r&quot;        = &quot;open_run_menu&quot;</span>
+</span><span id="__span-0-342"><a id="__codelineno-0-342" name="__codelineno-0-342" href="#__codelineno-0-342"></a><span class="c1"># &quot;x&quot;        = &quot;cancel_file&quot;</span>
+</span><span id="__span-0-343"><a id="__codelineno-0-343" name="__codelineno-0-343" href="#__codelineno-0-343"></a><span class="c1"># &quot;X&quot;        = &quot;cancel_all&quot;</span>
+</span><span id="__span-0-344"><a id="__codelineno-0-344" name="__codelineno-0-344" href="#__codelineno-0-344"></a><span class="c1"># &quot;/&quot;        = &quot;filter_name&quot;</span>
+</span><span id="__span-0-345"><a id="__codelineno-0-345" name="__codelineno-0-345" href="#__codelineno-0-345"></a><span class="c1"># &quot;o&quot;        = &quot;filter_status&quot;</span>
+</span><span id="__span-0-346"><a id="__codelineno-0-346" name="__codelineno-0-346" href="#__codelineno-0-346"></a><span class="c1"># &quot;O&quot;        = &quot;filter_status_back&quot;</span>
+</span><span id="__span-0-347"><a id="__codelineno-0-347" name="__codelineno-0-347" href="#__codelineno-0-347"></a><span class="c1"># &quot;t&quot;        = &quot;filter_tool&quot;</span>
+</span><span id="__span-0-348"><a id="__codelineno-0-348" name="__codelineno-0-348" href="#__codelineno-0-348"></a><span class="c1"># &quot;T&quot;        = &quot;filter_tool_back&quot;</span>
+</span><span id="__span-0-349"><a id="__codelineno-0-349" name="__codelineno-0-349" href="#__codelineno-0-349"></a><span class="c1"># &quot;f&quot;        = &quot;filter_group&quot;</span>
+</span><span id="__span-0-350"><a id="__codelineno-0-350" name="__codelineno-0-350" href="#__codelineno-0-350"></a><span class="c1"># &quot;F&quot;        = &quot;filter_group_back&quot;</span>
+</span><span id="__span-0-351"><a id="__codelineno-0-351" name="__codelineno-0-351" href="#__codelineno-0-351"></a><span class="c1"># &quot;s&quot;        = &quot;open_sort_menu&quot;</span>
+</span><span id="__span-0-352"><a id="__codelineno-0-352" name="__codelineno-0-352" href="#__codelineno-0-352"></a><span class="c1"># &quot;-&quot;        = &quot;toggle_orientation&quot;</span>
+</span><span id="__span-0-353"><a id="__codelineno-0-353" name="__codelineno-0-353" href="#__codelineno-0-353"></a><span class="c1"># &quot;(&quot;        = &quot;shrink_list&quot;</span>
+</span><span id="__span-0-354"><a id="__codelineno-0-354" name="__codelineno-0-354" href="#__codelineno-0-354"></a><span class="c1"># &quot;)&quot;        = &quot;grow_list&quot;</span>
+</span><span id="__span-0-355"><a id="__codelineno-0-355" name="__codelineno-0-355" href="#__codelineno-0-355"></a><span class="c1"># &quot;Space&quot;    = &quot;toggle_select&quot;</span>
+</span><span id="__span-0-356"><a id="__codelineno-0-356" name="__codelineno-0-356" href="#__codelineno-0-356"></a><span class="c1"># &quot;v&quot;        = &quot;toggle_visual&quot;</span>
+</span><span id="__span-0-357"><a id="__codelineno-0-357" name="__codelineno-0-357" href="#__codelineno-0-357"></a><span class="c1"># &quot;e&quot;        = &quot;edit_test&quot;</span>
+</span><span id="__span-0-358"><a id="__codelineno-0-358" name="__codelineno-0-358" href="#__codelineno-0-358"></a><span class="c1"># &quot;y&quot;        = &quot;yank_message&quot;</span>
+</span><span id="__span-0-359"><a id="__codelineno-0-359" name="__codelineno-0-359" href="#__codelineno-0-359"></a><span class="c1"># &quot;L&quot;        = &quot;enter_log&quot;</span>
+</span><span id="__span-0-360"><a id="__codelineno-0-360" name="__codelineno-0-360" href="#__codelineno-0-360"></a><span class="c1"># &quot;?&quot;        = &quot;enter_help&quot;</span>
+</span><span id="__span-0-361"><a id="__codelineno-0-361" name="__codelineno-0-361" href="#__codelineno-0-361"></a>
+</span><span id="__span-0-362"><a id="__codelineno-0-362" name="__codelineno-0-362" href="#__codelineno-0-362"></a><span class="c1"># [keymap.detail]</span>
+</span><span id="__span-0-363"><a id="__codelineno-0-363" name="__codelineno-0-363" href="#__codelineno-0-363"></a><span class="c1"># &quot;j&quot;        = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-364"><a id="__codelineno-0-364" name="__codelineno-0-364" href="#__codelineno-0-364"></a><span class="c1"># &quot;k&quot;        = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-365"><a id="__codelineno-0-365" name="__codelineno-0-365" href="#__codelineno-0-365"></a><span class="c1"># &quot;Down&quot;     = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-366"><a id="__codelineno-0-366" name="__codelineno-0-366" href="#__codelineno-0-366"></a><span class="c1"># &quot;Up&quot;       = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-367"><a id="__codelineno-0-367" name="__codelineno-0-367" href="#__codelineno-0-367"></a><span class="c1"># &quot;Right&quot;    = &quot;enter_failure&quot;</span>
+</span><span id="__span-0-368"><a id="__codelineno-0-368" name="__codelineno-0-368" href="#__codelineno-0-368"></a><span class="c1"># &quot;Enter&quot;    = &quot;enter_failure&quot;</span>
+</span><span id="__span-0-369"><a id="__codelineno-0-369" name="__codelineno-0-369" href="#__codelineno-0-369"></a><span class="c1"># &quot;l&quot;        = &quot;enter_failure&quot;</span>
+</span><span id="__span-0-370"><a id="__codelineno-0-370" name="__codelineno-0-370" href="#__codelineno-0-370"></a><span class="c1"># &quot;Left&quot;     = &quot;pop&quot;</span>
+</span><span id="__span-0-371"><a id="__codelineno-0-371" name="__codelineno-0-371" href="#__codelineno-0-371"></a><span class="c1"># &quot;Esc&quot;      = &quot;pop&quot;</span>
+</span><span id="__span-0-372"><a id="__codelineno-0-372" name="__codelineno-0-372" href="#__codelineno-0-372"></a><span class="c1"># &quot;h&quot;        = &quot;pop&quot;</span>
+</span><span id="__span-0-373"><a id="__codelineno-0-373" name="__codelineno-0-373" href="#__codelineno-0-373"></a><span class="c1"># &quot;q&quot;        = &quot;quit&quot;</span>
+</span><span id="__span-0-374"><a id="__codelineno-0-374" name="__codelineno-0-374" href="#__codelineno-0-374"></a><span class="c1"># &quot;g&quot;        = &quot;cursor_top&quot;</span>
+</span><span id="__span-0-375"><a id="__codelineno-0-375" name="__codelineno-0-375" href="#__codelineno-0-375"></a><span class="c1"># &quot;G&quot;        = &quot;cursor_bottom&quot;</span>
+</span><span id="__span-0-376"><a id="__codelineno-0-376" name="__codelineno-0-376" href="#__codelineno-0-376"></a><span class="c1"># &quot;Home&quot;     = &quot;cursor_top&quot;</span>
+</span><span id="__span-0-377"><a id="__codelineno-0-377" name="__codelineno-0-377" href="#__codelineno-0-377"></a><span class="c1"># &quot;End&quot;      = &quot;cursor_bottom&quot;</span>
+</span><span id="__span-0-378"><a id="__codelineno-0-378" name="__codelineno-0-378" href="#__codelineno-0-378"></a><span class="c1"># &quot;PageUp&quot;   = &quot;full_page_up&quot;</span>
+</span><span id="__span-0-379"><a id="__codelineno-0-379" name="__codelineno-0-379" href="#__codelineno-0-379"></a><span class="c1"># &quot;PageDown&quot; = &quot;full_page_down&quot;</span>
+</span><span id="__span-0-380"><a id="__codelineno-0-380" name="__codelineno-0-380" href="#__codelineno-0-380"></a><span class="c1"># &quot;J&quot;        = &quot;source_scroll_down&quot;</span>
+</span><span id="__span-0-381"><a id="__codelineno-0-381" name="__codelineno-0-381" href="#__codelineno-0-381"></a><span class="c1"># &quot;K&quot;        = &quot;source_scroll_up&quot;</span>
+</span><span id="__span-0-382"><a id="__codelineno-0-382" name="__codelineno-0-382" href="#__codelineno-0-382"></a><span class="c1"># &quot;r&quot;        = &quot;run_current_file&quot;</span>
+</span><span id="__span-0-383"><a id="__codelineno-0-383" name="__codelineno-0-383" href="#__codelineno-0-383"></a><span class="c1"># &quot;R&quot;        = &quot;open_run_menu&quot;</span>
+</span><span id="__span-0-384"><a id="__codelineno-0-384" name="__codelineno-0-384" href="#__codelineno-0-384"></a><span class="c1"># &quot;x&quot;        = &quot;cancel_file&quot;</span>
+</span><span id="__span-0-385"><a id="__codelineno-0-385" name="__codelineno-0-385" href="#__codelineno-0-385"></a><span class="c1"># &quot;X&quot;        = &quot;cancel_all&quot;</span>
+</span><span id="__span-0-386"><a id="__codelineno-0-386" name="__codelineno-0-386" href="#__codelineno-0-386"></a><span class="c1"># &quot;/&quot;        = &quot;filter_name&quot;</span>
+</span><span id="__span-0-387"><a id="__codelineno-0-387" name="__codelineno-0-387" href="#__codelineno-0-387"></a><span class="c1"># &quot;o&quot;        = &quot;filter_status&quot;</span>
+</span><span id="__span-0-388"><a id="__codelineno-0-388" name="__codelineno-0-388" href="#__codelineno-0-388"></a><span class="c1"># &quot;O&quot;        = &quot;filter_status_back&quot;</span>
+</span><span id="__span-0-389"><a id="__codelineno-0-389" name="__codelineno-0-389" href="#__codelineno-0-389"></a><span class="c1"># &quot;t&quot;        = &quot;filter_tool&quot;</span>
+</span><span id="__span-0-390"><a id="__codelineno-0-390" name="__codelineno-0-390" href="#__codelineno-0-390"></a><span class="c1"># &quot;T&quot;        = &quot;filter_tool_back&quot;</span>
+</span><span id="__span-0-391"><a id="__codelineno-0-391" name="__codelineno-0-391" href="#__codelineno-0-391"></a><span class="c1"># &quot;f&quot;        = &quot;filter_group&quot;</span>
+</span><span id="__span-0-392"><a id="__codelineno-0-392" name="__codelineno-0-392" href="#__codelineno-0-392"></a><span class="c1"># &quot;F&quot;        = &quot;filter_group_back&quot;</span>
+</span><span id="__span-0-393"><a id="__codelineno-0-393" name="__codelineno-0-393" href="#__codelineno-0-393"></a><span class="c1"># &quot;s&quot;        = &quot;open_sort_menu&quot;</span>
+</span><span id="__span-0-394"><a id="__codelineno-0-394" name="__codelineno-0-394" href="#__codelineno-0-394"></a><span class="c1"># &quot;-&quot;        = &quot;toggle_orientation&quot;</span>
+</span><span id="__span-0-395"><a id="__codelineno-0-395" name="__codelineno-0-395" href="#__codelineno-0-395"></a><span class="c1"># &quot;(&quot;        = &quot;shrink_list&quot;</span>
+</span><span id="__span-0-396"><a id="__codelineno-0-396" name="__codelineno-0-396" href="#__codelineno-0-396"></a><span class="c1"># &quot;)&quot;        = &quot;grow_list&quot;</span>
+</span><span id="__span-0-397"><a id="__codelineno-0-397" name="__codelineno-0-397" href="#__codelineno-0-397"></a><span class="c1"># &quot;e&quot;        = &quot;edit_test&quot;</span>
+</span><span id="__span-0-398"><a id="__codelineno-0-398" name="__codelineno-0-398" href="#__codelineno-0-398"></a><span class="c1"># &quot;E&quot;        = &quot;edit_source&quot;</span>
+</span><span id="__span-0-399"><a id="__codelineno-0-399" name="__codelineno-0-399" href="#__codelineno-0-399"></a><span class="c1"># &quot;y&quot;        = &quot;yank_message&quot;</span>
+</span><span id="__span-0-400"><a id="__codelineno-0-400" name="__codelineno-0-400" href="#__codelineno-0-400"></a><span class="c1"># &quot;L&quot;        = &quot;enter_log&quot;</span>
+</span><span id="__span-0-401"><a id="__codelineno-0-401" name="__codelineno-0-401" href="#__codelineno-0-401"></a><span class="c1"># &quot;?&quot;        = &quot;enter_help&quot;</span>
+</span><span id="__span-0-402"><a id="__codelineno-0-402" name="__codelineno-0-402" href="#__codelineno-0-402"></a>
+</span><span id="__span-0-403"><a id="__codelineno-0-403" name="__codelineno-0-403" href="#__codelineno-0-403"></a><span class="c1"># [keymap.failure]</span>
+</span><span id="__span-0-404"><a id="__codelineno-0-404" name="__codelineno-0-404" href="#__codelineno-0-404"></a><span class="c1"># &quot;j&quot;    = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-405"><a id="__codelineno-0-405" name="__codelineno-0-405" href="#__codelineno-0-405"></a><span class="c1"># &quot;k&quot;    = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-406"><a id="__codelineno-0-406" name="__codelineno-0-406" href="#__codelineno-0-406"></a><span class="c1"># &quot;Down&quot; = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407" href="#__codelineno-0-407"></a><span class="c1"># &quot;Up&quot;   = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-408"><a id="__codelineno-0-408" name="__codelineno-0-408" href="#__codelineno-0-408"></a><span class="c1"># &quot;Left&quot; = &quot;pop&quot;</span>
+</span><span id="__span-0-409"><a id="__codelineno-0-409" name="__codelineno-0-409" href="#__codelineno-0-409"></a><span class="c1"># &quot;Esc&quot;  = &quot;pop&quot;</span>
+</span><span id="__span-0-410"><a id="__codelineno-0-410" name="__codelineno-0-410" href="#__codelineno-0-410"></a><span class="c1"># &quot;h&quot;    = &quot;pop&quot;</span>
+</span><span id="__span-0-411"><a id="__codelineno-0-411" name="__codelineno-0-411" href="#__codelineno-0-411"></a><span class="c1"># &quot;q&quot;    = &quot;quit&quot;</span>
+</span><span id="__span-0-412"><a id="__codelineno-0-412" name="__codelineno-0-412" href="#__codelineno-0-412"></a><span class="c1"># &quot;r&quot;    = &quot;run_current_file&quot;</span>
+</span><span id="__span-0-413"><a id="__codelineno-0-413" name="__codelineno-0-413" href="#__codelineno-0-413"></a><span class="c1"># &quot;R&quot;    = &quot;open_run_menu&quot;</span>
+</span><span id="__span-0-414"><a id="__codelineno-0-414" name="__codelineno-0-414" href="#__codelineno-0-414"></a><span class="c1"># &quot;x&quot;    = &quot;cancel_file&quot;</span>
+</span><span id="__span-0-415"><a id="__codelineno-0-415" name="__codelineno-0-415" href="#__codelineno-0-415"></a><span class="c1"># &quot;X&quot;    = &quot;cancel_all&quot;</span>
+</span><span id="__span-0-416"><a id="__codelineno-0-416" name="__codelineno-0-416" href="#__codelineno-0-416"></a><span class="c1"># &quot;/&quot;    = &quot;filter_name&quot;</span>
+</span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417" href="#__codelineno-0-417"></a><span class="c1"># &quot;e&quot;    = &quot;edit_test&quot;</span>
+</span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418" href="#__codelineno-0-418"></a><span class="c1"># &quot;E&quot;    = &quot;edit_source&quot;</span>
+</span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419" href="#__codelineno-0-419"></a><span class="c1"># &quot;y&quot;    = &quot;yank_message&quot;</span>
+</span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420" href="#__codelineno-0-420"></a><span class="c1"># &quot;L&quot;    = &quot;enter_log&quot;</span>
+</span><span id="__span-0-421"><a id="__codelineno-0-421" name="__codelineno-0-421" href="#__codelineno-0-421"></a><span class="c1"># &quot;?&quot;    = &quot;enter_help&quot;</span>
+</span><span id="__span-0-422"><a id="__codelineno-0-422" name="__codelineno-0-422" href="#__codelineno-0-422"></a>
+</span><span id="__span-0-423"><a id="__codelineno-0-423" name="__codelineno-0-423" href="#__codelineno-0-423"></a><span class="c1"># [keymap.help]</span>
+</span><span id="__span-0-424"><a id="__codelineno-0-424" name="__codelineno-0-424" href="#__codelineno-0-424"></a><span class="c1"># &quot;j&quot;        = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-425"><a id="__codelineno-0-425" name="__codelineno-0-425" href="#__codelineno-0-425"></a><span class="c1"># &quot;k&quot;        = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426" href="#__codelineno-0-426"></a><span class="c1"># &quot;Down&quot;     = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-427"><a id="__codelineno-0-427" name="__codelineno-0-427" href="#__codelineno-0-427"></a><span class="c1"># &quot;Up&quot;       = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-428"><a id="__codelineno-0-428" name="__codelineno-0-428" href="#__codelineno-0-428"></a><span class="c1"># &quot;g&quot;        = &quot;cursor_top&quot;</span>
+</span><span id="__span-0-429"><a id="__codelineno-0-429" name="__codelineno-0-429" href="#__codelineno-0-429"></a><span class="c1"># &quot;G&quot;        = &quot;cursor_bottom&quot;</span>
+</span><span id="__span-0-430"><a id="__codelineno-0-430" name="__codelineno-0-430" href="#__codelineno-0-430"></a><span class="c1"># &quot;PageDown&quot; = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-431"><a id="__codelineno-0-431" name="__codelineno-0-431" href="#__codelineno-0-431"></a><span class="c1"># &quot;PageUp&quot;   = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-432"><a id="__codelineno-0-432" name="__codelineno-0-432" href="#__codelineno-0-432"></a><span class="c1"># &quot;Esc&quot;      = &quot;pop&quot;</span>
+</span><span id="__span-0-433"><a id="__codelineno-0-433" name="__codelineno-0-433" href="#__codelineno-0-433"></a><span class="c1"># &quot;q&quot;        = &quot;pop&quot;</span>
+</span><span id="__span-0-434"><a id="__codelineno-0-434" name="__codelineno-0-434" href="#__codelineno-0-434"></a><span class="c1"># &quot;?&quot;        = &quot;pop&quot;</span>
+</span><span id="__span-0-435"><a id="__codelineno-0-435" name="__codelineno-0-435" href="#__codelineno-0-435"></a>
+</span><span id="__span-0-436"><a id="__codelineno-0-436" name="__codelineno-0-436" href="#__codelineno-0-436"></a><span class="c1"># [keymap.log]</span>
+</span><span id="__span-0-437"><a id="__codelineno-0-437" name="__codelineno-0-437" href="#__codelineno-0-437"></a><span class="c1"># &quot;j&quot;        = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-438"><a id="__codelineno-0-438" name="__codelineno-0-438" href="#__codelineno-0-438"></a><span class="c1"># &quot;k&quot;        = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-439"><a id="__codelineno-0-439" name="__codelineno-0-439" href="#__codelineno-0-439"></a><span class="c1"># &quot;Down&quot;     = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-440"><a id="__codelineno-0-440" name="__codelineno-0-440" href="#__codelineno-0-440"></a><span class="c1"># &quot;Up&quot;       = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-441"><a id="__codelineno-0-441" name="__codelineno-0-441" href="#__codelineno-0-441"></a><span class="c1"># &quot;g&quot;        = &quot;cursor_top&quot;</span>
+</span><span id="__span-0-442"><a id="__codelineno-0-442" name="__codelineno-0-442" href="#__codelineno-0-442"></a><span class="c1"># &quot;G&quot;        = &quot;cursor_bottom&quot;</span>
+</span><span id="__span-0-443"><a id="__codelineno-0-443" name="__codelineno-0-443" href="#__codelineno-0-443"></a><span class="c1"># &quot;PageDown&quot; = &quot;cursor_down&quot;</span>
+</span><span id="__span-0-444"><a id="__codelineno-0-444" name="__codelineno-0-444" href="#__codelineno-0-444"></a><span class="c1"># &quot;PageUp&quot;   = &quot;cursor_up&quot;</span>
+</span><span id="__span-0-445"><a id="__codelineno-0-445" name="__codelineno-0-445" href="#__codelineno-0-445"></a><span class="c1"># &quot;Esc&quot;      = &quot;pop&quot;</span>
+</span><span id="__span-0-446"><a id="__codelineno-0-446" name="__codelineno-0-446" href="#__codelineno-0-446"></a><span class="c1"># &quot;q&quot;        = &quot;pop&quot;</span>
+</span><span id="__span-0-447"><a id="__codelineno-0-447" name="__codelineno-0-447" href="#__codelineno-0-447"></a><span class="c1"># &quot;?&quot;        = &quot;pop&quot;</span>
+</span><span id="__span-0-448"><a id="__codelineno-0-448" name="__codelineno-0-448" href="#__codelineno-0-448"></a><span class="c1"># &quot;L&quot;        = &quot;pop&quot;</span>
 </span></code></pre></div>
 <!-- END init_template.toml -->
 

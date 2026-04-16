@@ -11,7 +11,8 @@ The TUI and web share a single keybinding table, defined in `scrutin_core::keyma
 | `PageDown` / `PageUp` or `Ctrl-f` / `Ctrl-b` | Page down / up |
 | `J` / `K` | Scroll the source pane |
 | `Enter` / `l` / `Right` | Drill in |
-| `Esc` / `h` / `q` / `Left` | Pop one level |
+| `Esc` / `h` / `Left` | Pop one level |
+| `q` | Quit (closes the overlay first when one is open) |
 
 ## Run control
 
@@ -30,6 +31,7 @@ The TUI and web share a single keybinding table, defined in `scrutin_core::keyma
 | `s` | Sort palette (sequential, status, name, suite, time) |
 | `o` / `O` | Cycle status filter (all / failures / errors / passes / running / ...) |
 | `t` / `T` | Cycle tool filter (all / testthat / pytest / ...) |
+| `f` / `F` | Cycle named filter group (only when `[filter.groups.*]` is defined in config) |
 | `Space` | Toggle selection on current file |
 | `v` | Visual select mode |
 | `-` | Toggle vertical / horizontal split |

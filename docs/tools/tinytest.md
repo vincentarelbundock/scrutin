@@ -60,17 +60,10 @@ tool = "tinytest"
 
 ## Custom runner
 
-`scrutin init` writes the default runner to `.scrutin/tinytest/runner.R`. Point to your edited copy either globally or on the specific `[[suite]]`:
-
-```toml
-[tinytest]
-runner = ".scrutin/tinytest/runner.R"
-```
-
-or
+`scrutin init` writes the default runner to `.scrutin/runners/tinytest.R`. Edit that file in place: the engine picks it up automatically whenever it exists. To point at a different path, set `runner` on an explicit suite:
 
 ```toml
 [[suite]]
 tool   = "tinytest"
-runner = ".scrutin/tinytest/runner.R"
+runner = "shared/tinytest-runner.R"
 ```

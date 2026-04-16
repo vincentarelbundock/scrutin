@@ -93,7 +93,7 @@ tool   = "pytest"                     # which plugin to use
 root   = "backend/"                   # suite working directory (relative to project root)
 run    = ["tests/**/test_*.py"]       # files the tool operates on (relative to root)
 watch  = ["marginaleffects/**/*.py"]  # files whose edits trigger reruns of dependent tests
-runner = ".scrutin/pytest/my.py"      # custom runner script (relative to project root)
+runner = "shared/pytest-runner.py"    # custom runner script (relative to project root)
 ```
 
 Only `tool` is required; every other field falls back to a plugin-specific default. The table below documents the fields; the subsection after it covers the relative / absolute path rules the example skirted.
@@ -119,9 +119,9 @@ Every path-valued field (`root`, `run`, `watch`, `runner`) accepts both forms:
 # Relative: project-root-anchored
 [[suite]]
 tool   = "pytest"
-root   = "backend/"               # project-root + "backend/"
-run    = ["tests/**/test_*.py"]   # suite-root + "tests/..."
-runner = ".scrutin/pytest/my.py"  # project-root + ".scrutin/..."
+root   = "backend/"                 # project-root + "backend/"
+run    = ["tests/**/test_*.py"]     # suite-root + "tests/..."
+runner = "shared/pytest-runner.py"  # project-root + "shared/..."
 
 # Absolute: taken verbatim
 [[suite]]
@@ -214,15 +214,17 @@ No shared-ancestor requirement: routing is per-glob match, so a suite can pull f
 
 #### Custom runner script
 
-Swap the default testthat runner for one that `library()`s your installed package instead of `pkgload::load_all()` on source:
+`scrutin init` writes the default runners to `.scrutin/runners/<tool>.<ext>` (e.g. `.scrutin/runners/testthat.R`, `.scrutin/runners/pytest.py`). Edit those files in place to swap the default behaviour: for example, to replace `pkgload::load_all()` with `library()` in the testthat runner. The engine automatically prefers a file in `.scrutin/runners/` over the embedded default whenever it exists, with no config change. `scrutin init` is idempotent: re-running prints `<path> already exists, skipping.` for each existing file instead of overwriting. Delete a file to fall back to the built-in default, or run `scrutin init` again to re-create it.
+
+For an explicit suite that points at a runner somewhere else in the repo, set `runner` on the suite:
 
 ```toml
 [[suite]]
 tool   = "testthat"
-runner = ".scrutin/testthat/installed.R"
+runner = "shared/testthat-installed.R"
 ```
 
-`scrutin init` writes the default runner out to `.scrutin/testthat/runner.R` so you can copy, edit, and point at the edited version. Same pattern works for pytest (`runner = ".scrutin/pytest/my_runner.py"`) and every other worker-mode tool.
+Same pattern works for pytest and every other worker-mode tool.
 
 ### Python virtual environments
 

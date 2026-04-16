@@ -295,19 +295,16 @@
 # ---------------------------------------------------------------------------
 # Per-tool config
 # ---------------------------------------------------------------------------
-# Uncomment `runner` to use a custom runner script instead of the
-# built-in default. `scrutin init` writes the defaults to
-# .scrutin/<tool>/ so you can edit them (e.g. replace
-# pkgload::load_all() with library(), add project-specific setup).
-#
-# [testthat]
-# runner = ".scrutin/testthat/runner.R"
-#
-# [tinytest]
-# runner = ".scrutin/tinytest/runner.R"
+# Custom runner scripts: `scrutin init` writes the embedded defaults to
+# .scrutin/runners/<tool>.<ext> (e.g. .scrutin/runners/testthat.R,
+# .scrutin/runners/pytest.py). Edit those files in place to swap package
+# loading, add project setup, or tweak the reporter; the engine picks
+# them up automatically over the embedded default whenever present.
+# Delete a file in that directory to fall back to the built-in runner.
+# To point at a runner somewhere else in the repo, set `runner` on an
+# explicit [[suite]] entry instead (see `runner` under [[suite]]).
 #
 # [pytest]
-# runner     = ".scrutin/pytest/runner.py"
 # extra_args = []                 # appended verbatim to pytest.main(),
 #                                 # e.g. ["--tb=short", "-vv"]
 

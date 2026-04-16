@@ -138,7 +138,7 @@ pub fn resolve_worker_hooks(
     Ok(WorkerHooks { startup, teardown })
 }
 
-fn absolute_under(root: &Path, rel: &Path) -> PathBuf {
+pub(crate) fn absolute_under(root: &Path, rel: &Path) -> PathBuf {
     if rel.is_absolute() {
         rel.to_path_buf()
     } else {
@@ -365,7 +365,7 @@ worker_teardown = "scripts/py_pytest_td.py"
             fn detect(&self, _: &Path) -> bool {
                 false
             }
-            fn subprocess_cmd(&self, _: &Path) -> Vec<String> {
+            fn subprocess_cmd(&self, _: &Path, _: &str) -> Vec<String> {
                 Vec::new()
             }
             fn runner_script(&self) -> &'static str {

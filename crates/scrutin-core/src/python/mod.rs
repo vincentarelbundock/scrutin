@@ -193,11 +193,11 @@ pub(crate) fn py_is_source_path(path: &Path) -> bool {
 /// Build the default subprocess command for a Python plugin using
 /// auto-detected interpreter. The `[python].interpreter` / `[python].venv`
 /// overrides are applied later in the engine (runner.rs), not here.
-pub(crate) fn py_subprocess_cmd(root: &Path, runner_basename: &str) -> Vec<String> {
+pub(crate) fn py_subprocess_cmd(root: &Path, runner_path: &str) -> Vec<String> {
     vec![
         py_find_python(root, None),
         "-u".into(),
-        format!(".scrutin/{runner_basename}"),
+        runner_path.into(),
     ]
 }
 

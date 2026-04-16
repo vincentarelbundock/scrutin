@@ -408,6 +408,17 @@ fn apply_action(
             }
         },
         Pop => {
+            // In Normal mode, Esc first clears any active selection
+            // (space-toggled rows and/or visual-mode range) before it
+            // would otherwise be a no-op at the stack bottom.
+            if matches!(st.mode(), Mode::Normal)
+                && (st.multi.visual_anchor.is_some() || !st.multi.selected.is_empty())
+            {
+                st.multi.visual_anchor = None;
+                st.multi.visual_base.clear();
+                st.multi.selected.clear();
+                return Ok(false);
+            }
             // Help-specific reset.
             if matches!(st.mode(), Mode::Help) {
                 st.overlay.scroll = 0;

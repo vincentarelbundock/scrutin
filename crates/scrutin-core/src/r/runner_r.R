@@ -207,7 +207,7 @@ if (nzchar(.scrutin_env$worker_startup_path)) {
       message = paste(
         "scrutin's default R runner requires 'pkgload', which is not installed.",
         "Fix: install.packages('pkgload')",
-        "Or edit .scrutin/<tool>/runner.R to use library() instead of pkgload::load_all().",
+        "Or edit .scrutin/runners/<tool>.R to use library() instead of pkgload::load_all().",
         sep = "\n"
       )
     ))
@@ -411,3 +411,9 @@ if (nzchar(.scrutin_env$worker_startup_path)) {
     close(con)
   }
 }
+
+# Package load + trace instrumentation run immediately at startup so the
+# per-tool runner (concatenated after this file at compile time) only
+# needs to define .scrutin_env$run_test and call .scrutin_env$main().
+.scrutin_env$load_package()
+.scrutin_env$setup_tracing()

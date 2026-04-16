@@ -1,25 +1,9 @@
 # scrutin pointblank runner
 #
-# Sources the shared R runner infrastructure, defines the pointblank-specific
-# run function (walks interrogated agents), and starts the main loop.
-# Edit this file to customize package loading or test execution.
-
-# Locate this script's directory (works under both Rscript and source()).
-.scrutin_script_dir <- local({
-  args <- commandArgs(trailingOnly = FALSE)
-  m <- grep("^--file=", args, value = TRUE)
-  if (length(m) > 0) return(dirname(sub("^--file=", "", m[1])))
-  for (i in rev(seq_len(sys.nframe()))) {
-    f <- sys.frame(i)$ofile
-    if (!is.null(f)) return(dirname(f))
-  }
-  "."
-})
-source(file.path(.scrutin_script_dir, "runner_r.R"), local = FALSE)
-
-# Load the package under test and set up runtime dependency tracing.
-.scrutin_env$load_package()
-.scrutin_env$setup_tracing()
+# Defines the pointblank-specific run function (walks interrogated agents)
+# and starts the main loop. The shared R runner infrastructure (including
+# package loading + trace setup) is prepended at compile time from
+# runner_r.R.
 
 .scrutin_env$run_test <- function(path) {
   `%||%` <- .scrutin_env$`%||%`

@@ -282,7 +282,6 @@ fn discover_for_verb(root: &Path) -> Result<Package> {
         &[],
         Vec::new(),
         |_| Ok(scrutin_core::project::package::WorkerHookPaths::default()),
-        |_| None,
         Default::default(),
     )
 }
@@ -381,7 +380,6 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
     // goes straight to `from_files` with the user-named tool.
     let root = config_root.clone();
     let cfg_for_hooks = cfg.clone();
-    let cfg_for_runner = cfg.clone();
     let root_for_hooks = root.clone();
     let python_interpreter = cfg.python.resolve_interpreter(&root);
 
@@ -448,7 +446,6 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
                     teardown: wh.teardown,
                 })
             },
-            |plugin| cfg_for_runner.runner_override(plugin.name()).map(PathBuf::from),
             cfg.env.clone(),
         )?
     };
@@ -895,33 +892,31 @@ fn run_init(pkg: &Package) -> Result<()> {
         eprintln!("Created .scrutin/config.toml");
     }
 
-    // Write default runner scripts to .scrutin/<tool>/ so users can
-    // customize them (e.g. swap pkgload::load_all() for library()).
+    // Scaffold editable runner scripts; the engine prefers these over
+    // the embedded defaults whenever present.
+    let runners_dir = scrutin_dir.join("runners");
+    std::fs::create_dir_all(&runners_dir)?;
     for suite in &pkg.test_suites {
         let plugin = &suite.plugin;
-        let dir = scrutin_dir.join(plugin.name());
-        std::fs::create_dir_all(&dir)?;
-        let ext = plugin.script_extension();
-        let runner_path = dir.join(format!("runner.{ext}"));
-        if !runner_path.exists() {
-            // R runners source() a shared runner_r.R; write it next to the
-            // per-plugin script so the relative path resolves.
-            if plugin.language() == "r" {
-                let shared_path = dir.join("runner_r.R");
-                if !shared_path.exists() {
-                    std::fs::write(&shared_path, scrutin_core::r::R_RUNNER_SHARED)?;
-                }
-            }
+        // Command-mode plugins (ruff, jarl, skyspell) have no runner script.
+        if plugin.runner_script().is_empty() {
+            continue;
+        }
+        let runner_path = runners_dir.join(plugin.runner_filename());
+        let display_path = runner_path
+            .strip_prefix(&pkg.root)
+            .unwrap_or(&runner_path)
+            .display();
+        if runner_path.exists() {
+            eprintln!("{} already exists, skipping.", display_path);
+        } else {
             std::fs::write(&runner_path, plugin.runner_script())?;
-            eprintln!(
-                "Wrote default runner to {}",
-                runner_path.strip_prefix(&pkg.root).unwrap_or(&runner_path).display()
-            );
+            eprintln!("Wrote default runner to {}", display_path);
         }
     }
 
     // Only the SQLite database (run history + dep map + hash cache) is
-    // per-machine throwaway state. Runner scripts under `.scrutin/<tool>/`
+    // per-machine throwaway state. Runner scripts under `.scrutin/runners/`
     // are user-editable and belong in version control so the whole team
     // picks up any customization.
     let gitignore_path = pkg.root.join(".gitignore");

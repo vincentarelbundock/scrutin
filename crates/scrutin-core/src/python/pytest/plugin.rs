@@ -41,17 +41,14 @@ impl Plugin for PytestPlugin {
         }
         false
     }
-    fn subprocess_cmd(&self, root: &Path) -> Vec<String> {
-        py_subprocess_cmd(root, &self.runner_basename())
+    fn subprocess_cmd(&self, root: &Path, runner_path: &str) -> Vec<String> {
+        py_subprocess_cmd(root, runner_path)
     }
     fn runner_script(&self) -> &'static str {
         PYTEST_RUNNER
     }
     fn script_extension(&self) -> &'static str {
         "py"
-    }
-    fn runner_basename(&self) -> String {
-        "runner_pytest.py".into()
     }
     fn project_name(&self, root: &Path) -> String {
         py_project_name_or_dir(root)

@@ -81,17 +81,10 @@ Workers call `pkgload::load_all()` to load the package. When a source file chang
 
 ## Custom runner
 
-`scrutin init` writes the default runner to `.scrutin/testthat/runner.R`. To use an edited copy, point to it either globally (applies to every testthat suite) or on the specific `[[suite]]`:
-
-```toml
-[testthat]
-runner = ".scrutin/testthat/runner.R"
-```
-
-or
+`scrutin init` writes the default runner to `.scrutin/runners/testthat.R`. Edit that file in place: the engine automatically prefers it over the embedded default whenever it exists, no config change needed. To point at a different path (e.g. a shared runner in a sibling directory), set `runner` on an explicit suite:
 
 ```toml
 [[suite]]
 tool   = "testthat"
-runner = ".scrutin/testthat/runner.R"
+runner = "shared/testthat-runner.R"
 ```

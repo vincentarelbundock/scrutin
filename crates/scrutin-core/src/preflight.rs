@@ -284,7 +284,7 @@ fn check_r_pkgload_one(suite_root: &Path, suite_name: &str) -> Result<()> {
     anyhow::bail!(
         "[[suite]] {} ({}): R package `pkgload` is not installed.\n\
          Hint: open R and run `install.packages(\"pkgload\")`, \
-         or edit .scrutin/<tool>/runner.R to use library() instead.\n\
+         or edit .scrutin/runners/<tool>.R to use library() instead.\n\
          Disable this check with `[preflight] r_pkgload = false`.{}",
         suite_name,
         suite_root.display(),

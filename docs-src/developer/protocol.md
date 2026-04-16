@@ -465,7 +465,7 @@ crates/scrutin-core/src/
 └── r/
     ├── mod.rs               ← RPlugin entries for testthat / tinytest / pointblank / validate
     ├── depmap.rs
-    ├── runner_r.R           ← shared R companion
+    ├── runner_r.R           ← shared R companion (prepended to each per-tool runner at compile time)
     ├── runner_testthat.R
     ├── runner_tinytest.R
     ├── runner_pointblank.R

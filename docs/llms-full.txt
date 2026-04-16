@@ -254,10 +254,10 @@ pub trait Plugin: Send + Sync {
     fn detect(&self, root: &Path) -> bool;
 
     // Worker-mode runtime
-    fn subprocess_cmd(&self, root: &Path) -> Vec<String>;
+    fn subprocess_cmd(&self, root: &Path, runner_path: &str) -> Vec<String>;
     fn runner_script(&self) -> &'static str;
     fn script_extension(&self) -> &'static str;
-    fn runner_basename(&self) -> String;              // default: runner.<ext>
+    fn runner_filename(&self) -> String;              // default: <name>.<ext>
     fn env_vars(&self, root: &Path) -> Vec<(String, String)>;
     fn is_noise_line(&self, line: &str) -> bool;
 
@@ -288,15 +288,18 @@ Worker-mode plugins (testthat, tinytest, pointblank, validate, pytest, great_exp
 
 ### Embedded Script Delivery
 
-Runner scripts are compiled into the binary via `include_str!()` and written to `.scrutin/` at subprocess startup:
+Runner scripts are compiled into the binary via `include_str!()` and materialised to a per-project cache directory at subprocess startup (never into the user's project):
 
 ```rust
-let script = plugin.runner_script();
-let runner_path = pkg.root.join(".scrutin").join(plugin.runner_basename());
-std::fs::write(&runner_path, script)?;
+let contents = resolve_runner_contents(pkg, suite)?;   // override or embedded
+let runner_path = materialise_runner(&pkg.root, plugin.as_ref(), &contents)?;
+// runner_path ≈ $XDG_CACHE_HOME/scrutin/runners/<project-hash>/<tool>.<ext>
+let argv = plugin.subprocess_cmd(&suite.root, runner_path.to_str().unwrap());
 ```
 
-The file lives for the lifetime of the subprocess. No installation step, no language-side package management.
+`resolve_runner_contents` picks, in order: `[[suite]].runner = "..."` from config → `.scrutin/runners/<tool>.<ext>` in the project → the embedded default. The file lives under the OS cache dir for the lifetime of the subprocess. No installation step, no language-side package management, nothing written to the user's repo.
+
+For R tools specifically, the shared `runner_r.R` infrastructure is not a separate file at runtime: it's concatenated with each per-tool script at compile time (`concat!(include_str!("runner_r.R"), "\n", include_str!("runner_<name>.R"))`), so every embedded runner is fully self-contained. `runner_r.R` invokes `.scrutin_env$load_package()` and `.scrutin_env$setup_tracing()` at its tail, so a per-tool runner only has to define `.scrutin_env$run_test` and call `.scrutin_env$main()`.
 
 ### Runner structure
 
@@ -329,7 +332,7 @@ crates/scrutin-core/src/
       plugin.rs
 ```
 
-The four R worker-mode tools (testthat, tinytest, pointblank, validate) share a data-driven `RPlugin` struct in `r/mod.rs`: each entry pairs a tool-specific runner (`runner_<name>.R`) with the shared `runner_r.R` companion. `scrutin init` scaffolds them into `.scrutin/<tool>/runner.<ext>` so users can edit them without forking the binary.
+The four R worker-mode tools (testthat, tinytest, pointblank, validate) share a data-driven `RPlugin` struct in `r/mod.rs`: each entry pairs a tool-specific runner (`runner_<name>.R`) with the shared `runner_r.R` companion, concatenated at compile time. `scrutin init` scaffolds them into `.scrutin/runners/<tool>.<ext>` (one flat file per tool) so users can edit them without forking the binary; the engine automatically prefers that file over the embedded default when present.
 
 ### Adding a new language
 
@@ -833,7 +836,7 @@ crates/scrutin-core/src/
 └── r/
     ├── mod.rs               ← RPlugin entries for testthat / tinytest / pointblank / validate
     ├── depmap.rs
-    ├── runner_r.R           ← shared R companion
+    ├── runner_r.R           ← shared R companion (prepended to each per-tool runner at compile time)
     ├── runner_testthat.R
     ├── runner_tinytest.R
     ├── runner_pointblank.R
@@ -1610,7 +1613,7 @@ Most projects need no config: auto-detection covers the common cases. When you d
 scrutin init
 ```
 
-That writes `.scrutin/config.toml` with commented-out defaults. The full set of knobs is in the [configuration reference](reference/configuration.md).
+That writes `.scrutin/config.toml` with commented-out defaults, plus one editable runner per detected tool under `.scrutin/runners/<tool>.<ext>` (see [Projects and Files](project-discovery.md#custom-runner-script)). `scrutin init` is idempotent: re-running it prints `<path> already exists, skipping.` for every file it would otherwise overwrite, so it never clobbers local edits. The full set of knobs is in the [configuration reference](reference/configuration.md).
 
 ## Opting in to linters and spell checkers
 
@@ -2329,7 +2332,8 @@ The TUI and web share a single keybinding table, defined in `scrutin_core::keyma
 | `PageDown` / `PageUp` or `Ctrl-f` / `Ctrl-b` | Page down / up |
 | `J` / `K` | Scroll the source pane |
 | `Enter` / `l` / `Right` | Drill in |
-| `Esc` / `h` / `q` / `Left` | Pop one level |
+| `Esc` / `h` / `Left` | Pop one level |
+| `q` | Quit (closes the overlay first when one is open) |
 
 ## Run control
 
@@ -2348,6 +2352,7 @@ The TUI and web share a single keybinding table, defined in `scrutin_core::keyma
 | `s` | Sort palette (sequential, status, name, suite, time) |
 | `o` / `O` | Cycle status filter (all / failures / errors / passes / running / ...) |
 | `t` / `T` | Cycle tool filter (all / testthat / pytest / ...) |
+| `f` / `F` | Cycle named filter group (only when `[filter.groups.*]` is defined in config) |
 | `Space` | Toggle selection on current file |
 | `v` | Visual select mode |
 | `-` | Toggle vertical / horizontal split |
@@ -2586,7 +2591,7 @@ tool   = "pytest"                     # which plugin to use
 root   = "backend/"                   # suite working directory (relative to project root)
 run    = ["tests/**/test_*.py"]       # files the tool operates on (relative to root)
 watch  = ["marginaleffects/**/*.py"]  # files whose edits trigger reruns of dependent tests
-runner = ".scrutin/pytest/my.py"      # custom runner script (relative to project root)
+runner = "shared/pytest-runner.py"    # custom runner script (relative to project root)
 ```
 
 Only `tool` is required; every other field falls back to a plugin-specific default. The table below documents the fields; the subsection after it covers the relative / absolute path rules the example skirted.
@@ -2612,9 +2617,9 @@ Every path-valued field (`root`, `run`, `watch`, `runner`) accepts both forms:
 # Relative: project-root-anchored
 [[suite]]
 tool   = "pytest"
-root   = "backend/"               # project-root + "backend/"
-run    = ["tests/**/test_*.py"]   # suite-root + "tests/..."
-runner = ".scrutin/pytest/my.py"  # project-root + ".scrutin/..."
+root   = "backend/"                 # project-root + "backend/"
+run    = ["tests/**/test_*.py"]     # suite-root + "tests/..."
+runner = "shared/pytest-runner.py"  # project-root + "shared/..."
 
 # Absolute: taken verbatim
 [[suite]]
@@ -2707,15 +2712,17 @@ No shared-ancestor requirement: routing is per-glob match, so a suite can pull f
 
 #### Custom runner script
 
-Swap the default testthat runner for one that `library()`s your installed package instead of `pkgload::load_all()` on source:
+`scrutin init` writes the default runners to `.scrutin/runners/<tool>.<ext>` (e.g. `.scrutin/runners/testthat.R`, `.scrutin/runners/pytest.py`). Edit those files in place to swap the default behaviour: for example, to replace `pkgload::load_all()` with `library()` in the testthat runner. The engine automatically prefers a file in `.scrutin/runners/` over the embedded default whenever it exists, with no config change. `scrutin init` is idempotent: re-running prints `<path> already exists, skipping.` for each existing file instead of overwriting. Delete a file to fall back to the built-in default, or run `scrutin init` again to re-create it.
+
+For an explicit suite that points at a runner somewhere else in the repo, set `runner` on the suite:
 
 ```toml
 [[suite]]
 tool   = "testthat"
-runner = ".scrutin/testthat/installed.R"
+runner = "shared/testthat-installed.R"
 ```
 
-`scrutin init` writes the default runner out to `.scrutin/testthat/runner.R` so you can copy, edit, and point at the edited version. Same pattern works for pytest (`runner = ".scrutin/pytest/my_runner.py"`) and every other worker-mode tool.
+Same pattern works for pytest and every other worker-mode tool.
 
 ### Python virtual environments
 
@@ -3166,19 +3173,16 @@ source: reference/configuration.md
 # ---------------------------------------------------------------------------
 # Per-tool config
 # ---------------------------------------------------------------------------
-# Uncomment `runner` to use a custom runner script instead of the
-# built-in default. `scrutin init` writes the defaults to
-# .scrutin/<tool>/ so you can edit them (e.g. replace
-# pkgload::load_all() with library(), add project-specific setup).
-#
-# [testthat]
-# runner = ".scrutin/testthat/runner.R"
-#
-# [tinytest]
-# runner = ".scrutin/tinytest/runner.R"
+# Custom runner scripts: `scrutin init` writes the embedded defaults to
+# .scrutin/runners/<tool>.<ext> (e.g. .scrutin/runners/testthat.R,
+# .scrutin/runners/pytest.py). Edit those files in place to swap package
+# loading, add project setup, or tweak the reporter; the engine picks
+# them up automatically over the embedded default whenever present.
+# Delete a file in that directory to fall back to the built-in runner.
+# To point at a runner somewhere else in the repo, set `runner` on an
+# explicit [[suite]] entry instead (see `runner` under [[suite]]).
 #
 # [pytest]
-# runner     = ".scrutin/pytest/runner.py"
 # extra_args = []                 # appended verbatim to pytest.main(),
 #                                 # e.g. ["--tb=short", "-vv"]
 
@@ -3853,19 +3857,12 @@ extra_args = ["--tb=short", "-vv"]
 
 ## Custom runner
 
-`scrutin init` writes the default runner to `.scrutin/pytest/runner.py`. Point to your edited copy either globally or on the specific `[[suite]]`:
-
-```toml
-[pytest]
-runner = ".scrutin/pytest/runner.py"
-```
-
-or
+`scrutin init` writes the default runner to `.scrutin/runners/pytest.py`. Edit that file in place: the engine picks it up automatically whenever it exists. To point at a different path, set `runner` on an explicit suite:
 
 ```toml
 [[suite]]
 tool   = "pytest"
-runner = ".scrutin/pytest/runner.py"
+runner = "shared/pytest-runner.py"
 ```
 
 ---
@@ -4137,19 +4134,12 @@ Workers call `pkgload::load_all()` to load the package. When a source file chang
 
 ## Custom runner
 
-`scrutin init` writes the default runner to `.scrutin/testthat/runner.R`. To use an edited copy, point to it either globally (applies to every testthat suite) or on the specific `[[suite]]`:
-
-```toml
-[testthat]
-runner = ".scrutin/testthat/runner.R"
-```
-
-or
+`scrutin init` writes the default runner to `.scrutin/runners/testthat.R`. Edit that file in place: the engine automatically prefers it over the embedded default whenever it exists, no config change needed. To point at a different path (e.g. a shared runner in a sibling directory), set `runner` on an explicit suite:
 
 ```toml
 [[suite]]
 tool   = "testthat"
-runner = ".scrutin/testthat/runner.R"
+runner = "shared/testthat-runner.R"
 ```
 
 ---
@@ -4218,19 +4208,12 @@ tool = "tinytest"
 
 ## Custom runner
 
-`scrutin init` writes the default runner to `.scrutin/tinytest/runner.R`. Point to your edited copy either globally or on the specific `[[suite]]`:
-
-```toml
-[tinytest]
-runner = ".scrutin/tinytest/runner.R"
-```
-
-or
+`scrutin init` writes the default runner to `.scrutin/runners/tinytest.R`. Edit that file in place: the engine picks it up automatically whenever it exists. To point at a different path, set `runner` on an explicit suite:
 
 ```toml
 [[suite]]
 tool   = "tinytest"
-runner = ".scrutin/tinytest/runner.R"
+runner = "shared/tinytest-runner.R"
 ```
 
 ---

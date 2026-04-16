@@ -91,11 +91,11 @@ impl Plugin for FakePlugin {
     fn detect(&self, _root: &Path) -> bool {
         false
     }
-    fn subprocess_cmd(&self, _root: &Path) -> Vec<String> {
+    fn subprocess_cmd(&self, _root: &Path, runner_path: &str) -> Vec<String> {
         vec![
             "python3".into(),
             "-u".into(),
-            ".scrutin/fake_runner.py".into(),
+            runner_path.into(),
         ]
     }
     fn runner_script(&self) -> &'static str {
@@ -103,9 +103,6 @@ impl Plugin for FakePlugin {
     }
     fn script_extension(&self) -> &'static str {
         "py"
-    }
-    fn runner_basename(&self) -> String {
-        "fake_runner.py".into()
     }
     fn project_name(&self, _root: &Path) -> String {
         "fake".into()

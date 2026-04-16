@@ -1,15 +1,18 @@
 use anyhow::{Context, Result, bail};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStderr, ChildStdin, ChildStdout, Command};
 use tokio::time::timeout;
+use xxhash_rust::xxh64::xxh64;
 
 use crate::engine::protocol::Message;
 use crate::logbuf::LogBuffer;
+use crate::project::hooks::absolute_under;
 use crate::project::package::{Package, TestSuite};
+use crate::project::plugin::Plugin;
 
 /// Cap on the in-memory stderr ring buffer per worker. Older bytes are
 /// truncated when a worker spews more than this — enough to surface a
@@ -51,56 +54,13 @@ impl RProcess {
     ) -> Result<Self> {
         let plugin = &suite.plugin;
 
-        // Materialize runner script under .scrutin/ so subprocess can load it.
-        // If the suite has a user-provided runner override, read that file
-        // instead of the embedded default.
-        let scrutin_dir = pkg.root.join(".scrutin");
-        std::fs::create_dir_all(&scrutin_dir)?;
+        let contents = resolve_runner_contents(pkg, suite)?;
+        let runner_path = materialise_runner(&pkg.root, plugin.as_ref(), &contents)?;
 
-        // R plugins source() a shared runner_r.R; write it alongside the
-        // per-plugin script so the relative path resolves.
-        if plugin.language() == "r" {
-            std::fs::write(
-                scrutin_dir.join("runner_r.R"),
-                crate::r::R_RUNNER_SHARED,
-            )?;
-        }
-
-        let runner_path = scrutin_dir.join(plugin.runner_basename());
-        if let Some(override_path) = &suite.runner_override {
-            let abs = if override_path.is_relative() {
-                pkg.root.join(override_path)
-            } else {
-                override_path.clone()
-            };
-            let contents = std::fs::read_to_string(&abs).with_context(|| {
-                format!(
-                    "failed to read custom runner script for {}: {}",
-                    plugin.name(),
-                    abs.display()
-                )
-            })?;
-            std::fs::write(&runner_path, contents)?;
-        } else {
-            std::fs::write(&runner_path, plugin.runner_script())?;
-        }
-
-        let mut argv = plugin.subprocess_cmd(&suite.root);
+        let runner_path_str = runner_path.to_string_lossy().into_owned();
+        let mut argv = plugin.subprocess_cmd(&suite.root, &runner_path_str);
         if argv.is_empty() {
             anyhow::bail!("tool {} returned empty subprocess command", plugin.name());
-        }
-        // Plugins build argv with the runner as a relative path
-        // (`.scrutin/runner_<tool>.<ext>`) so default single-package
-        // projects can point at the project-root `.scrutin/`. In a
-        // monorepo the subprocess cwd is `suite.root`, which may be a
-        // subtree of the project, so the relative path would miss.
-        // Rewrite the runner argument to the absolute path we already
-        // computed and wrote to disk.
-        let relative_runner = format!(".scrutin/{}", plugin.runner_basename());
-        for arg in argv.iter_mut() {
-            if *arg == relative_runner {
-                *arg = runner_path.to_string_lossy().into_owned();
-            }
         }
         // For Python plugins, replace the auto-detected interpreter with
         // the user's [python].interpreter or [python].venv override.
@@ -329,4 +289,69 @@ impl Drop for RProcess {
             t.abort();
         }
     }
+}
+
+/// Resolve the runner-script contents for a suite.
+///
+/// Precedence (first hit wins):
+///   1. Explicit `[[suite]].runner = "path"` in config (captured on the
+///      suite as `runner_override`). Read verbatim.
+///   2. Project override at `<root>/.scrutin/runners/<tool>.<ext>`
+///      (where `scrutin init` writes editable defaults). Read verbatim.
+///   3. The embedded default baked into the binary.
+fn resolve_runner_contents<'a>(
+    pkg: &Package,
+    suite: &'a TestSuite,
+) -> Result<std::borrow::Cow<'a, str>> {
+    let plugin = &suite.plugin;
+    if let Some(override_path) = &suite.runner_override {
+        let abs = absolute_under(&pkg.root, override_path);
+        let contents = std::fs::read_to_string(&abs).with_context(|| {
+            format!(
+                "failed to read custom runner script for {}: {}",
+                plugin.name(),
+                abs.display()
+            )
+        })?;
+        return Ok(std::borrow::Cow::Owned(contents));
+    }
+    let project_override = pkg
+        .root
+        .join(".scrutin")
+        .join("runners")
+        .join(plugin.runner_filename());
+    match std::fs::read_to_string(&project_override) {
+        Ok(s) => return Ok(std::borrow::Cow::Owned(s)),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+        Err(e) => {
+            return Err(e).with_context(|| {
+                format!(
+                    "failed to read project runner override for {}: {}",
+                    plugin.name(),
+                    project_override.display()
+                )
+            });
+        }
+    }
+    Ok(std::borrow::Cow::Borrowed(plugin.runner_script()))
+}
+
+/// Write the selected runner contents to a per-project cache dir and
+/// return its absolute path. The cache lives under the OS cache dir
+/// (falling back to the system temp dir), keyed on a hash of the
+/// project root so concurrent scrutin invocations on different
+/// projects never clobber each other.
+fn materialise_runner(project_root: &Path, plugin: &dyn Plugin, contents: &str) -> Result<PathBuf> {
+    let base = dirs::cache_dir().unwrap_or_else(std::env::temp_dir);
+    let project_key = format!(
+        "{:016x}",
+        xxh64(project_root.to_string_lossy().as_bytes(), 0)
+    );
+    let dir = base.join("scrutin").join("runners").join(project_key);
+    std::fs::create_dir_all(&dir)
+        .with_context(|| format!("creating runner cache directory {}", dir.display()))?;
+    let path = dir.join(plugin.runner_filename());
+    std::fs::write(&path, contents)
+        .with_context(|| format!("writing runner cache file {}", path.display()))?;
+    Ok(path)
 }

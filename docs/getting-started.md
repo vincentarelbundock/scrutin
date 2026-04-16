@@ -39,7 +39,7 @@ Most projects need no config: auto-detection covers the common cases. When you d
 scrutin init
 ```
 
-That writes `.scrutin/config.toml` with commented-out defaults. The full set of knobs is in the [configuration reference](reference/configuration.md).
+That writes `.scrutin/config.toml` with commented-out defaults, plus one editable runner per detected tool under `.scrutin/runners/<tool>.<ext>` (see [Projects and Files](project-discovery.md#custom-runner-script)). `scrutin init` is idempotent: re-running it prints `<path> already exists, skipping.` for every file it would otherwise overwrite, so it never clobbers local edits. The full set of knobs is in the [configuration reference](reference/configuration.md).
 
 ## Opting in to linters and spell checkers
 

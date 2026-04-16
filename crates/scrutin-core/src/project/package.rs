@@ -237,7 +237,6 @@ impl Package {
         skyspell_add_args: &[String],
         python_interpreter: Vec<String>,
         mut resolve_hooks: impl FnMut(&dyn Plugin) -> Result<WorkerHookPaths>,
-        mut resolve_runner: impl FnMut(&dyn Plugin) -> Option<PathBuf>,
         env: BTreeMap<String, String>,
     ) -> Result<Self> {
         let plugins = plugin::detect_plugins(&pkg_root, tool_filter)?;
@@ -260,7 +259,6 @@ impl Package {
                 .with_context(|| format!("compiling watch globs for {}", plugin.name()))?;
 
             let worker_hooks = resolve_hooks(plugin.as_ref())?;
-            let runner_override = resolve_runner(plugin.as_ref());
             test_suites.push(TestSuite {
                 plugin,
                 root: suite_root,
@@ -269,7 +267,7 @@ impl Package {
                 run_set,
                 watch_set,
                 worker_hooks,
-                runner_override,
+                runner_override: None,
                 explicit_files: false,
             });
         }

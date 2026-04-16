@@ -17,8 +17,6 @@ pub struct Config {
     #[serde(default, rename = "suite")]
     pub suites: Vec<SuiteConfig>,
     pub python: PythonConfig,
-    pub testthat: TestthatConfig,
-    pub tinytest: TinytestConfig,
     pub pytest: PytestConfig,
     pub skyspell: SkyspellConfig,
     pub web: WebConfig,
@@ -161,23 +159,6 @@ impl PythonConfig {
     }
 }
 
-/// Testthat-specific config.
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
-#[serde(default)]
-pub struct TestthatConfig {
-    /// Path to a custom runner script. When set, scrutin uses this file
-    /// instead of the built-in runner. Relative to the project root.
-    pub runner: Option<PathBuf>,
-}
-
-/// Tinytest-specific config.
-#[derive(Debug, Default, Deserialize, Serialize, Clone)]
-#[serde(default)]
-pub struct TinytestConfig {
-    /// Path to a custom runner script. See `[testthat].runner`.
-    pub runner: Option<PathBuf>,
-}
-
 /// Pytest-specific escape hatches. `extra_args` is appended verbatim to
 /// every `pytest.main()` invocation in the runner subprocess, letting users
 /// reach for obscure pytest flags without scrutin growing a CLI option for
@@ -185,8 +166,6 @@ pub struct TinytestConfig {
 #[derive(Debug, Default, Deserialize, Serialize, Clone)]
 #[serde(default)]
 pub struct PytestConfig {
-    /// Path to a custom runner script. See `[testthat].runner`.
-    pub runner: Option<PathBuf>,
     pub extra_args: Vec<String>,
 }
 
@@ -394,17 +373,6 @@ pub struct FilterGroup {
 }
 
 impl Config {
-    /// Look up the custom runner script path for a given tool name.
-    /// Returns `None` when the user has not set one (use the built-in default).
-    pub fn runner_override(&self, tool: &str) -> Option<&Path> {
-        match tool {
-            "testthat" => self.testthat.runner.as_deref(),
-            "tinytest" => self.tinytest.runner.as_deref(),
-            "pytest" => self.pytest.runner.as_deref(),
-            _ => None,
-        }
-    }
-
     /// Load config from `root/.scrutin/config.toml`, falling back to user config.
     pub fn load(root: &Path) -> Result<Self> {
         let candidate = root.join(".scrutin").join("config.toml");

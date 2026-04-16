@@ -20,19 +20,41 @@ use crate::project::plugin::Plugin;
 pub mod depmap;
 pub mod jarl;
 
-/// Shared R runner infrastructure sourced by each per-plugin runner.
-/// Written to `.scrutin/runner_r.R` alongside the per-plugin script.
-pub const R_RUNNER_SHARED: &str = include_str!("runner_r.R");
-
 /// Every R plugin compiled into the binary. Called by the central plugin
 /// registry in `project::plugin::all_plugins()`.
+///
+/// Per-tool runner scripts are assembled at compile time by concatenating
+/// the shared infrastructure (`runner_r.R`) with the tool-specific body.
+/// Users who customise a runner via config get a single self-contained
+/// file: no surrounding `source()` dance, no hidden dependency on a sibling
+/// script on disk.
 pub fn plugins() -> Vec<Arc<dyn Plugin>> {
+    const TINYTEST: &str = concat!(
+        include_str!("runner_r.R"),
+        "\n",
+        include_str!("runner_tinytest.R"),
+    );
+    const TESTTHAT: &str = concat!(
+        include_str!("runner_r.R"),
+        "\n",
+        include_str!("runner_testthat.R"),
+    );
+    const POINTBLANK: &str = concat!(
+        include_str!("runner_r.R"),
+        "\n",
+        include_str!("runner_pointblank.R"),
+    );
+    const VALIDATE: &str = concat!(
+        include_str!("runner_r.R"),
+        "\n",
+        include_str!("runner_validate.R"),
+    );
     vec![
         Arc::new(RPlugin {
             name: "tinytest",
             detect_dir: "inst/tinytest",
             test_dir: "inst/tinytest",
-            runner_script: include_str!("runner_tinytest.R"),
+            runner_script: TINYTEST,
             supported_outcomes: &[Outcome::Pass, Outcome::Fail, Outcome::Error, Outcome::Skip],
             subject_label: "test",
         }),
@@ -40,7 +62,7 @@ pub fn plugins() -> Vec<Arc<dyn Plugin>> {
             name: "testthat",
             detect_dir: "tests/testthat",
             test_dir: "tests/testthat",
-            runner_script: include_str!("runner_testthat.R"),
+            runner_script: TESTTHAT,
             supported_outcomes: &[Outcome::Pass, Outcome::Fail, Outcome::Error, Outcome::Skip],
             subject_label: "test",
         }),
@@ -48,7 +70,7 @@ pub fn plugins() -> Vec<Arc<dyn Plugin>> {
             name: "pointblank",
             detect_dir: "tests/pointblank",
             test_dir: "tests/pointblank",
-            runner_script: include_str!("runner_pointblank.R"),
+            runner_script: POINTBLANK,
             supported_outcomes: &[Outcome::Pass, Outcome::Fail, Outcome::Error, Outcome::Warn],
             subject_label: "step",
         }),
@@ -57,7 +79,7 @@ pub fn plugins() -> Vec<Arc<dyn Plugin>> {
             name: "validate",
             detect_dir: "tests/validate",
             test_dir: "tests/validate",
-            runner_script: include_str!("runner_validate.R"),
+            runner_script: VALIDATE,
             supported_outcomes: &[Outcome::Pass, Outcome::Fail, Outcome::Error, Outcome::Warn],
             subject_label: "rule",
         }),
@@ -93,17 +115,14 @@ impl Plugin for RPlugin {
     fn detect(&self, root: &Path) -> bool {
         root.join("DESCRIPTION").is_file() && root.join(self.detect_dir).is_dir()
     }
-    fn subprocess_cmd(&self, _root: &Path) -> Vec<String> {
-        r_subprocess_cmd(&self.runner_basename())
+    fn subprocess_cmd(&self, _root: &Path, runner_path: &str) -> Vec<String> {
+        r_subprocess_cmd(runner_path)
     }
     fn runner_script(&self) -> &'static str {
         self.runner_script
     }
     fn script_extension(&self) -> &'static str {
         "R"
-    }
-    fn runner_basename(&self) -> String {
-        format!("runner_{}.R", self.name)
     }
     fn project_name(&self, root: &Path) -> String {
         parse_r_package_name(root)
@@ -254,11 +273,11 @@ pub(crate) fn r_env_vars(tool: &str, root: &std::path::Path) -> Vec<(String, Str
     ]
 }
 
-pub(crate) fn r_subprocess_cmd(runner_basename: &str) -> Vec<String> {
+pub(crate) fn r_subprocess_cmd(runner_path: &str) -> Vec<String> {
     vec![
         "Rscript".into(),
         "--vanilla".into(),
-        format!(".scrutin/{runner_basename}"),
+        runner_path.into(),
     ]
 }
 

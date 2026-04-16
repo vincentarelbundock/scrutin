@@ -84,17 +84,10 @@ extra_args = ["--tb=short", "-vv"]
 
 ## Custom runner
 
-`scrutin init` writes the default runner to `.scrutin/pytest/runner.py`. Point to your edited copy either globally or on the specific `[[suite]]`:
-
-```toml
-[pytest]
-runner = ".scrutin/pytest/runner.py"
-```
-
-or
+`scrutin init` writes the default runner to `.scrutin/runners/pytest.py`. Edit that file in place: the engine picks it up automatically whenever it exists. To point at a different path, set `runner` on an explicit suite:
 
 ```toml
 [[suite]]
 tool   = "pytest"
-runner = ".scrutin/pytest/runner.py"
+runner = "shared/pytest-runner.py"
 ```

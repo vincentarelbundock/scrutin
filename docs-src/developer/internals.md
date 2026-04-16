@@ -248,10 +248,10 @@ pub trait Plugin: Send + Sync {
     fn detect(&self, root: &Path) -> bool;
 
     // Worker-mode runtime
-    fn subprocess_cmd(&self, root: &Path) -> Vec<String>;
+    fn subprocess_cmd(&self, root: &Path, runner_path: &str) -> Vec<String>;
     fn runner_script(&self) -> &'static str;
     fn script_extension(&self) -> &'static str;
-    fn runner_basename(&self) -> String;              // default: runner.<ext>
+    fn runner_filename(&self) -> String;              // default: <name>.<ext>
     fn env_vars(&self, root: &Path) -> Vec<(String, String)>;
     fn is_noise_line(&self, line: &str) -> bool;
 
@@ -282,15 +282,18 @@ Worker-mode plugins (testthat, tinytest, pointblank, validate, pytest, great_exp
 
 ### Embedded Script Delivery
 
-Runner scripts are compiled into the binary via `include_str!()` and written to `.scrutin/` at subprocess startup:
+Runner scripts are compiled into the binary via `include_str!()` and materialised to a per-project cache directory at subprocess startup (never into the user's project):
 
 ```rust
-let script = plugin.runner_script();
-let runner_path = pkg.root.join(".scrutin").join(plugin.runner_basename());
-std::fs::write(&runner_path, script)?;
+let contents = resolve_runner_contents(pkg, suite)?;   // override or embedded
+let runner_path = materialise_runner(&pkg.root, plugin.as_ref(), &contents)?;
+// runner_path ≈ $XDG_CACHE_HOME/scrutin/runners/<project-hash>/<tool>.<ext>
+let argv = plugin.subprocess_cmd(&suite.root, runner_path.to_str().unwrap());
 ```
 
-The file lives for the lifetime of the subprocess. No installation step, no language-side package management.
+`resolve_runner_contents` picks, in order: `[[suite]].runner = "..."` from config → `.scrutin/runners/<tool>.<ext>` in the project → the embedded default. The file lives under the OS cache dir for the lifetime of the subprocess. No installation step, no language-side package management, nothing written to the user's repo.
+
+For R tools specifically, the shared `runner_r.R` infrastructure is not a separate file at runtime: it's concatenated with each per-tool script at compile time (`concat!(include_str!("runner_r.R"), "\n", include_str!("runner_<name>.R"))`), so every embedded runner is fully self-contained. `runner_r.R` invokes `.scrutin_env$load_package()` and `.scrutin_env$setup_tracing()` at its tail, so a per-tool runner only has to define `.scrutin_env$run_test` and call `.scrutin_env$main()`.
 
 ### Runner structure
 
@@ -323,7 +326,7 @@ crates/scrutin-core/src/
       plugin.rs
 ```
 
-The four R worker-mode tools (testthat, tinytest, pointblank, validate) share a data-driven `RPlugin` struct in `r/mod.rs`: each entry pairs a tool-specific runner (`runner_<name>.R`) with the shared `runner_r.R` companion. `scrutin init` scaffolds them into `.scrutin/<tool>/runner.<ext>` so users can edit them without forking the binary.
+The four R worker-mode tools (testthat, tinytest, pointblank, validate) share a data-driven `RPlugin` struct in `r/mod.rs`: each entry pairs a tool-specific runner (`runner_<name>.R`) with the shared `runner_r.R` companion, concatenated at compile time. `scrutin init` scaffolds them into `.scrutin/runners/<tool>.<ext>` (one flat file per tool) so users can edit them without forking the binary; the engine automatically prefers that file over the embedded default when present.
 
 ### Adding a new language
 
