@@ -14,7 +14,7 @@ jobs:
       matrix:
         include:
           - { rust: aarch64-apple-darwin,      vsce: darwin-arm64, runner: macos-14 }
-          - { rust: x86_64-apple-darwin,       vsce: darwin-x64,   runner: macos-13 }
+          - { rust: x86_64-apple-darwin,       vsce: darwin-x64,   runner: macos-14 }
           - { rust: x86_64-unknown-linux-gnu,  vsce: linux-x64,    runner: ubuntu-22.04 }
           - { rust: aarch64-unknown-linux-gnu, vsce: linux-arm64,  runner: ubuntu-22.04, cross: true }
           - { rust: x86_64-pc-windows-msvc,    vsce: win32-x64,    runner: windows-2022, ext: .exe }
@@ -36,9 +36,9 @@ jobs:
         shell: bash
         run: |
           if [ "${{ matrix.cross }}" = "true" ]; then
-            cross build --release --target ${{ matrix.rust }} -p scrutin-bin
+            cross build --release --target ${{ matrix.rust }} -p scrutin
           else
-            cargo build --release --target ${{ matrix.rust }} -p scrutin-bin
+            cargo build --release --target ${{ matrix.rust }} -p scrutin
           fi
 
       - name: Stage binary
