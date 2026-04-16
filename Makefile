@@ -93,8 +93,8 @@ sync-webview: ## Sync the web frontend into the VS Code webview bundle
 vscode: install sync-webview ## Build and install the VS Code extension
 	rm -f editors/vscode/scrutin-*.vsix
 	cd editors/vscode && npx tsc -p ./ && npx vsce package --no-dependencies
-	code --uninstall-extension scrutin.scrutin 2>/dev/null || true
-	code --install-extension editors/vscode/scrutin-0.0.1.vsix --force
+	code --uninstall-extension VincentArel-Bundock.scrutin-runner 2>/dev/null || true
+	code --install-extension editors/vscode/scrutin-runner-0.0.1.vsix --force
 	@echo ">>> Reload VS Code window to pick up the new extension <<<"
 
 POSITRON_CLI := /Applications/Positron.app/Contents/Resources/app/bin/code
@@ -102,13 +102,52 @@ POSITRON_CLI := /Applications/Positron.app/Contents/Resources/app/bin/code
 positron: install sync-webview ## Build and install the Positron extension
 	rm -f editors/vscode/scrutin-*.vsix
 	cd editors/vscode && npx tsc -p ./ && npx vsce package --no-dependencies
-	$(POSITRON_CLI) --uninstall-extension scrutin.scrutin 2>/dev/null || true
-	$(POSITRON_CLI) --install-extension editors/vscode/scrutin-0.0.1.vsix --force
+	$(POSITRON_CLI) --uninstall-extension VincentArel-Bundock.scrutin-runner 2>/dev/null || true
+	$(POSITRON_CLI) --install-extension editors/vscode/scrutin-runner-0.0.1.vsix --force
 
 rstudio: ## Install the RStudio addin
 	R CMD INSTALL editors/rstudio
 
 editors: vscode positron rstudio ## Install all editor extensions (VS Code + Positron + RStudio)
+
+# ==============================================================================
+# VS Code extension packaging (per-platform, for Marketplace + Open VSX)
+# ==============================================================================
+
+VSCODE_DIR := editors/vscode
+VSIX_OUT   := $(VSCODE_DIR)/dist
+
+vscode-sync-version: ## Rewrite editors/vscode/package.json version to match Cargo.toml
+	@node -e "const fs=require('fs'); \
+	  const p='$(VSCODE_DIR)/package.json'; const j=JSON.parse(fs.readFileSync(p)); \
+	  j.version='$(VERSION)'; fs.writeFileSync(p, JSON.stringify(j, null, 2)+'\n');"
+
+vscode-stage-binary: ## Copy a prebuilt binary into editors/vscode/bin/ (arg: BIN_PATH=...)
+	@test -n "$(BIN_PATH)" || { echo "BIN_PATH must be set"; exit 1; }
+	@mkdir -p $(VSCODE_DIR)/bin
+	@cp "$(BIN_PATH)" $(VSCODE_DIR)/bin/
+	@chmod +x $(VSCODE_DIR)/bin/scrutin* 2>/dev/null || true
+
+vscode-package-target: sync-webview vscode-sync-version ## Package a per-platform VSIX (TARGET=vsce triple)
+	@test -n "$(TARGET)" || { echo "TARGET must be set (e.g. darwin-arm64)"; exit 1; }
+	@mkdir -p $(VSIX_OUT)
+	cd $(VSCODE_DIR) && npx tsc -p ./
+	cd $(VSCODE_DIR) && npx vsce package --no-dependencies \
+	  --target $(TARGET) -o dist/scrutin-$(TARGET)-$(VERSION).vsix
+
+vscode-package-universal: sync-webview vscode-sync-version ## Package a universal VSIX (no bundled binary)
+	@mkdir -p $(VSIX_OUT)
+	@rm -rf $(VSCODE_DIR)/bin
+	cd $(VSCODE_DIR) && npx tsc -p ./
+	cd $(VSCODE_DIR) && npx vsce package --no-dependencies \
+	  -o dist/scrutin-universal-$(VERSION).vsix
+
+vscode-publish: ## Publish every VSIX in dist/ to Marketplace + Open VSX (needs VSCE_PAT, OVSX_PAT)
+	@for v in $(VSIX_OUT)/*.vsix; do \
+	  echo "Publishing $$v"; \
+	  npx --prefix $(VSCODE_DIR) vsce publish --no-dependencies --packagePath $$v -p $$VSCE_PAT; \
+	  npx --prefix $(VSCODE_DIR) ovsx publish $$v -p $$OVSX_PAT; \
+	done
 
 # ==============================================================================
 # Documentation

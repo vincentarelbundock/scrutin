@@ -1,0 +1,112 @@
+name: Release VS Code Extension
+on:
+  push:
+    tags: ['**[0-9]+.[0-9]+.[0-9]+*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { rust: aarch64-apple-darwin,      vsce: darwin-arm64, runner: macos-14 }
+          - { rust: x86_64-apple-darwin,       vsce: darwin-x64,   runner: macos-13 }
+          - { rust: x86_64-unknown-linux-gnu,  vsce: linux-x64,    runner: ubuntu-22.04 }
+          - { rust: aarch64-unknown-linux-gnu, vsce: linux-arm64,  runner: ubuntu-22.04, cross: true }
+          - { rust: x86_64-pc-windows-msvc,    vsce: win32-x64,    runner: windows-2022, ext: .exe }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install cross
+        if: ${{ matrix.cross }}
+        run: cargo install cross --locked
+
+      - name: Build scrutin
+        shell: bash
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.rust }} -p scrutin-bin
+          else
+            cargo build --release --target ${{ matrix.rust }} -p scrutin-bin
+          fi
+
+      - name: Stage binary
+        shell: bash
+        run: |
+          BIN=target/${{ matrix.rust }}/release/scrutin${{ matrix.ext }}
+          make vscode-stage-binary BIN_PATH="$BIN"
+
+      - name: Package VSIX
+        shell: bash
+        run: |
+          cd editors/vscode && npm install --no-audit --no-fund
+          cd ../..
+          make vscode-package-target TARGET=${{ matrix.vsce }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix-${{ matrix.vsce }}
+          path: editors/vscode/dist/*.vsix
+
+  build-universal:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd editors/vscode && npm install --no-audit --no-fund
+      - run: make vscode-package-universal
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix-universal
+          path: editors/vscode/dist/*.vsix
+
+  publish:
+    needs: [build, build-universal]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd editors/vscode && npm install --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vsix-*
+          path: editors/vscode/dist
+          merge-multiple: true
+
+      - name: Publish to Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          for v in editors/vscode/dist/*.vsix; do
+            npx --prefix editors/vscode vsce publish --no-dependencies --packagePath "$v" -p "$VSCE_PAT"
+          done
+
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          for v in editors/vscode/dist/*.vsix; do
+            npx --prefix editors/vscode ovsx publish "$v" -p "$OVSX_PAT"
+          done
+
+      - name: Attach VSIX to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${GITHUB_REF_NAME}" editors/vscode/dist/*.vsix --clobber
