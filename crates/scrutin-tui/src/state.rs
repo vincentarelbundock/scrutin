@@ -1032,6 +1032,18 @@ impl AppState {
     pub(super) fn apply_result(&mut self, result: &FileResult) {
         use scrutin_core::engine::protocol;
 
+        // Pin the cursor to the file under it across the reorder this call
+        // can trigger. Status-sort (the default) reshuffles when another
+        // file flips Running → Passed/Failed, and without this the Detail
+        // view appears to "jump" to a different file as tests complete.
+        // Skip during visual-mode multi-select: the anchor is by index, so
+        // shifting file_cursor would drag the selection unpredictably.
+        let pinned_path: Option<PathBuf> = if self.multi.visual_anchor.is_none() {
+            self.selected_file().map(|f| f.path.clone())
+        } else {
+            None
+        };
+
         let file_name = protocol::file_display_name(&result.file);
 
         // Shared tally for counts, duration, and status.
@@ -1075,6 +1087,13 @@ impl AppState {
                     ms: tally.duration_ms,
                 },
             };
+        }
+
+        if let Some(path) = pinned_path {
+            let visible = self.visible_files();
+            if let Some(i) = visible.iter().position(|&i| self.files[i].path == path) {
+                self.nav.file_cursor = i;
+            }
         }
     }
 
