@@ -2,7 +2,7 @@
   "name": "scrutin-runner",
   "displayName": "Scrutin",
   "description": "Fast, watch-mode test runner for R and Python — integrated into VS Code",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha.8",
   "publisher": "VincentArel-Bundock",
   "license": "MIT",
   "repository": {
@@ -12,7 +12,9 @@
   "engines": {
     "vscode": "^1.80.0"
   },
-  "categories": ["Testing"],
+  "categories": [
+    "Testing"
+  ],
   "activationEvents": [
     "workspaceContains:**/.scrutin/config.toml",
     "workspaceContains:**/DESCRIPTION",
@@ -21,9 +23,18 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "scrutin.start", "title": "Scrutin: Start" },
-      { "command": "scrutin.stop", "title": "Scrutin: Stop" },
-      { "command": "scrutin.showPanel", "title": "Scrutin: Show Panel" }
+      {
+        "command": "scrutin.start",
+        "title": "Scrutin: Start"
+      },
+      {
+        "command": "scrutin.stop",
+        "title": "Scrutin: Stop"
+      },
+      {
+        "command": "scrutin.showPanel",
+        "title": "Scrutin: Show Panel"
+      }
     ],
     "configuration": {
       "title": "Scrutin",
