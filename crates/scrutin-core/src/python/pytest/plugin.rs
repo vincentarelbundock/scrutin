@@ -6,7 +6,8 @@ use std::path::Path;
 use crate::project::plugin::Plugin;
 use crate::python::{
     py_env_vars, py_is_source_path, py_is_test_filename, py_is_test_path, py_module_version,
-    py_parse_pyproject_name, py_parse_pyproject_version, py_project_name_or_dir, py_subprocess_cmd,
+    py_parse_pyproject_name, py_parse_pyproject_version, py_project_name_or_dir,
+    py_runner_filename, py_subprocess_cmd,
 };
 
 const PYTEST_RUNNER: &str = include_str!("runner.py");
@@ -49,6 +50,9 @@ impl Plugin for PytestPlugin {
     }
     fn script_extension(&self) -> &'static str {
         "py"
+    }
+    fn runner_filename(&self) -> String {
+        py_runner_filename(self.name())
     }
     fn project_name(&self, root: &Path) -> String {
         py_project_name_or_dir(root)

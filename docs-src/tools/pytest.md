@@ -84,7 +84,7 @@ extra_args = ["--tb=short", "-vv"]
 
 ## Custom runner
 
-`scrutin init` writes the default runner to `.scrutin/runners/pytest.py`. Edit that file in place: the engine picks it up automatically whenever it exists. To point at a different path, set `runner` on an explicit suite:
+`scrutin init` writes the default runner to `.scrutin/runners/scrutin_pytest.py` (the `scrutin_` prefix avoids the runner shadowing `import pytest` from inside itself). Edit that file in place: the engine picks it up automatically whenever it exists. To point at a different path, set `runner` on an explicit suite:
 
 ```toml
 [[suite]]

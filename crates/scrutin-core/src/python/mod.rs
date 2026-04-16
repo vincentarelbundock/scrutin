@@ -201,6 +201,16 @@ pub(crate) fn py_subprocess_cmd(root: &Path, runner_path: &str) -> Vec<String> {
     ]
 }
 
+/// Runner filename for a Python plugin. Prefixed with `scrutin_` so the
+/// on-disk file never collides with an importable top-level module name:
+/// Python prepends the script's directory to `sys.path[0]`, so a runner
+/// called `pytest.py` would shadow `import pytest` from inside the runner
+/// itself. Every Python plugin overrides `Plugin::runner_filename` via this
+/// helper so the shadowing stays impossible by construction.
+pub(crate) fn py_runner_filename(tool_name: &str) -> String {
+    format!("scrutin_{tool_name}.py")
+}
+
 pub(crate) fn py_env_vars(tool: &'static str, root: &Path) -> Vec<(String, String)> {
     vec![
         ("SCRUTIN_TOOL".into(), tool.into()),

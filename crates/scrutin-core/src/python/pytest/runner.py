@@ -10,10 +10,22 @@ crates/scrutin-core/src/engine/protocol.rs. Three message types:
   - {"type":"done"}
 """
 
-import json
 import os
-import runpy
 import sys
+
+# sys.path hygiene: Python prepends the script's directory to sys.path[0],
+# which means any file sitting next to us (stale artefacts from a previous
+# scrutin version, a user's own pytest.py, etc.) can shadow the real
+# `pytest` import. Scrub that entry before importing anything else so the
+# runner only ever loads modules from the interpreter's stdlib and the
+# active venv's site-packages. The rename to `scrutin_<tool>.py` protects
+# against the runner shadowing itself, but this belt-and-suspenders step
+# guards against every other file that could end up in the cache dir.
+_here = os.path.dirname(os.path.abspath(__file__))
+sys.path[:] = [p for p in sys.path if p and os.path.abspath(p) != _here]
+
+import json
+import runpy
 import time
 import traceback
 
@@ -163,13 +175,17 @@ def run_test(path):
 
     plugin = ScrutinPlugin(file_name)
     try:
-        # -p no:terminalreporter suppresses pytest's own stdout output
-        # (progress dots, summary line) so only our NDJSON reaches stdout.
+        # We keep terminalreporter loaded (pytest >= 9 calls
+        # config.get_terminal_writer() from assertrepr_compare and asserts
+        # the plugin exists) but redirect sys.stdout / sys.stderr to
+        # /dev/null for the duration of pytest.main so its progress dots,
+        # captured-output headers, and summary line don't pollute our
+        # NDJSON stream. Our emit() goes through _real_stdout
+        # (= sys.__stdout__), which is unaffected by these swaps.
         argv = [
             path,
             "--tb=short",
             "-p", "no:cacheprovider",
-            "-p", "no:terminalreporter",
         ]
         # User escape hatch: extra_args from .scrutin/config.toml [pytest], JSON-encoded.
         extra = os.environ.get("SCRUTIN_PYTEST_EXTRA_ARGS")
@@ -180,7 +196,16 @@ def run_test(path):
                     argv.extend(str(a) for a in parsed)
             except Exception:
                 pass
-        rc = pytest.main(argv, plugins=[plugin])
+        saved_stdout, saved_stderr = sys.stdout, sys.stderr
+        devnull = open(os.devnull, "w")
+        sys.stdout = devnull
+        sys.stderr = devnull
+        try:
+            rc = pytest.main(argv, plugins=[plugin])
+        finally:
+            sys.stdout = saved_stdout
+            sys.stderr = saved_stderr
+            devnull.close()
         # pytest exit codes: 0 ok, 1 tests failed, 2 interrupted, 3 internal
         # error, 4 usage error, 5 no tests collected. 0/1/5 are normal — the
         # plugin already accounted for any failures. Anything else (notably 3)

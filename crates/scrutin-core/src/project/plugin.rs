@@ -75,11 +75,15 @@ pub trait Plugin: Send + Sync {
     }
 
     /// Filename of the runner script: `<tool>.<ext>` by default, e.g.
-    /// `testthat.R`, `pytest.py`. Used as the on-disk name under both
+    /// `testthat.R`. Used as the on-disk name under both
     /// `.scrutin/runners/` (project-level override) and the per-project
     /// cache dir (where the engine materialises the embedded default).
     /// Every plugin has a unique `name()`, so the default is always
-    /// collision-free.
+    /// collision-free. Python plugins override this to use a
+    /// `scrutin_<name>.py` form via `python::py_runner_filename`, since
+    /// Python prepends the script's directory to `sys.path[0]` and a
+    /// runner literally called `pytest.py` would shadow `import pytest`
+    /// from inside the runner itself.
     fn runner_filename(&self) -> String {
         format!("{}.{}", self.name(), self.script_extension())
     }

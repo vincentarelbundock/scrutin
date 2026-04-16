@@ -30,11 +30,22 @@ const DEFAULT_IGNORED_DIRS: &[&str] = &[
     "target",
 ];
 
+/// Directory-name suffixes that mark generated artifacts. Anything ending
+/// in one of these is pruned the same way as `DEFAULT_IGNORED_DIRS`. Kept
+/// separate so the literal list above stays a clean exact-match table.
+///   - `.egg-info`: Python setuptools metadata (`<pkg>.egg-info/`); else
+///     prose linters pick up `SOURCES.txt`, `top_level.txt`, `PKG-INFO`.
+///   - `.dist-info`: PEP 376 wheel metadata (`<pkg>-<ver>.dist-info/`).
+const DEFAULT_IGNORED_DIR_SUFFIXES: &[&str] = &[".egg-info", ".dist-info"];
+
 /// Is `name` one of the noise directories every analyzer / watcher wants
 /// to skip? Exposed so the file watcher can apply the same predicate
 /// without duplicating the list.
 pub fn is_ignored_dir(name: &str) -> bool {
     DEFAULT_IGNORED_DIRS.contains(&name)
+        || DEFAULT_IGNORED_DIR_SUFFIXES
+            .iter()
+            .any(|s| name.ends_with(s))
 }
 
 /// Recursively collect files under `dir` for which `keep(path)` returns true.
@@ -110,8 +121,12 @@ mod tests {
         touch(&root.join("__pycache__/d.py"));
         touch(&root.join(".venv/e.py"));
         touch(&root.join(".hidden_tool/f.py"));
+        touch(&root.join("src/mypkg.egg-info/SOURCES.txt"));
+        touch(&root.join("mypkg-1.0.dist-info/RECORD"));
 
-        let files = collect_files(root, |p| has_extension(p, &["py"]));
+        let files = collect_files(root, |p| {
+            has_extension(p, &["py", "txt"]) || p.file_name().is_some_and(|n| n == "RECORD")
+        });
         let names: Vec<String> = files
             .iter()
             .map(|p| p.file_name().unwrap().to_string_lossy().to_string())
@@ -127,6 +142,14 @@ mod tests {
         assert!(
             !names.contains(&"f.py".to_string()),
             "should skip dot-prefixed dirs"
+        );
+        assert!(
+            !names.contains(&"SOURCES.txt".to_string()),
+            "should skip *.egg-info"
+        );
+        assert!(
+            !names.contains(&"RECORD".to_string()),
+            "should skip *.dist-info"
         );
     }
 

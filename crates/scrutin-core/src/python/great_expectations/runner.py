@@ -18,10 +18,18 @@ the user's file, runner introspects them. We deliberately do not construct
 checkpoints ourselves — composing the validation is the user's job.
 """
 
-import json
 import os
-import runpy
 import sys
+
+# sys.path hygiene: same defence as scrutin_pytest.py. The runner's
+# directory is prepended to sys.path[0] by Python; scrub it so any stale
+# file in the cache dir (or a user-placed `great_expectations.py`) can
+# never shadow the real package import.
+_here = os.path.dirname(os.path.abspath(__file__))
+sys.path[:] = [p for p in sys.path if p and os.path.abspath(p) != _here]
+
+import json
+import runpy
 import time
 import traceback
 
