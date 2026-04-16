@@ -2,6 +2,14 @@
 
 A data validation framework for R. Test files are `.R` scripts that produce interrogated `ptblank_agent` objects. The runner emits one event per validation step. *Scrutin* auto-detects pointblank when a `DESCRIPTION` file and a `tests/pointblank/` directory are both present.
 
+## Installing pointblank
+
+[pointblank](https://rstudio.github.io/pointblank/) is not shipped with *Scrutin*. Install it from CRAN:
+
+```r
+install.packages("pointblank")
+```
+
 ## Directory structure
 
 ```

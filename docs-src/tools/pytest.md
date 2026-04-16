@@ -2,6 +2,10 @@
 
 The standard testing framework for Python. *Scrutin* auto-detects pytest when a `pyproject.toml` (or `setup.py`/`setup.cfg`) is present alongside a `tests/` or `test/` directory, or `test_*.py` files at the project root.
 
+## Installing pytest
+
+pytest is not shipped with *Scrutin*. Follow the upstream install instructions at [docs.pytest.org](https://docs.pytest.org/).
+
 ## Directory structure
 
 ```

@@ -9,8 +9,8 @@
   <line x1="30" y1="21.5" x2="46" y2="21.5" stroke="#0d9488" stroke-width="1.5" opacity="0.45"/>
 
   <!-- row 2 checkbox (checked) -->
-  <rect x="12" y="34" width="11" height="11" rx="2" fill="#0d9488"/>
-  <polyline points="14.5,39.5 18,44 25,36.5" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="12" y="34" width="11" height="11" rx="2" fill="none" stroke="#0d9488" stroke-width="1.8"/>
+  <polyline points="14.5,39.5 18,44 25,36.5" fill="none" stroke="#0d9488" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
   <line x1="30" y1="39.5" x2="46" y2="39.5" stroke="#0d9488" stroke-width="1.5" opacity="0.45"/>
 
   <!-- row 3 checkbox (unchecked) -->

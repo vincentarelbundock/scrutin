@@ -43,6 +43,21 @@
         <loc>https://scrutin.dev/frontends/</loc>
       </url>
       <url>
+        <loc>https://scrutin.dev/frontends/terminal-ui/</loc>
+      </url>
+      <url>
+        <loc>https://scrutin.dev/frontends/web/</loc>
+      </url>
+      <url>
+        <loc>https://scrutin.dev/frontends/vscode/</loc>
+      </url>
+      <url>
+        <loc>https://scrutin.dev/frontends/positron/</loc>
+      </url>
+      <url>
+        <loc>https://scrutin.dev/frontends/rstudio/</loc>
+      </url>
+      <url>
         <loc>https://scrutin.dev/reporters/</loc>
       </url>
       <url>

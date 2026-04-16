@@ -11,7 +11,7 @@ scrutin -r list                  # list matching files, no execution
 
 Exit code is 0 when every file passes and 1 when any file fails, so reporters slot cleanly into shell pipelines and CI gates.
 
-For live, interactive views of a run (terminal UI, browser dashboard, editor panels), see [Frontends](frontends.md).
+For live, interactive views of a run (terminal UI, browser dashboard, editor panels), see [Frontends](frontends/index.md).
 
 ## Plain
 

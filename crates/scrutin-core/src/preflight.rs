@@ -104,16 +104,27 @@ fn check_command_tools(pkg: &Package) -> Result<()> {
         };
         if !is_executable_on_path(bin) {
             anyhow::bail!(
-                "[[suite]] {}: command-line tool {:?} not found on PATH.\n\
-                 Hint: install it (e.g. `cargo install jarl`, `pip install ruff`, \
-                 `brew install ruff`) or add its directory to PATH.\n\
-                 Disable this check with `[preflight] command_tools = false`.",
-                suite.plugin.name(),
-                bin,
+                "[[suite]] {suite}: command-line tool {bin:?} not found on PATH.\n\
+                 \n  {hint}\n\
+                 \n  Once installed, ensure it is on PATH.\n\
+                 \n  Disable this check with `[preflight] command_tools = false`.",
+                suite = suite.plugin.name(),
+                bin = bin,
+                hint = install_hint(bin),
             );
         }
     }
     Ok(())
+}
+
+fn install_hint(bin: &str) -> String {
+    match bin {
+        "jarl" => "Install instructions: https://jarl.etiennebacher.com/".into(),
+        "ruff" => "Install with `pip install ruff` or `brew install ruff`.".into(),
+        "skyspell" => "Install instructions: https://codeberg.org/your-tools/skyspell".into(),
+        "typos" => "Install instructions: https://github.com/crate-ci/typos".into(),
+        _ => format!("Install `{bin}` and ensure it is on PATH."),
+    }
 }
 
 /// Cross-platform "is `bin` runnable from PATH?" probe. Spawns

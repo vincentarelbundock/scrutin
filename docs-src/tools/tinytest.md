@@ -2,6 +2,14 @@
 
 A lightweight, zero-dependency testing framework for R packages. *Scrutin* auto-detects tinytest when a `DESCRIPTION` file and an `inst/tinytest/` directory are both present.
 
+## Installing tinytest
+
+[tinytest](https://github.com/markvanderloo/tinytest) is not shipped with *Scrutin*. Install it from CRAN:
+
+```r
+install.packages("tinytest")
+```
+
 ## Directory structure
 
 ```

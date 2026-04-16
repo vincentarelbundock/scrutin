@@ -21,7 +21,7 @@ Prebuilt binaries are published with each [release](https://github.com/vincentar
 
 ## First run
 
-*Scrutin* can run [in a terminal](frontends.md#terminal-ui), as a [web dashboard](frontends.md#web-dashboard), or [inside an editor](frontends.md#vs-code) like VS Code or RStudio using one of the official extensions. All of these frontends auto-detect your test framework, run every test file in parallel, and stream results as they arrive.
+*Scrutin* can run [in a terminal](frontends/terminal-ui.md), as a [web dashboard](frontends/web.md), or [inside an editor](frontends/vscode.md) like VS Code or RStudio using one of the official extensions. All of these frontends auto-detect your test framework, run every test file in parallel, and stream results as they arrive.
 
 Users interested in a specific frontend should click the links above for setup details. In the simplest case, all you need to do is `cd` to the directory and run:
 
@@ -73,7 +73,7 @@ See each tool's page for details: [jarl](tools/jarl.md), [ruff](tools/ruff.md), 
 
 *Scrutin* orchestrates third-party tools but doesn't ship them. Install the ones your project uses through their usual channels:
 
-- **Test and data-validation tools** (testthat, tinytest, pointblank, validate, pytest, Great Expectations) run inside an R or Python interpreter. Install them as importable packages in the environment *Scrutin* uses for that suite (the active R library, or the suite's resolved Python virtualenv).
-- **Linters and spell-checkers** (jarl, ruff, skyspell, typos) are standalone binaries. Put them on `PATH`.
+- **Test and data-validation tools** ([testthat](https://testthat.r-lib.org/), [tinytest](https://github.com/markvanderloo/tinytest), [pointblank](https://rstudio.github.io/pointblank/), [validate](https://github.com/data-cleaning/validate), [pytest](https://docs.pytest.org/), [Great Expectations](https://greatexpectations.io/)) run inside an R or Python interpreter. Install them as importable packages in the environment *Scrutin* uses for that suite (the active R library, or the suite's resolved Python virtualenv).
+- **Linters and spell-checkers** ([jarl](https://jarl.etiennebacher.com/), [ruff](https://docs.astral.sh/ruff/), [skyspell](https://codeberg.org/your-tools/skyspell), [typos](https://github.com/crate-ci/typos)) are standalone binaries. Put them on `PATH`.
 
 At startup *Scrutin* checks that every required binary is reachable and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Set `[preflight] command_tools = false` to bypass the check.

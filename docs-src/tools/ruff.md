@@ -2,6 +2,10 @@
 
 A fast Python linter written in Rust. Like [jarl](jarl.md) for R, ruff is not a test framework: lint diagnostics map to `warn` events, clean files produce a synthetic `pass`, and lint issues appear alongside test results in the TUI and web dashboard. ruff is opt-in: enable it with an explicit `[[suite]] tool = "ruff"` entry in `.scrutin/config.toml`, or pass files on the command line with `-t ruff` in [file mode](../project-discovery.md#file-mode).
 
+## Installing ruff
+
+ruff is not shipped with *Scrutin*. Follow the upstream install instructions at [docs.astral.sh/ruff](https://docs.astral.sh/ruff/).
+
 ## Directory structure
 
 ```

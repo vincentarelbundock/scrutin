@@ -2,6 +2,14 @@
 
 The standard testing framework for R packages. *Scrutin* auto-detects testthat when a `DESCRIPTION` file and a `tests/testthat/` directory are both present.
 
+## Installing testthat
+
+[testthat](https://testthat.r-lib.org/) is not shipped with *Scrutin*. Install it from CRAN:
+
+```r
+install.packages("testthat")
+```
+
 ## Directory structure
 
 ```

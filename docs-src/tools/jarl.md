@@ -2,6 +2,10 @@
 
 An R linter that *Scrutin* can drive as a plugin. Unlike test tools, jarl checks code style rather than correctness. It maps lint diagnostics to `warn` events, so lint issues appear alongside test results in the TUI and web dashboard. jarl is opt-in: enable it with an explicit `[[suite]] tool = "jarl"` entry in `.scrutin/config.toml`, or pass files on the command line with `-t jarl` in [file mode](../project-discovery.md#file-mode).
 
+## Installing jarl
+
+jarl is not shipped with *Scrutin*. Follow the upstream install instructions at [jarl.etiennebacher.com](https://jarl.etiennebacher.com/).
+
 ## Directory structure
 
 ```

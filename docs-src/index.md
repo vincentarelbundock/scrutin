@@ -39,7 +39,7 @@ Run every quality check on your project using a single command: unit tests, data
 
 ## See everything in one place
 
-Pick where to see your results: a live [terminal UI](frontends.md#terminal-ui), a [browser dashboard](frontends.md#web-dashboard), or embedded inside your editor ([VS Code](frontends.md#vs-code), [Positron](frontends.md#positron), or [RStudio](frontends.md#rstudio)). *Scrutin* can also emit [JUnit XML](reporters.md#junit-xml) for CI platforms, [GitHub Actions annotations](reporters.md#github-actions) for pull-request comments, or [plain text](reporters.md#plain) for shell pipelines.
+Pick where to see your results: a live [terminal UI](frontends/terminal-ui.md), a [browser dashboard](frontends/web.md), or embedded inside your editor ([VS Code](frontends/vscode.md), [Positron](frontends/positron.md), or [RStudio](frontends/rstudio.md)). *Scrutin* can also emit [JUnit XML](reporters.md#junit-xml) for CI platforms, [GitHub Actions annotations](reporters.md#github-actions) for pull-request comments, or [plain text](reporters.md#plain) for shell pipelines.
 
 </div>
 
@@ -122,21 +122,21 @@ Pick where to see your results: a live [terminal UI](frontends.md#terminal-ui), 
 <div class="screenshot-card" markdown>
 ![VS Code](assets/screenshot_vscode_normal.png){ .screenshot }
 
-[**VS Code**](frontends.md#vs-code)
+[**VS Code**](frontends/vscode.md)
 { .screenshot-label }
 </div>
 
 <div class="screenshot-card" markdown>
 ![Positron](assets/screenshot_positron_spell.png){ .screenshot }
 
-[**Positron**](frontends.md#positron)
+[**Positron**](frontends/positron.md)
 { .screenshot-label }
 </div>
 
 <div class="screenshot-card" markdown>
 ![RStudio](assets/screenshot_rstudio_normal.png){ .screenshot }
 
-[**RStudio**](frontends.md#rstudio)
+[**RStudio**](frontends/rstudio.md)
 { .screenshot-label }
 </div>
 

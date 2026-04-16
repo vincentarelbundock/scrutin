@@ -97,7 +97,7 @@ Plugins can expose per-file actions (e.g. jarl / ruff / typos "fix" variants). I
 
 ## Frontends and reporters
 
-The run engine streams results to whichever output is active, picked with `-r` / `--reporter`. [Frontends](frontends.md) are interactive (TUI, web dashboard, VS Code / Positron / RStudio embeds); [Reporters](reporters.md) are one-shot outputs for CI and scripting (plain text, JUnit XML, GitHub Actions annotations, list). All of them consume the same event stream from the engine, so adding a new output is a matter of writing one more consumer; none of the tool plugins or the engine have to change.
+The run engine streams results to whichever output is active, picked with `-r` / `--reporter`. [Frontends](frontends/index.md) are interactive (TUI, web dashboard, VS Code / Positron / RStudio embeds); [Reporters](reporters.md) are one-shot outputs for CI and scripting (plain text, JUnit XML, GitHub Actions annotations, list). All of them consume the same event stream from the engine, so adding a new output is a matter of writing one more consumer; none of the tool plugins or the engine have to change.
 
 ## The `.scrutin/` directory
 

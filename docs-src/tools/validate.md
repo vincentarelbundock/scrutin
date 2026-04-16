@@ -2,6 +2,14 @@
 
 A rule-based data validation framework for R. Test files are `.R` scripts that `confront()` data against a `validator()` and leave `validation` objects in the environment. The runner emits one event per validation rule with per-row metrics. *Scrutin* auto-detects validate when a `DESCRIPTION` file and a `tests/validate/` directory are both present.
 
+## Installing validate
+
+[validate](https://github.com/data-cleaning/validate) is not shipped with *Scrutin*. Install it from CRAN:
+
+```r
+install.packages("validate")
+```
+
 ## Directory structure
 
 ```

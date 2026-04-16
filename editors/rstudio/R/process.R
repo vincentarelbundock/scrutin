@@ -63,6 +63,24 @@ scrutin_stop <- function() {
   invisible()
 }
 
+#' Scaffold a `.scrutin/` directory in a project
+#'
+#' Runs `scrutin init` in the given project to create a starter
+#' `.scrutin/config.toml`.
+#'
+#' @param project Path to the project root. Defaults to the active RStudio
+#'   project or the working directory.
+#' @return The init command's exit status (invisibly).
+#' @export
+scrutin_init <- function(project = NULL) {
+  project <- project %||%
+    tryCatch(rstudioapi::getActiveProject(), error = function(e) NULL) %||%
+    getwd()
+  bin <- find_scrutin_binary()
+  status <- processx::run(bin, c("init", project), echo = TRUE, error_on_status = FALSE)
+  invisible(status$status)
+}
+
 #' Report whether scrutin is running
 #' @return A list with components `running`, `url`, and `pid` (invisibly).
 #' @export

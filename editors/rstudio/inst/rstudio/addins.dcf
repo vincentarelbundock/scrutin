@@ -12,3 +12,8 @@ Name: Show scrutin
 Description: Open the scrutin dashboard in the Viewer pane
 Binding: scrutin_show_addin
 Interactive: false
+
+Name: Init scrutin
+Description: Scaffold a .scrutin/ directory in the current project
+Binding: scrutin_init_addin
+Interactive: false

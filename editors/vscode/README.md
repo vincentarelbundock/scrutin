@@ -1,10 +1,12 @@
 # Scrutin Runner
 
+### Website: [vincentarelbundock.github.io/scrutin](https://vincentarelbundock.github.io/scrutin)
+
 Fast, watch-mode test runner for **R** and **Python**, integrated into VS Code and Positron.
 
-[Scrutin](https://vincentarelbundock.github.io/scrutin) discovers your tests, linters, and data validators automatically. It watches files for any edit you make, uses dependency mapping to re-run only the checks that relate to your changes, and streams results live into a panel inside the editor.
+Scrutin discovers your tests, linters, and data validators automatically. It watches files for any edit you make, uses dependency mapping to re-run only the checks that relate to your changes, and streams results live into a panel inside the editor.
 
-![Scrutin in VS Code](images/screenshot.png)
+![Scrutin in VS Code](https://raw.githubusercontent.com/vincentarelbundock/scrutin/main/editors/vscode/images/screenshot.png)
 
 ## Features
 
