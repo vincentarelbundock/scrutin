@@ -460,7 +460,29 @@ fn resolve_suite_root(pkg_root: &Path, suite_root: &Path) -> PathBuf {
     } else {
         pkg_root.join(suite_root)
     };
-    std::fs::canonicalize(&joined).unwrap_or(joined)
+    let canonical = std::fs::canonicalize(&joined).unwrap_or(joined);
+    strip_verbatim_prefix(canonical)
+}
+
+/// On Windows, `std::fs::canonicalize` returns a verbatim path with the
+/// `\\?\` prefix. That prefix breaks glob matching because the rest of
+/// scrutin walks non-verbatim paths, so patterns built from a verbatim
+/// root never match. This strips `\\?\` for ordinary drive paths (leaving
+/// UNC-style `\\?\UNC\...` and any non-prefixed path alone).
+#[cfg(windows)]
+fn strip_verbatim_prefix(p: PathBuf) -> PathBuf {
+    let s = p.to_string_lossy();
+    if let Some(rest) = s.strip_prefix(r"\\?\")
+        && !rest.starts_with("UNC\\")
+    {
+        return PathBuf::from(rest);
+    }
+    p
+}
+
+#[cfg(not(windows))]
+fn strip_verbatim_prefix(p: PathBuf) -> PathBuf {
+    p
 }
 
 /// Anchor each pattern under `root`. Absolute patterns stay as-is;
@@ -492,7 +514,12 @@ fn anchor_pattern(root: &Path, pattern: &str) -> String {
     if Path::new(pattern).is_absolute() {
         return pattern.to_string();
     }
-    let root_str = root.to_string_lossy();
+    let root_raw = root.to_string_lossy();
+    let root_str: std::borrow::Cow<'_, str> = if root_raw.contains('\\') {
+        std::borrow::Cow::Owned(root_raw.replace('\\', "/"))
+    } else {
+        root_raw
+    };
     let sep = if root_str.ends_with('/') { "" } else { "/" };
     format!("{root_str}{sep}{pattern}")
 }
@@ -525,8 +552,10 @@ fn glob_prefix_dirs(patterns: &[String]) -> Vec<PathBuf> {
 fn longest_literal_prefix(pattern: &str) -> PathBuf {
     // Rebuild the longest leading path that contains no glob
     // metacharacters. The pattern is always forward-slash-separated
-    // (we build it that way in `anchor_pattern`), so we can scan
-    // segments directly.
+    // (we build it that way in `anchor_pattern`), so we scan segments
+    // and re-join as a string rather than calling `PathBuf::push`
+    // segment-by-segment: on Windows the latter mishandles bare drive
+    // components (`push("D:")` then `push("a")` does NOT yield `D:\a`).
     let (absolute, rest) = match pattern.strip_prefix('/') {
         Some(rest) => (true, rest),
         None => (false, pattern),
@@ -534,21 +563,17 @@ fn longest_literal_prefix(pattern: &str) -> PathBuf {
     let literal: Vec<&str> = rest
         .split('/')
         .take_while(|seg| !contains_glob_meta(seg))
+        .filter(|seg| !seg.is_empty())
         .collect();
 
-    let mut cur = if absolute {
-        PathBuf::from("/")
+    let cur = if absolute {
+        PathBuf::from(format!("/{}", literal.join("/")))
     } else if literal.is_empty() {
         // Top-level glob like `**/*.py`: walk from `.`.
         PathBuf::from(".")
     } else {
-        PathBuf::new()
+        PathBuf::from(literal.join("/"))
     };
-    for seg in literal {
-        if !seg.is_empty() {
-            cur.push(seg);
-        }
-    }
 
     // If the literal prefix points to a file rather than a directory,
     // return the parent; the caller wants a dir for walking.

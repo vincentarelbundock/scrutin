@@ -1049,7 +1049,7 @@ impl AppState {
 
         self.run.file_durations.push((file_name.clone(), tally.duration_ms));
 
-        if let Some(entry) = self.files.iter_mut().find(|e| e.name == file_name) {
+        if let Some(entry) = self.files.iter_mut().find(|e| e.path == result.file) {
             entry.tests = tests;
             entry.status = match tally.status {
                 protocol::FileStatus::Cancelled => FileStatus::Cancelled,
