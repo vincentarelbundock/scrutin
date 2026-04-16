@@ -20,11 +20,11 @@ jobs:
           - { rust: x86_64-pc-windows-msvc,    vsce: win32-x64,    runner: windows-2022, ext: .exe }
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.rust }}
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
 
@@ -56,7 +56,7 @@ jobs:
           echo "Packaging version: $VERSION"
           make vscode-package-target TARGET=${{ matrix.vsce }} VERSION="$VERSION"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: vsix-${{ matrix.vsce }}
           path: editors/vscode/dist/*.vsix
@@ -64,8 +64,8 @@ jobs:
   build-universal:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
       - run: cd editors/vscode && npm install --no-audit --no-fund
@@ -75,7 +75,7 @@ jobs:
           echo "Packaging version: $VERSION"
           make vscode-package-universal VERSION="$VERSION"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: vsix-universal
           path: editors/vscode/dist/*.vsix
@@ -85,12 +85,12 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
       - run: cd editors/vscode && npm install --no-audit --no-fund
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           pattern: vsix-*
           path: editors/vscode/dist
@@ -100,6 +100,11 @@ jobs:
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: |
+          VERSION=$(awk -F'"' '/^version/ { print $2; exit }' Cargo.toml)
+          if [[ "$VERSION" == *-* ]]; then
+            echo "Skipping Marketplace: $VERSION is a pre-release (VS Marketplace only accepts X.Y.Z)."
+            exit 0
+          fi
           for v in editors/vscode/dist/*.vsix; do
             npx --prefix editors/vscode vsce publish --no-dependencies --packagePath "$v" -p "$VSCE_PAT"
           done
