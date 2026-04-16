@@ -1560,12 +1560,13 @@
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>scrutin<span class="w"> </span>-r<span class="w"> </span>web:0.0.0.0:3000<span class="w">      </span><span class="c1"># custom address</span>
 </span></code></pre></div>
 <p>The dashboard uses server-sent events to stream results as they arrive. It binds to localhost only by default. If the port is busy, <em>Scrutin</em> tries the next one automatically.</p>
+<p><img alt="Web dashboard" class="screenshot" src="../assets/screenshot_web_lint.png" /></p>
 <h2 id="vs-code">VS Code<a class="headerlink" href="#vs-code" title="Permanent link">&para;</a></h2>
 <p>A TypeScript extension that embeds the <em>Scrutin</em> web dashboard in an editor panel and surfaces live pass/fail/error counts in the status bar via SSE.</p>
 <h3 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>make<span class="w"> </span>vscode<span class="w">     </span><span class="c1"># build + install into VS Code</span>
 </span></code></pre></div>
-<p>The <code>scrutin</code> binary must be on <code>$PATH</code>, or set <code>scrutin.binaryPath</code> in settings.</p>
+<p>The <code>scrutin</code> binary is bundled inside the VSIX, so the extension works out of the box: no separate install needed. If you prefer to use a <code>scrutin</code> you've installed yourself (see the <a href="../getting-started/#install">install instructions</a>), set <code>scrutin.binaryPath</code> in settings to point at it, or simply put it on <code>$PATH</code> and uninstall the bundled-binary VSIX in favour of the universal one.</p>
 <p>The extension activates automatically when it detects <code>.scrutin/config.toml</code>, <code>DESCRIPTION</code>, or <code>pyproject.toml</code> in the workspace.</p>
 <h3 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h3>
 <p>The extension only exposes lifecycle commands. Run / rerun-failing / cancel / toggle-watch are reachable as chip buttons and keyboard shortcuts inside the webview.</p>
@@ -1615,7 +1616,7 @@
 </table>
 <p>Watch mode and every other <em>Scrutin</em> knob are controlled by <code>.scrutin/config.toml</code> (per-project) or <code>~/.config/scrutin/config.toml</code> (user-level). The extension doesn't override them.</p>
 <h2 id="positron">Positron<a class="headerlink" href="#positron" title="Permanent link">&para;</a></h2>
-<p>The same extension as <a href="#vs-code">VS Code</a>; commands and settings listed above apply unchanged. Install with:</p>
+<p>The same extension as <a href="#vs-code">VS Code</a>; commands and settings listed above apply unchanged, including the bundled <code>scrutin</code> binary. If you prefer to point at your own install, follow the <a href="../getting-started/#install">install instructions</a> and set <code>scrutin.binaryPath</code> in settings. Install with:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>make<span class="w"> </span>positron
 </span></code></pre></div>
 <h2 id="rstudio">RStudio<a class="headerlink" href="#rstudio" title="Permanent link">&para;</a></h2>
@@ -1628,7 +1629,7 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>make<span class="w"> </span>rstudio<span class="w">    </span><span class="c1"># R CMD INSTALL editors/rstudio</span>
 </span></code></pre></div>
 <p>Requires: <code>jsonlite</code>, <code>later</code>, <code>processx</code>, <code>rstudioapi</code>.</p>
-<p>Set the binary path with <code>options(scrutin.binary = "/path/to/scrutin")</code>, or ensure <code>scrutin</code> is on <code>$PATH</code>.</p>
+<p>Unlike the VS Code and Positron extensions, the RStudio add-in does <strong>not</strong> bundle the <code>scrutin</code> binary. Install it separately (see the <a href="../getting-started/#install">install instructions</a>) and either ensure it's on <code>$PATH</code> or point at it explicitly with <code>options(scrutin.binary = "/path/to/scrutin")</code>.</p>
 <h3 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h3>
 <div class="language-r highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nf">scrutin_start</span><span class="p">()</span><span class="w">           </span><span class="c1"># start server + show dashboard</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nf">scrutin_start</span><span class="p">(</span><span class="n">watch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>

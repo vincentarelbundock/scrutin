@@ -30,7 +30,6 @@ export class ScrutinProcess {
 
     this.child = spawn(binaryPath, args, {
       stdio: ["ignore", "pipe", "pipe"],
-      env: { ...process.env, CI: "true" }, // suppress browser open
     });
 
     const url = await this.waitForReady(port);

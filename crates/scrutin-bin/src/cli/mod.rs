@@ -503,14 +503,12 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
     let exit_code = match reporter {
         Reporter::List => unreachable!("handled above"),
         Reporter::Web { addr } => {
-            let open_browser = std::env::var("CI").is_err();
             scrutin_web::run_web(
                 addr,
                 pkg.clone(),
                 n_workers,
                 test_files.clone(),
                 watch,
-                open_browser,
                 cfg.run.timeout_file_ms,
                 cfg.run.timeout_run_ms,
                 cfg.run.fork_workers,

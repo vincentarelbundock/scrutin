@@ -26,8 +26,8 @@ scrutin_start <- function(project = NULL, watch = TRUE, port = NULL) {
   port <- port %||% find_free_port()
   bin <- find_scrutin_binary()
 
-  args <- c("-r", paste0("web:127.0.0.1:", port), "--no-open")
-  if (watch) args <- c(args, "-w")
+  args <- c("-r", paste0("web:127.0.0.1:", port))
+  if (!watch) args <- c(args, "-s", "watch.enabled=false")
   args <- c(args, project)
 
   env <- editor_env()

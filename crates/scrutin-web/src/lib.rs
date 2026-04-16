@@ -34,7 +34,6 @@ pub async fn run_web(
     n_workers: usize,
     test_files: Vec<std::path::PathBuf>,
     watch: bool,
-    open_browser: bool,
     timeout_file_ms: u64,
     timeout_run_ms: u64,
     fork_workers: bool,
@@ -85,12 +84,6 @@ pub async fn run_web(
     let actual = listener.local_addr()?;
     eprintln!("scrutin-web: listening on http://{actual}");
 
-    if open_browser {
-        let url = format!("http://{actual}");
-        // Best-effort: don't fail the whole run if the browser can't open.
-        let _ = open_url(&url);
-    }
-
     let shutdown = async {
         let _ = tokio::signal::ctrl_c().await;
         eprintln!("scrutin-web: shutting down");
@@ -108,20 +101,4 @@ pub async fn run_web(
     state.cancel_all().await;
 
     Ok(())
-}
-
-/// Best-effort browser launcher. macOS `open`, Linux `xdg-open`, Windows
-/// `start`. Failure is non-fatal — we only log it.
-fn open_url(url: &str) -> std::io::Result<()> {
-    #[cfg(target_os = "macos")]
-    let cmd = ("open", vec![url]);
-    #[cfg(target_os = "linux")]
-    let cmd = ("xdg-open", vec![url]);
-    #[cfg(target_os = "windows")]
-    let cmd = ("cmd", vec!["/C", "start", url]);
-
-    std::process::Command::new(cmd.0)
-        .args(&cmd.1)
-        .spawn()
-        .map(|_| ())
 }

@@ -24,6 +24,12 @@
   --running: #29b6f6;
   --gutter-bg: var(--vscode-editorGutter-background, #161a24);
   --highlight-bg: var(--vscode-editor-findMatchHighlightBackground, #2a2030);
+
+  /* Layout defaults: the frontend defines these in its own :root block,
+   * which build-webview.mjs strips along with the palette. Restore them
+   * here so #layout's grid-template-{columns,rows} have valid values. */
+  --sidebar-w: 420px;
+  --topbar-h: 50%;
 }
 /* Semantic theme tokens are aliased onto the shared Catppuccin palette
  * (see catppuccin-palette.css, which is the single source of truth shared

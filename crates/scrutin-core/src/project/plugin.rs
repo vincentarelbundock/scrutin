@@ -265,7 +265,9 @@ pub fn detect_plugins(root: &Path, tool_filter: &str) -> Result<Vec<Arc<dyn Plug
     if matches.is_empty() {
         bail!(
             "No test tools detected in {}. \
-             Configure suites explicitly in .scrutin/config.toml or run scrutin from the project root.",
+             Run `scrutin init` to scaffold a `.scrutin/config.toml` with explicit suite entries, \
+             or run scrutin from a project root that contains tool marker files \
+             (DESCRIPTION, pyproject.toml, tests/testthat/, ...).",
             root.display()
         );
     }

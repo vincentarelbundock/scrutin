@@ -45,9 +45,9 @@ Pick where to see your results: a live [terminal UI](frontends.md#terminal-ui), 
 
 <div class="screenshot-row" markdown>
 
-![Terminal UI](assets/screenshot_tui_normal_mode.png){ .screenshot }
+![Terminal UI](assets/screenshot_tui_normal.png){ .screenshot }
 
-![Failure detail](assets/screenshot_tui_error_mode.png){ .screenshot }
+![Failure detail](assets/screenshot_tui_failure.png){ .screenshot }
 
 </div>
 
@@ -120,21 +120,21 @@ Pick where to see your results: a live [terminal UI](frontends.md#terminal-ui), 
 <div class="screenshot-row three" markdown>
 
 <div class="screenshot-card" markdown>
-![VS Code](assets/screenshot_editor_vscode.png){ .screenshot }
+![VS Code](assets/screenshot_vscode_normal.png){ .screenshot }
 
 [**VS Code**](frontends.md#vs-code)
 { .screenshot-label }
 </div>
 
 <div class="screenshot-card" markdown>
-![Positron](assets/screenshot_editor_positron.png){ .screenshot }
+![Positron](assets/screenshot_positron_spell.png){ .screenshot }
 
 [**Positron**](frontends.md#positron)
 { .screenshot-label }
 </div>
 
 <div class="screenshot-card" markdown>
-![RStudio](assets/screenshot_editor_rstudio.png){ .screenshot }
+![RStudio](assets/screenshot_rstudio_normal.png){ .screenshot }
 
 [**RStudio**](frontends.md#rstudio)
 { .screenshot-label }

@@ -29,7 +29,7 @@ Users interested in a specific frontend should click the links above for setup d
 scrutin
 ```
 
-![Terminal UI](assets/screenshot_tui_normal_mode.png){ .screenshot }
+![Terminal UI](assets/screenshot_tui_normal.png){ .screenshot }
 
 In the terminal UI:
 

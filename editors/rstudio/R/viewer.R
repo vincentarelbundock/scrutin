@@ -4,7 +4,7 @@ scrutin_show <- function() {
   if (is.null(.state$url)) {
     stop("scrutin is not running. Call scrutin_start() first.", call. = FALSE)
   }
-  url <- paste0(.state$url, "?theme=", ide_theme())
+  url <- paste0(.state$url, "/?theme=", ide_theme())
   if (rstudioapi::isAvailable()) {
     rstudioapi::viewer(url)
   } else {
