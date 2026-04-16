@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/scrutin-core", "crates/scrutin-tui", "crates/scrutin-web", "crates/scrutin-bin"]
 
 [workspace.package]
-version = "0.0.5"
+version = "0.0.6"
 edition = "2024"
 description = "Quality dashboard, file watcher, and parallel runner."
 license = "MIT"
@@ -17,9 +17,9 @@ categories = ["development-tools::testing", "command-line-utilities"]
 [workspace.dependencies]
 # Internal crates. `path` is used for local builds; `version` is what ends up
 # on crates.io. Must be bumped in lockstep with `workspace.package.version`.
-scrutin-core = { path = "crates/scrutin-core", version = "0.0.5" }
-scrutin-tui  = { path = "crates/scrutin-tui",  version = "0.0.5" }
-scrutin-web  = { path = "crates/scrutin-web",  version = "0.0.5" }
+scrutin-core = { path = "crates/scrutin-core", version = "0.0.6" }
+scrutin-tui  = { path = "crates/scrutin-tui",  version = "0.0.6" }
+scrutin-web  = { path = "crates/scrutin-web",  version = "0.0.6" }
 
 # External
 serde = { version = "1", features = ["derive"] }
