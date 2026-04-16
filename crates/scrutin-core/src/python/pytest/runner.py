@@ -18,11 +18,19 @@ import time
 import traceback
 
 
+# Snapshot the original stdout so user test code that reassigns sys.stdout
+# (or a leaked contextlib.redirect_stdout) can't swallow scrutin's NDJSON.
+# sys.__stdout__ is Python's canonical handle to the interpreter's original
+# stdout and is unaffected by `sys.stdout = x`. This mirrors the fd-1 bypass
+# in runner_r.R for R's sink() stack.
+_real_stdout = sys.__stdout__ or sys.stdout
+
+
 def emit(obj):
     # default=str handles pytest's Path / LocalPath objects in longrepr.
-    sys.stdout.write(json.dumps(obj, default=str))
-    sys.stdout.write("\n")
-    sys.stdout.flush()
+    _real_stdout.write(json.dumps(obj, default=str))
+    _real_stdout.write("\n")
+    _real_stdout.flush()
 
 
 def emit_event(file, outcome, name, *, parent=None, message=None,

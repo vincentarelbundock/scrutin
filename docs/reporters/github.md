@@ -2,6 +2,8 @@
 
 Purpose-built for GitHub Actions CI runs. Streams `::group::` / `::endgroup::` markers per file so the job log has collapsible sections, emits `::error` and `::warning` workflow commands so failures and lint warnings appear as inline annotations on the pull request, and writes a Markdown summary (a pass/fail/error table plus the full failure messages) to `$GITHUB_STEP_SUMMARY` so it renders on the job summary page.
 
+![GitHub Actions log](../assets/screenshot_github_actions.png){ .screenshot }
+
 ```bash
 scrutin -r github
 ```

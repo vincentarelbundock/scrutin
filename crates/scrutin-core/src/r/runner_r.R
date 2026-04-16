@@ -24,6 +24,22 @@ options(warn = 1)
 
 .scrutin_env$`%||%` <- function(x, y) if (is.null(x)) y else x
 
+# Open a write-only connection directly to fd 1 so scrutin's NDJSON output
+# bypasses R's sink() stack. User code that calls sink() or
+# utils::capture.output() (e.g. tinysnapshot::expect_snapshot_print) would
+# otherwise swallow our protocol bytes into its capture buffer, corrupting
+# both the captured text and the wire protocol. /dev/fd/1 only exists on
+# Unix; on Windows we fall back to the default stdout path and accept the
+# residual risk.
+.scrutin_env$stdout_conn <- if (.Platform$OS.type == "unix") {
+  tryCatch(
+    file("/dev/fd/1", open = "w", raw = TRUE),
+    error = function(e) NULL
+  )
+} else {
+  NULL
+}
+
 # --- Minimal hand-rolled NDJSON encoder ---
 # Removes the jsonlite runtime dependency. Handles only the shapes scrutin's
 # protocol actually emits: NULL, scalar logical/integer/numeric/character,
@@ -75,8 +91,7 @@ options(warn = 1)
 }
 
 .scrutin_env$emit <- function(obj) {
-  cat(.scrutin_env$to_json(obj), "\n", sep = "")
-  flush(stdout())
+  .scrutin_env$emit_raw(.scrutin_env$to_json(obj))
 }
 
 # Build a per-test event. `outcome` is one of pass/fail/error/skip/xfail/warn.
@@ -312,10 +327,17 @@ if (nzchar(.scrutin_env$worker_startup_path)) {
 }
 
 # Raw NDJSON writer. In-process/Windows mode writes to stdout; TCP fork
-# mode overrides this to write to the socket.
+# mode overrides this to write to the socket. On Unix we write through a
+# pre-opened fd-1 connection so user test code's sink()/capture.output()
+# cannot swallow the line.
 .scrutin_env$emit_raw <- function(line) {
-  cat(line, "\n", sep = "")
-  flush(stdout())
+  if (!is.null(.scrutin_env$stdout_conn)) {
+    writeLines(line, con = .scrutin_env$stdout_conn)
+    flush(.scrutin_env$stdout_conn)
+  } else {
+    cat(line, "\n", sep = "")
+    flush(stdout())
+  }
 }
 
 # Main stdin loop. Call this after defining .scrutin_env$run_test.

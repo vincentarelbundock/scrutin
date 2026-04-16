@@ -1782,6 +1782,7 @@
 
 <h1 id="github-actions">GitHub Actions<a class="headerlink" href="#github-actions" title="Permanent link">&para;</a></h1>
 <p>Purpose-built for GitHub Actions CI runs. Streams <code>::group::</code> / <code>::endgroup::</code> markers per file so the job log has collapsible sections, emits <code>::error</code> and <code>::warning</code> workflow commands so failures and lint warnings appear as inline annotations on the pull request, and writes a Markdown summary (a pass/fail/error table plus the full failure messages) to <code>$GITHUB_STEP_SUMMARY</code> so it renders on the job summary page.</p>
+<p><img alt="GitHub Actions log" class="screenshot" src="../../assets/screenshot_github_actions.png" /></p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>scrutin<span class="w"> </span>-r<span class="w"> </span>github
 </span></code></pre></div>
 <p>Falls back gracefully on non-GitHub runners: the annotations are just echoed into stdout, and the summary write is skipped when the env var is missing.</p>

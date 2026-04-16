@@ -4,6 +4,11 @@ description: |
   policy are validated but test files are not executed), then run the
   package's tests via scrutin.
 
+  On Linux, R CMD build + R CMD check are invoked directly against the
+  r-ci / r2u system R install. On macOS and Windows, the check is delegated
+  to r-lib/actions/check-r-package@v2, which pairs naturally with the
+  r-lib/actions setup-r install used by `install_r` on those OSes.
+
 inputs:
   r-version:
     description: R version to install.
@@ -15,16 +20,16 @@ inputs:
     required: false
   check-args:
     description: |
-      Full R vector passed as --args to R CMD check. Override only if you
+      Whitespace-separated flags passed to R CMD check. Override only if you
       need flags beyond the default --no-manual --no-tests --as-cran.
-    default: 'c("--no-manual","--no-tests","--as-cran")'
+    default: "--no-manual --no-tests --as-cran"
     required: false
   build-args:
-    description: R vector passed to R CMD build before check.
-    default: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+    description: Whitespace-separated flags passed to R CMD build before check.
+    default: "--no-manual --compact-vignettes=gs+qpdf"
     required: false
   upload-snapshots:
-    description: Upload testthat snapshot diffs on failure.
+    description: Upload testthat snapshot diffs on failure (macOS/Windows only).
     default: "true"
     required: false
   reporter:
@@ -47,19 +52,73 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: vincentarelbundock/scrutin/.github/actions/install_r@main
+    # --- Install R + deps ----------------------------------------------------
+    # Linux uses r-ci/r2u (system R, apt-installed binaries). r-ci's `install_r`
+    # does not understand pak-style `any::` prefixes, so we pass plain package
+    # names. rcmdcheck is not needed on Linux because the check step shells
+    # out to `R CMD check` directly.
+    - name: Install R + deps (Linux)
+      if: runner.os == 'Linux'
+      uses: vincentarelbundock/scrutin/.github/actions/install_r@main
+      with:
+        r-version: ${{ inputs.r-version }}
+        packages: ${{ inputs.packages }}
+        needs: check
+
+    # macOS/Windows go through r-lib/actions/setup-r-dependencies, which does
+    # understand `any::`. rcmdcheck is required by r-lib/actions/check-r-package.
+    - name: Install R + deps + rcmdcheck (macOS/Windows)
+      if: runner.os != 'Linux'
+      uses: vincentarelbundock/scrutin/.github/actions/install_r@main
       with:
         r-version: ${{ inputs.r-version }}
         packages: any::rcmdcheck ${{ inputs.packages }}
         needs: check
 
-    - uses: r-lib/actions/check-r-package@v2
+    # --- R CMD build + check -------------------------------------------------
+    - name: R CMD build + check (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        R CMD build ${{ inputs.build-args }} .
+        pkg_tarball=$(ls -t *.tar.gz | head -n1)
+        _R_CHECK_CRAN_INCOMING_=false R CMD check ${{ inputs.check-args }} "$pkg_tarball"
+
+    # r-lib/actions/check-r-package wants its args as R-vector strings, e.g.
+    # 'c("--no-manual","--no-tests","--as-cran")'. Convert from the universal
+    # whitespace-separated form on the spot.
+    - name: Convert args to R vectors (macOS/Windows)
+      if: runner.os != 'Linux'
+      id: r_args
+      shell: bash
+      run: |
+        set -euo pipefail
+        to_rvec() {
+          local out='c('
+          local first=1
+          for tok in $1; do
+            if [ $first -eq 1 ]; then first=0; else out="$out,"; fi
+            out="$out\"$tok\""
+          done
+          echo "$out)"
+        }
+        {
+          echo "check=$(to_rvec '${{ inputs.check-args }}')"
+          echo "build=$(to_rvec '${{ inputs.build-args }}')"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: R CMD check (macOS/Windows)
+      if: runner.os != 'Linux'
+      uses: r-lib/actions/check-r-package@v2
       with:
         working-directory: ${{ inputs.working-directory }}
         upload-snapshots: ${{ inputs.upload-snapshots }}
-        args: ${{ inputs.check-args }}
-        build_args: ${{ inputs.build-args }}
+        args: ${{ steps.r_args.outputs.check }}
+        build_args: ${{ steps.r_args.outputs.build }}
 
+    # --- scrutin -------------------------------------------------------------
     - uses: vincentarelbundock/scrutin/.github/actions/install_scrutin@main
 
     - name: Run tests with scrutin
