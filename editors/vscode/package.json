@@ -1,6 +1,6 @@
 {
   "name": "scrutin-runner",
-  "displayName": "Scrutin",
+  "displayName": "Scrutin Dashboard",
   "description": "Fast, watch-mode test runner for R and Python — integrated into VS Code",
   "version": "0.0.1-alpha.8",
   "publisher": "VincentArel-Bundock",
