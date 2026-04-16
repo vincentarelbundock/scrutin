@@ -52,7 +52,9 @@ jobs:
         run: |
           cd editors/vscode && npm install --no-audit --no-fund
           cd ../..
-          make vscode-package-target TARGET=${{ matrix.vsce }}
+          VERSION=$(awk -F'"' '/^version/ { print $2; exit }' Cargo.toml)
+          echo "Packaging version: $VERSION"
+          make vscode-package-target TARGET=${{ matrix.vsce }} VERSION="$VERSION"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -67,7 +69,11 @@ jobs:
         with:
           node-version: '20'
       - run: cd editors/vscode && npm install --no-audit --no-fund
-      - run: make vscode-package-universal
+      - shell: bash
+        run: |
+          VERSION=$(awk -F'"' '/^version/ { print $2; exit }' Cargo.toml)
+          echo "Packaging version: $VERSION"
+          make vscode-package-universal VERSION="$VERSION"
 
       - uses: actions/upload-artifact@v4
         with:
