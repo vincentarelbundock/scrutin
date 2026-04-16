@@ -810,8 +810,9 @@ fn print_stats(root: &Path) {
 
 /// The canonical Agent Skill, shipped in-repo at `skills/scrutin/SKILL.md`.
 /// Embedded into the binary so `scrutin init skill` can install it without
-/// a separate download.
-const SKILL_MD: &str = include_str!("../../../../skills/scrutin/SKILL.md");
+/// a separate download. `build.rs` stages the file into `OUT_DIR` so the
+/// `include_str!` path stays inside the crate root (required for publishing).
+const SKILL_MD: &str = include_str!(concat!(env!("OUT_DIR"), "/SKILL.md"));
 
 fn run_init_skill(dest: Option<&str>, force: bool) -> Result<()> {
     if dest == Some("-") {
