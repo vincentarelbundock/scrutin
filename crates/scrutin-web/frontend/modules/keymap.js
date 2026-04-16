@@ -78,12 +78,12 @@ export const ACTION_HANDLERS = {
   cancel_all:       () => cancelRun(),
 
   // Filtering.
-  open_filter:              (e) => { e?.preventDefault(); $("filter-input")?.focus(); },
-  open_sort_menu:           () => toggleSortPalette(),
-  cycle_status_filter:      () => cycleStatus(+1),
-  cycle_status_filter_back: () => cycleStatus(-1),
-  cycle_tool_filter:        () => cyclePlugin(+1),
-  cycle_tool_filter_back:   () => cyclePlugin(-1),
+  filter_name:        (e) => { e?.preventDefault(); $("filter-input")?.focus(); },
+  filter_status:      () => cycleStatus(+1),
+  filter_status_back: () => cycleStatus(-1),
+  filter_tool:        () => cyclePlugin(+1),
+  filter_tool_back:   () => cyclePlugin(-1),
+  open_sort_menu:     () => toggleSortPalette(),
 
   // Actions \u2192 also delegated to the current level handler.
   edit_test:    () => openInEditor(),
@@ -107,10 +107,32 @@ export const ACTION_HANDLERS = {
     const layout = $("layout");
     if (layout) layout.classList.toggle("horizontal");
   },
-  // Source-scroll actions are TUI-only; no-op in the web.
-  source_scroll_down: () => {},
-  source_scroll_up:   () => {},
+  // J/K scroll the right pane (source/detail view) by one "line".
+  // Mirrors the TUI's per-pane scroll without grabbing the cursor.
+  source_scroll_down: () => scrollRightPane(+1),
+  source_scroll_up:   () => scrollRightPane(-1),
 };
+
+function scrollRightPane(sign) {
+  // Walk the right pane's subtree and scroll the first actually-
+  // scrollable element we find. Depending on state (test list vs
+  // detail vs failure), different descendants own the scrollbar.
+  const root = document.getElementById("right-pane");
+  if (!root) return;
+  const step = sign * 40;
+  const candidates = [
+    document.querySelector("#right-body"),
+    ...root.querySelectorAll(".detail-body, .test-list, .failure-body"),
+    root,
+  ];
+  for (const el of candidates) {
+    if (!el) continue;
+    if (el.scrollHeight > el.clientHeight) {
+      el.scrollTop = Math.max(0, Math.min(el.scrollTop + step, el.scrollHeight - el.clientHeight));
+      return;
+    }
+  }
+}
 
 export function dispatchAction(action, e) {
   const handler = ACTION_HANDLERS[action];

@@ -75,35 +75,36 @@ revert: ## Restore demo lint files (demo/R/lint.R, demo/src/.../lint.py) to unfi
 WEB_FRONTEND := crates/scrutin-web/frontend
 VS_WEBVIEW   := editors/vscode/webview
 
-sync-webview: ## Sync the web frontend into the VS Code webview bundle
-	@# app.js: straight copy
-	cp $(WEB_FRONTEND)/app.js $(VS_WEBVIEW)/app.js
-	@# style.css: VS Code variable overrides + web rules (skip :root blocks)
-	cat editors/vscode/webview-overrides.css > $(VS_WEBVIEW)/style.css.tmp
-	tail -n +41 $(WEB_FRONTEND)/style.css >> $(VS_WEBVIEW)/style.css.tmp
-	mv $(VS_WEBVIEW)/style.css.tmp $(VS_WEBVIEW)/style.css
-	@# index.html: web version with VS Code template vars
-	sed \
-		-e 's|<title>scrutin</title>|<meta http-equiv="Content-Security-Policy" content="{{csp}}" />\n  <title>Scrutin</title>|' \
-		-e 's|<link rel="stylesheet" href="/style.css" />|<link rel="stylesheet" href="{{styleUri}}" />|' \
-		-e 's|<script src="/app.js"></script>|<script nonce="{{nonce}}">window.__SCRUTIN_BASE_URL__ = "{{baseUrl}}";</script>\n  <script nonce="{{nonce}}" src="{{scriptUri}}"></script>|' \
-		-e '/<button id="btn-theme"/d' \
-		$(WEB_FRONTEND)/index.html > $(VS_WEBVIEW)/index.html
+sync-webview: ## Build the VS Code webview bundle from the scrutin-web frontend (esbuild + HTML transform)
+	@# esbuild bundles app.js + modules/*; HTML transform strips and injects
+	@# CSP/nonce/URI markers. See editors/vscode/build-webview.mjs.
+	cd $(VSCODE_DIR) && npm install --no-audit --no-fund --silent
+	cd $(VSCODE_DIR) && node build-webview.mjs
 
-vscode: install sync-webview ## Build and install the VS Code extension
+vscode: sync-webview vscode-sync-version ## Build and install the VS Code extension with bundled binary
+	cargo build --release -p scrutin
 	rm -f editors/vscode/scrutin-*.vsix
+	rm -rf editors/vscode/bin
+	mkdir -p editors/vscode/bin
+	cp target/release/scrutin editors/vscode/bin/
+	chmod +x editors/vscode/bin/scrutin
 	cd editors/vscode && npx tsc -p ./ && npx vsce package --no-dependencies
 	code --uninstall-extension VincentArel-Bundock.scrutin-runner 2>/dev/null || true
-	code --install-extension editors/vscode/scrutin-runner-0.0.1.vsix --force
+	code --install-extension editors/vscode/scrutin-runner-$(VERSION).vsix --force
 	@echo ">>> Reload VS Code window to pick up the new extension <<<"
 
 POSITRON_CLI := /Applications/Positron.app/Contents/Resources/app/bin/code
 
-positron: install sync-webview ## Build and install the Positron extension
+positron: sync-webview vscode-sync-version ## Build and install the Positron extension with bundled binary
+	cargo build --release -p scrutin
 	rm -f editors/vscode/scrutin-*.vsix
+	rm -rf editors/vscode/bin
+	mkdir -p editors/vscode/bin
+	cp target/release/scrutin editors/vscode/bin/
+	chmod +x editors/vscode/bin/scrutin
 	cd editors/vscode && npx tsc -p ./ && npx vsce package --no-dependencies
 	$(POSITRON_CLI) --uninstall-extension VincentArel-Bundock.scrutin-runner 2>/dev/null || true
-	$(POSITRON_CLI) --install-extension editors/vscode/scrutin-runner-0.0.1.vsix --force
+	$(POSITRON_CLI) --install-extension editors/vscode/scrutin-runner-$(VERSION).vsix --force
 
 rstudio: ## Install the RStudio addin
 	R CMD INSTALL editors/rstudio

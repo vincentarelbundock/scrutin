@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="{{csp}}" />
   <title>Scrutin</title>
-  <link rel="stylesheet" href="/catppuccin-palette.css" />
   <link rel="stylesheet" href="{{styleUri}}" />
-  <link rel="stylesheet" href="/syntect.css" />
+  <!-- syntect.css is fetched and injected at runtime by app.js -->
+  <!-- so this path works identically in standalone web and editor webviews. -->
 </head>
 <body>
   <header id="topbar">
@@ -89,7 +89,7 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
-
-  <script type="module" src="/app.js"></script>
+  <script nonce="{{nonce}}">window.__SCRUTIN_BASE_URL__ = "{{baseUrl}}";</script>
+  <script nonce="{{nonce}}" type="module" src="{{scriptUri}}"></script>
 </body>
 </html>

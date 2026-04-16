@@ -25,6 +25,24 @@
   --gutter-bg: var(--vscode-editorGutter-background, #161a24);
   --highlight-bg: var(--vscode-editor-findMatchHighlightBackground, #2a2030);
 }
+/* Semantic theme tokens are aliased onto the shared Catppuccin palette
+ * (see catppuccin-palette.css, which is the single source of truth shared
+ * with the docs site). Both themes use identical aliases; the palette
+ * file swaps the `--ctp-*` hex values per `[data-theme]` selector. */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 14px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Topbar ------------------------------------------------------------------ */
 #topbar {
   display: flex;
   align-items: center;
@@ -126,10 +144,6 @@
 .watch-toggle input { accent-color: var(--accent); }
 
 /* Layout ------------------------------------------------------------------ */
-:root {
-  --sidebar-w: 420px;
-  --topbar-h: 50%;
-}
 #layout {
   display: grid;
   grid-template-columns: var(--sidebar-w) 6px 1fr;

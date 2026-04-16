@@ -1,19 +1,48 @@
 {
   "name": "scrutin-runner",
-  "displayName": "Scrutin Dashboard",
-  "description": "Fast, watch-mode test runner for R and Python — integrated into VS Code",
-  "version": "0.0.1-alpha.8",
+  "displayName": "Scrutin Runner",
+  "description": "Fast, watch-mode test runner for R and Python, integrated into VS Code and Positron.",
+  "version": "0.0.4",
   "publisher": "VincentArel-Bundock",
   "license": "MIT",
+  "icon": "images/icon.png",
+  "homepage": "https://vincentarelbundock.github.io/scrutin",
   "repository": {
     "type": "git",
     "url": "https://github.com/vincentarelbundock/scrutin"
+  },
+  "bugs": {
+    "url": "https://github.com/vincentarelbundock/scrutin/issues"
+  },
+  "qna": "marketplace",
+  "pricing": "Free",
+  "galleryBanner": {
+    "color": "#0d9488",
+    "theme": "dark"
   },
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
-    "Testing"
+    "Testing",
+    "Linters",
+    "Data Science",
+    "Other"
+  ],
+  "keywords": [
+    "test",
+    "test runner",
+    "testing",
+    "watch",
+    "R",
+    "Python",
+    "pytest",
+    "testthat",
+    "tinytest",
+    "ruff",
+    "linter",
+    "data validation",
+    "rust"
   ],
   "activationEvents": [
     "workspaceContains:**/.scrutin/config.toml",
@@ -34,6 +63,14 @@
       {
         "command": "scrutin.showPanel",
         "title": "Scrutin: Show Panel"
+      },
+      {
+        "command": "scrutin.restart",
+        "title": "Scrutin: Restart"
+      },
+      {
+        "command": "scrutin.init",
+        "title": "Scrutin: Init"
       }
     ],
     "configuration": {
@@ -62,6 +99,7 @@
     "@types/node": "^20.0.0",
     "typescript": "^5.4.0",
     "@vscode/vsce": "^3.0.0",
-    "ovsx": "^0.9.0"
+    "ovsx": "^0.9.0",
+    "esbuild": "^0.24.0"
   }
 }

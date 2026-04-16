@@ -31,6 +31,8 @@ export function activate(context: vscode.ExtensionContext): void {
   register("scrutin.start", () => startScrutin(context));
   register("scrutin.stop", stopScrutin);
   register("scrutin.showPanel", () => showPanel(context));
+  register("scrutin.restart", () => restartScrutin(context));
+  register("scrutin.init", () => initScrutin(context));
 
   // Auto-start if configured.
   const cfg = vscode.workspace.getConfiguration("scrutin");
@@ -65,9 +67,14 @@ async function startScrutin(context: vscode.ExtensionContext): Promise<void> {
     return;
   }
 
-  scrutinProcess = new ScrutinProcess();
+  const proc = new ScrutinProcess();
+  scrutinProcess = proc;
 
-  scrutinProcess.onExit((code) => {
+  proc.onExit((code) => {
+    // Ignore stale exits from processes that have since been replaced
+    // (by Stop + Start, or by Restart). The current scrutinProcess may
+    // point at a different instance; only this one's exit affects UI.
+    if (scrutinProcess !== proc) return;
     stopSse();
     if (statusBar) {
       statusBar.text = "$(beaker) scrutin (stopped)";
@@ -85,7 +92,7 @@ async function startScrutin(context: vscode.ExtensionContext): Promise<void> {
   });
 
   try {
-    const baseUrl = await scrutinProcess.start(
+    const baseUrl = await proc.start(
       binaryPath,
       folder.uri.fsPath,
     );
@@ -118,13 +125,85 @@ async function startScrutin(context: vscode.ExtensionContext): Promise<void> {
   }
 }
 
+async function restartScrutin(
+  context: vscode.ExtensionContext,
+): Promise<void> {
+  stopScrutin();
+  // Small delay to let the previous process release its port cleanly.
+  await new Promise((r) => setTimeout(r, 250));
+  await startScrutin(context);
+}
+
+/// Runs `scrutin init <workspace>` to scaffold `.scrutin/config.toml`.
+/// Pipes output to an output channel and offers to start scrutin after.
+async function initScrutin(
+  context: vscode.ExtensionContext,
+): Promise<void> {
+  const binaryPath = await findBinary(context);
+  if (!binaryPath) return;
+
+  const folder = vscode.workspace.workspaceFolders?.[0];
+  if (!folder) {
+    vscode.window.showErrorMessage("No workspace folder open.");
+    return;
+  }
+
+  const output = vscode.window.createOutputChannel("Scrutin Init");
+  output.show(true);
+  output.appendLine(`$ scrutin init ${folder.uri.fsPath}`);
+
+  const { execFile } = require("child_process");
+  await new Promise<void>((resolve) => {
+    execFile(
+      binaryPath,
+      ["init", folder.uri.fsPath],
+      { encoding: "utf-8" },
+      (
+        err: Error & { code?: number } | null,
+        stdout: string,
+        stderr: string,
+      ) => {
+        if (stdout) output.append(stdout);
+        if (stderr) output.append(stderr);
+        if (err) {
+          output.appendLine(`\nscrutin init failed: ${err.message}`);
+          vscode.window.showErrorMessage(
+            `scrutin init failed. See 'Scrutin Init' output for details.`,
+          );
+        } else {
+          output.appendLine("\nDone.");
+          vscode.window
+            .showInformationMessage(
+              "Scrutin initialized.",
+              "Start",
+            )
+            .then((choice) => {
+              if (choice === "Start") startScrutin(context);
+            });
+        }
+        resolve();
+      },
+    );
+  });
+}
+
 function stopScrutin(): void {
   stopSse();
   testCtrl?.dispose();
   testCtrl = null;
   bus?.dispose();
   bus = null;
-  scrutinProcess?.stop();
+  // dispose() disposes the EventEmitter, so any stale `exit` event
+  // that fires after the SIGTERM lands is a no-op. Otherwise the old
+  // process's exit handler could run after a restart and tear down
+  // the newly-started process's SSE / status bar.
+  scrutinProcess?.dispose();
+  scrutinProcess = null;
+  // Dispose the panel too: its webview has the old baseUrl baked in,
+  // so it would keep trying to reconnect to the dead port after
+  // restart. A fresh panel on next start gets the new URL.
+  panel?.dispose();
+  panel = null;
   if (statusBar) {
     statusBar.text = "$(beaker) scrutin (stopped)";
   }

@@ -26,7 +26,7 @@ export class ScrutinProcess {
     }
 
     const port = await findFreePort();
-    const args = ["-r", `web:127.0.0.1:${port}`, "--no-open", projectRoot];
+    const args = ["-r", `web:127.0.0.1:${port}`, projectRoot];
 
     this.child = spawn(binaryPath, args, {
       stdio: ["ignore", "pipe", "pipe"],

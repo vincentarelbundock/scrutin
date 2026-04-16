@@ -110,10 +110,6 @@ export function renderHints() {
     const label = sp > 0 ? b.bar.slice(sp + 1) : "";
     parts.push(`<kbd>${escapeHtml(key)}</kbd> ${escapeHtml(label)}`);
   }
-  const hasActions = (state.pkg?.suites ?? []).some((s) => (s.actions ?? []).length > 0);
-  if (hasActions && (level === "files" || level === "detail")) {
-    parts.push("<kbd>a</kbd> actions");
-  }
   el.innerHTML = parts.join(" <span class='sep'>\u00b7</span> ");
 }
 
