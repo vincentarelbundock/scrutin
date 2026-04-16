@@ -56,13 +56,14 @@ pub struct TestSuite {
 }
 
 impl TestSuite {
-    /// Build a `TestSuite` by compiling the given glob patterns into
-    /// `GlobSet`s. `run` / `watch` entries are anchored under `root`
-    /// when relative, matching the `from_suites` semantics. Empty
-    /// `watch` aliases to `run`.
+    /// Build a `TestSuite` from a plugin, root, and optional user-supplied
+    /// run/watch globs. When `run` is empty the plugin's defaults are used;
+    /// when `watch` is empty it falls back to the plugin's watch defaults,
+    /// or to the resolved `run` patterns if no watch defaults exist.
     ///
-    /// Intended for tests and internal builders. Production code should
-    /// go through `Package::from_suites` / `from_auto_detect`.
+    /// The root is cleaned of Windows `\\?\` verbatim prefixes and all
+    /// patterns are anchored under it, so glob matching works uniformly
+    /// across platforms.
     pub fn new(
         plugin: Arc<dyn Plugin>,
         root: PathBuf,
@@ -71,14 +72,30 @@ impl TestSuite {
         worker_hooks: WorkerHookPaths,
         runner_override: Option<PathBuf>,
     ) -> Result<Self> {
-        let run_patterns = anchor_patterns(&root, &run);
-        let watch_patterns = if watch.is_empty() {
-            run_patterns.clone()
+        let root = strip_verbatim_prefix(root);
+
+        let run_patterns = if run.is_empty() {
+            default_patterns(&root, &plugin.default_run())
         } else {
-            anchor_patterns(&root, &watch)
+            anchor_patterns(&root, &run)
         };
-        let run_set = build_globset(&run_patterns)?;
-        let watch_set = build_globset(&watch_patterns)?;
+
+        let watch_patterns = if !watch.is_empty() {
+            anchor_patterns(&root, &watch)
+        } else {
+            let defaults = plugin.default_watch();
+            if defaults.is_empty() {
+                run_patterns.clone()
+            } else {
+                default_patterns(&root, &defaults)
+            }
+        };
+
+        let run_set = build_globset(&run_patterns)
+            .with_context(|| format!("compiling run globs for {}", plugin.name()))?;
+        let watch_set = build_globset(&watch_patterns)
+            .with_context(|| format!("compiling watch globs for {}", plugin.name()))?;
+
         Ok(Self {
             plugin,
             root,
@@ -149,88 +166,13 @@ pub struct Package {
 }
 
 impl Package {
-    /// Build a `Package` from explicit `[[suite]]` declarations. No
-    /// auto-detection: the caller says exactly which tools run and
-    /// where. Each suite's `root` is resolved against `pkg_root`;
-    /// `run` / `watch` default to the plugin's defaults.
-    pub fn from_suites(
+    /// Build a `Package`. When `suite_configs` is non-empty, use those
+    /// explicit declarations (each suite root resolved against `pkg_root`).
+    /// Otherwise auto-detect plugins by scanning `pkg_root` for marker
+    /// files, filtered by `tool_filter` ("auto" = all detected tools).
+    pub fn new(
         pkg_root: PathBuf,
         suite_configs: &[SuiteConfig],
-        pytest_extra_args: &[String],
-        skyspell_extra_args: &[String],
-        skyspell_add_args: &[String],
-        python_interpreter: Vec<String>,
-        mut resolve_hooks: impl FnMut(&dyn Plugin) -> Result<WorkerHookPaths>,
-        env: BTreeMap<String, String>,
-    ) -> Result<Self> {
-        if suite_configs.is_empty() {
-            bail!("No [[suite]] entries in config");
-        }
-        let mut test_suites = Vec::with_capacity(suite_configs.len());
-        let mut name: Option<String> = None;
-
-        for sc in suite_configs {
-            let plugin = plugin::plugin_by_name(&sc.tool).ok_or_else(|| {
-                anyhow::anyhow!("Unknown tool {:?} in [[suite]]", sc.tool)
-            })?;
-            let suite_root = resolve_suite_root(&pkg_root, &sc.root);
-            if name.is_none() {
-                name = Some(plugin.project_name(&suite_root));
-            }
-
-            let run_patterns: Vec<String> = if sc.run.is_empty() {
-                default_patterns(&suite_root, &plugin.default_run())
-            } else {
-                anchor_patterns(&suite_root, &sc.run)
-            };
-            let watch_patterns: Vec<String> = if !sc.watch.is_empty() {
-                anchor_patterns(&suite_root, &sc.watch)
-            } else {
-                let defaults = plugin.default_watch();
-                if defaults.is_empty() {
-                    run_patterns.clone()
-                } else {
-                    default_patterns(&suite_root, &defaults)
-                }
-            };
-
-            let run_set = build_globset(&run_patterns)
-                .with_context(|| format!("compiling run globs for [[suite]] {}", sc.tool))?;
-            let watch_set = build_globset(&watch_patterns)
-                .with_context(|| format!("compiling watch globs for [[suite]] {}", sc.tool))?;
-
-            let worker_hooks = resolve_hooks(plugin.as_ref())?;
-            test_suites.push(TestSuite {
-                plugin,
-                root: suite_root,
-                run: run_patterns,
-                watch: watch_patterns,
-                run_set,
-                watch_set,
-                worker_hooks,
-                runner_override: sc.runner.clone(),
-                explicit_files: false,
-            });
-        }
-
-        Ok(Package {
-            name: name.unwrap_or_else(|| dir_name(&pkg_root)),
-            root: pkg_root,
-            test_suites,
-            pytest_extra_args: pytest_extra_args.to_vec(),
-            skyspell_extra_args: skyspell_extra_args.to_vec(),
-            skyspell_add_args: skyspell_add_args.to_vec(),
-            python_interpreter,
-            env,
-        })
-    }
-
-    /// Build a `Package` via auto-detection. Scans `pkg_root` for tool
-    /// marker files and builds suites from plugin defaults, with every
-    /// suite's root set to `pkg_root`. When `tool_filter` is not "auto",
-    /// only that single tool is considered.
-    pub fn from_auto_detect(
-        pkg_root: PathBuf,
         tool_filter: &str,
         pytest_extra_args: &[String],
         skyspell_extra_args: &[String],
@@ -239,41 +181,48 @@ impl Package {
         mut resolve_hooks: impl FnMut(&dyn Plugin) -> Result<WorkerHookPaths>,
         env: BTreeMap<String, String>,
     ) -> Result<Self> {
-        let plugins = plugin::detect_plugins(&pkg_root, tool_filter)?;
-        let name = plugins[0].project_name(&pkg_root);
+        let mut test_suites = Vec::new();
+        let mut name: Option<String> = None;
 
-        let mut test_suites: Vec<TestSuite> = Vec::with_capacity(plugins.len());
-        for plugin in plugins {
-            let suite_root = pkg_root.clone();
-            let run_patterns = default_patterns(&suite_root, &plugin.default_run());
-            let watch_defaults = plugin.default_watch();
-            let watch_patterns = if watch_defaults.is_empty() {
-                run_patterns.clone()
-            } else {
-                default_patterns(&suite_root, &watch_defaults)
-            };
-
-            let run_set = build_globset(&run_patterns)
-                .with_context(|| format!("compiling run globs for {}", plugin.name()))?;
-            let watch_set = build_globset(&watch_patterns)
-                .with_context(|| format!("compiling watch globs for {}", plugin.name()))?;
-
-            let worker_hooks = resolve_hooks(plugin.as_ref())?;
-            test_suites.push(TestSuite {
-                plugin,
-                root: suite_root,
-                run: run_patterns,
-                watch: watch_patterns,
-                run_set,
-                watch_set,
-                worker_hooks,
-                runner_override: None,
-                explicit_files: false,
-            });
+        if suite_configs.is_empty() {
+            // Auto-detect: scan for marker files.
+            let plugins = plugin::detect_plugins(&pkg_root, tool_filter)?;
+            name = Some(plugins[0].project_name(&pkg_root));
+            for plugin in plugins {
+                let worker_hooks = resolve_hooks(plugin.as_ref())?;
+                test_suites.push(TestSuite::new(
+                    plugin,
+                    pkg_root.clone(),
+                    Vec::new(),
+                    Vec::new(),
+                    worker_hooks,
+                    None,
+                )?);
+            }
+        } else {
+            // Explicit [[suite]] declarations.
+            for sc in suite_configs {
+                let plugin = plugin::plugin_by_name(&sc.tool).ok_or_else(|| {
+                    anyhow::anyhow!("Unknown tool {:?} in [[suite]]", sc.tool)
+                })?;
+                let suite_root = resolve_suite_root(&pkg_root, &sc.root);
+                if name.is_none() {
+                    name = Some(plugin.project_name(&suite_root));
+                }
+                let worker_hooks = resolve_hooks(plugin.as_ref())?;
+                test_suites.push(TestSuite::new(
+                    plugin,
+                    suite_root,
+                    sc.run.clone(),
+                    sc.watch.clone(),
+                    worker_hooks,
+                    sc.runner.clone(),
+                )?);
+            }
         }
 
         Ok(Package {
-            name,
+            name: name.unwrap_or_else(|| dir_name(&pkg_root)),
             root: pkg_root,
             test_suites,
             pytest_extra_args: pytest_extra_args.to_vec(),

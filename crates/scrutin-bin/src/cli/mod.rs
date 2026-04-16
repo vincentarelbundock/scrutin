@@ -274,8 +274,9 @@ pub async fn run() -> Result<()> {
 /// Discover a `Package` for the `init` verb. Uses auto-detection only
 /// (ignores `[[suite]]` config since init is about scaffolding).
 fn discover_for_verb(root: &Path) -> Result<Package> {
-    Package::from_auto_detect(
+    Package::new(
         root.to_path_buf(),
+        &[],
         "auto",
         &[],
         &[],
@@ -399,8 +400,12 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
             python_interpreter,
             cfg.env.clone(),
         )?
-    } else if !cfg.suites.is_empty() {
-        let filtered: Vec<_> = if cfg.run.tool == "auto" {
+    } else {
+        // When [[suite]] entries exist, use them (optionally filtered by
+        // --set run.tool). Otherwise auto-detect from marker files.
+        let suites: Vec<_> = if cfg.suites.is_empty() {
+            Vec::new()
+        } else if cfg.run.tool == "auto" {
             cfg.suites.clone()
         } else {
             cfg.suites
@@ -409,31 +414,15 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
                 .cloned()
                 .collect()
         };
-        if filtered.is_empty() {
+        if !cfg.suites.is_empty() && suites.is_empty() {
             anyhow::bail!(
                 "No [[suite]] entries match --set run.tool={:?}",
                 cfg.run.tool
             );
         }
-        Package::from_suites(
+        Package::new(
             root,
-            &filtered,
-            &cfg.pytest.extra_args,
-            &cfg.skyspell.extra_args,
-            &cfg.skyspell.add_args,
-            python_interpreter,
-            |plugin| {
-                let wh = hooks::resolve_worker_hooks(&cfg_for_hooks, plugin, &root_for_hooks)?;
-                Ok(scrutin_core::project::package::WorkerHookPaths {
-                    startup: wh.startup,
-                    teardown: wh.teardown,
-                })
-            },
-            cfg.env.clone(),
-        )?
-    } else {
-        Package::from_auto_detect(
-            root,
+            &suites,
             &cfg.run.tool,
             &cfg.pytest.extra_args,
             &cfg.skyspell.extra_args,
