@@ -43,10 +43,10 @@
     <section id="left-pane">
       <div class="pane-subbar" id="left-subbar">
         <input id="filter-input" type="text" placeholder="filter…" />
-        <select id="plugin-select" title="Suite filter (p / P)">
+        <select id="plugin-select" title="Suite filter (t / T)">
           <option value="">all</option>
         </select>
-        <select id="status-select" title="Status filter (t / T)">
+        <select id="status-select" title="Status filter (o / O)">
           <option value="">all statuses</option>
           <option value="failed">failed</option>
           <option value="errored">errored</option>
@@ -56,6 +56,9 @@
           <option value="running">running</option>
           <option value="pending">pending</option>
           <option value="cancelled">cancelled</option>
+        </select>
+        <select id="group-select" title="Group filter (f / F)" style="display:none">
+          <option value="">all</option>
         </select>
       </div>
       <div id="col-headers" class="file-row col-header"></div>

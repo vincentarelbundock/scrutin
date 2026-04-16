@@ -286,6 +286,20 @@ pub struct WirePackage {
     pub suites: Vec<WireSuite>,
 }
 
+/// A named filter group (`[filter.groups.<name>]`) exposed to the frontend
+/// so the group dropdown and `f`/`F` keymap can cycle through them and
+/// apply include/exclude/tools without another round-trip.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct WireFilterGroup {
+    pub name: String,
+    #[serde(default)]
+    pub include: Vec<String>,
+    #[serde(default)]
+    pub exclude: Vec<String>,
+    #[serde(default)]
+    pub tools: Vec<String>,
+}
+
 // ── Run summaries + events ──────────────────────────────────────────────────
 
 /// Totals for an in-progress or completed run, plus a list of bad files.
@@ -316,6 +330,14 @@ pub struct WireSnapshot {
     /// strings. Derived from `Outcome::rank()` in scrutin-core so the web
     /// frontend never hard-codes its own copy.
     pub outcome_order: Vec<WireOutcome>,
+    /// Named filter groups from `[filter.groups.*]`. Empty = hide the group
+    /// dropdown in the frontend.
+    #[serde(default)]
+    pub groups: Vec<WireFilterGroup>,
+    /// Initially-active group name (set by `-s filter.group=NAME`). `None`
+    /// means the "all" entry is selected.
+    #[serde(default)]
+    pub active_group: Option<String>,
 }
 
 /// Events fanned out over SSE. Kept as a flat enum so the client can

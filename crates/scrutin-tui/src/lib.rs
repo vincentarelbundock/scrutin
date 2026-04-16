@@ -50,6 +50,7 @@ pub async fn run_tui(
     mut dep_map: Option<std::collections::HashMap<String, Vec<String>>>,
     log: LogBuffer,
     run_groups: Vec<RunGroup>,
+    active_group: Option<String>,
     rerun_max: u32,
     rerun_delay_ms: u64,
     watch_debounce_ms: u64,
@@ -86,6 +87,9 @@ pub async fn run_tui(
     )));
     {
         let mut st = state.lock().unwrap();
+        if let Some(name) = active_group.as_deref() {
+            st.filter.group = run_groups.iter().position(|g| g.name == name);
+        }
         st.run_groups = run_groups;
         st.poll_paused = Some(poll_paused.clone());
     }

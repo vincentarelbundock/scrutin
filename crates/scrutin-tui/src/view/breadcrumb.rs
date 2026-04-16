@@ -105,6 +105,13 @@ pub(super) fn draw_breadcrumb_bar(f: &mut ratatui::Frame, state: &AppState, area
                 Style::default().fg(Color::Yellow),
             ));
         }
+        if state.filter.group.is_some() {
+            right.push(Span::styled(" \u{00b7} ", Style::default().fg(Color::DarkGray)));
+            right.push(Span::styled(
+                format!("group: {}", state.group_filter_label()),
+                Style::default().fg(Color::Yellow),
+            ));
+        }
     }
 
     // Compose left + spacer + right, truncating left if needed so the

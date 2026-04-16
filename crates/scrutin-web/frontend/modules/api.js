@@ -49,6 +49,8 @@ export async function fetchSnapshot() {
       snap.outcome_order.forEach((o, i) => { m[o] = i; });
       setOutcomeRanks(m);
     }
+    state.groups = snap.groups ?? [];
+    state.groupFilter = snap.active_group ?? "";
     if (!state.selected && state.fileOrder.length > 0) {
       state.selected = state.fileOrder[0];
     }

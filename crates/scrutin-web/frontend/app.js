@@ -61,6 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
     state.statusFilter = e.target.value;
     renderFilterList(); renderLeftPane(); renderControls();
   });
+  on("group-select", "change", (e) => {
+    state.groupFilter = e.target.value;
+    renderFilterList(); renderLeftPane(); renderControls();
+  });
 
   wireKeyboard();
 

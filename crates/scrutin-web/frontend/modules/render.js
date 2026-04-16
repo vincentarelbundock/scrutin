@@ -25,6 +25,7 @@ import { applyCorrection, runPluginAction } from "./api.js";
 export function renderAll() {
   renderHeader();
   populatePluginDropdown();
+  populateGroupDropdown();
   renderColHeaders();
   renderFilterList();
   renderLeftPane();
@@ -137,6 +138,27 @@ export function populatePluginDropdown() {
   sel.value = state.pluginFilter;
 }
 
+export function populateGroupDropdown() {
+  const sel = $("group-select");
+  if (!sel) return;
+  const groups = state.groups ?? [];
+  sel.style.display = groups.length > 0 ? "" : "none";
+  const existing = new Set(Array.from(sel.options).map((o) => o.value));
+  const want = new Set(["", ...groups.map((g) => g.name)]);
+  if (existing.size !== want.size || [...existing].some((v) => !want.has(v))) {
+    sel.innerHTML = "";
+    const allOpt = document.createElement("option");
+    allOpt.value = ""; allOpt.textContent = "all";
+    sel.appendChild(allOpt);
+    for (const g of groups) {
+      const o = document.createElement("option");
+      o.value = g.name; o.textContent = g.name;
+      sel.appendChild(o);
+    }
+  }
+  sel.value = state.groupFilter;
+}
+
 export function renderColHeaders() {
   const hdr = $("col-headers");
   if (!hdr) return;
@@ -172,10 +194,12 @@ export function renderColHeaders() {
 export function renderFilterList() {
   const q = state.filterText.trim().toLowerCase();
   const plugin = state.pluginFilter;
+  const group = groupByName(state.groupFilter);
   const filtered = state.fileOrder.filter((id) => {
     const f = state.files.get(id);
     if (!f) return false;
     if (plugin && f.suite !== plugin) return false;
+    if (group && !groupAccepts(f, group)) return false;
     if (state.statusFilter) {
       if (state.statusFilter === "warned") {
         if (f.status !== "passed" || (f.counts?.warn ?? 0) === 0) return false;
@@ -213,6 +237,85 @@ export function cyclePlugin(delta) {
   state.pluginFilter = names[next];
   const sel = $("plugin-select");
   if (sel) sel.value = state.pluginFilter;
+  renderFilterList();
+  renderLeftPane();
+  renderControls();
+}
+
+function groupByName(name) {
+  if (!name) return null;
+  return (state.groups ?? []).find((g) => g.name === name) ?? null;
+}
+
+// Basename-anchored glob -> RegExp. Mirrors globset semantics used by the
+// engine: `*` matches any run of chars (no `/`), `?` exactly one char,
+// `[...]` character class, `{a,b}` alternation. `**` is treated as `*`
+// since we only match basenames.
+function globToRegex(glob) {
+  let re = "^";
+  let i = 0;
+  while (i < glob.length) {
+    const c = glob[i];
+    if (c === "*") { re += "[^/]*"; i++; continue; }
+    if (c === "?") { re += "[^/]"; i++; continue; }
+    if (c === "[") {
+      let j = i + 1;
+      let cls = "[";
+      if (glob[j] === "!") { cls += "^"; j++; }
+      while (j < glob.length && glob[j] !== "]") { cls += glob[j]; j++; }
+      cls += "]";
+      re += cls;
+      i = j + 1;
+      continue;
+    }
+    if (c === "{") {
+      const end = glob.indexOf("}", i);
+      if (end > 0) {
+        const alts = glob.slice(i + 1, end).split(",").map((s) => s.replace(/[.+^${}()|\\]/g, "\\$&"));
+        re += "(?:" + alts.join("|") + ")";
+        i = end + 1;
+        continue;
+      }
+    }
+    if (/[.+^${}()|\\]/.test(c)) re += "\\" + c;
+    else re += c;
+    i++;
+  }
+  re += "$";
+  try { return new RegExp(re); } catch { return null; }
+}
+
+function basename(p) {
+  const slash = Math.max(p.lastIndexOf("/"), p.lastIndexOf("\\"));
+  return slash >= 0 ? p.slice(slash + 1) : p;
+}
+
+function anyMatch(patterns, name) {
+  for (const p of patterns ?? []) {
+    const re = globToRegex(p);
+    if (re && re.test(name)) return true;
+  }
+  return false;
+}
+
+function groupAccepts(f, g) {
+  if (g.tools && g.tools.length > 0 && !g.tools.includes(f.suite)) return false;
+  const name = basename(f.path || f.name || "");
+  const inc = g.include ?? [];
+  const exc = g.exclude ?? [];
+  if (inc.length > 0 && !anyMatch(inc, name)) return false;
+  if (exc.length > 0 && anyMatch(exc, name)) return false;
+  return true;
+}
+
+export function cycleGroup(delta) {
+  const names = ["", ...(state.groups ?? []).map((g) => g.name)];
+  if (names.length <= 1) return;
+  const i = names.indexOf(state.groupFilter);
+  const next = (i + delta + names.length) % names.length;
+  state.groupFilter = names[next];
+  const sel = $("group-select");
+  if (sel) sel.value = state.groupFilter;
   renderFilterList();
   renderLeftPane();
   renderControls();

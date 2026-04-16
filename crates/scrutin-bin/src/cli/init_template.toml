@@ -190,9 +190,15 @@
 #   Glob patterns: skip test files matching any pattern. Applied
 #   after include.
 
-# Named filter groups, selectable at runtime via -g/--group <name>.
-# Multiple groups can be selected (comma-separated or repeated) and
-# their include/exclude/tools lists are unioned on top of [filter].
+# group = "fast"
+#   Activate a named filter group at startup (from [filter.groups.*]).
+#   Equivalent to `-s filter.group=fast` on the CLI. When set, the
+#   group's include/exclude/tools *replace* the top-level filter.
+#   The TUI (f/F) and web dropdown cycle this at runtime.
+
+# Named filter groups. Activate one with `-s filter.group=NAME` or
+# by setting `group = "NAME"` above. The selected group's
+# include/exclude/tools replace the top-level [filter] entries.
 #
 # [filter.groups.fast]
 # tools   = ["pytest"]          # restrict to these tools (empty = all)

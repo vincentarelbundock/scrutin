@@ -21,6 +21,8 @@ export const state = {
   filterText: "",
   pluginFilter: "",
   statusFilter: "",
+  groupFilter: "",
+  groups: [],             // [{ name, include, exclude, tools }]
   sortMode: "status",
   sortReversed: false,
   testSortMode: "status",

@@ -3,7 +3,7 @@ docs_dir = "docs-src"
 site_dir = "docs"
 site_name = "scrutin"
 site_description = "Fast watch-mode test runner for R and Python"
-site_url = "https://scrutin.dev"
+site_url = "https://vincentarelbundock.github.io/scrutin"
 repo_url = "https://github.com/vincentarelbundock/scrutin"
 repo_name = "vincentarelbundock/scrutin"
 extra_css = ["stylesheets/home.css", "stylesheets/catppuccin-palette.css", "stylesheets/catppuccin.css"]
@@ -13,6 +13,7 @@ extra_css = ["stylesheets/home.css", "stylesheets/catppuccin-palette.css", "styl
 extra_javascript = ["js/medium-zoom.min.js", "js/lightbox.js"]
 nav = [
   {"Home" = "index.md"},
+  {"Installation" = "installation.md"},
   {"Getting Started" = "getting-started.md"},
   {"Projects and Files" = "project-discovery.md"},
 {"Tools" = [
@@ -43,13 +44,20 @@ nav = [
     {"Positron" = "frontends/positron.md"},
     {"RStudio" = "frontends/rstudio.md"},
   ]},
-  {"Reporters" = "reporters.md"},
+  {"Reporters" = [
+    {"Overview" = "reporters/index.md"},
+    {"Plain" = "reporters/plain.md"},
+    {"JUnit XML" = "reporters/junit.md"},
+    {"GitHub Actions" = "reporters/github.md"},
+    {"List" = "reporters/list.md"},
+  ]},
   {"Filter" = "filtering.md"},
   {"Watch" = "watch-mode.md"},
   {"Parallelism" = "parallelism.md"},
   {"Keybindings" = "keybindings.md"},
   {"Configuration" = "reference/configuration.md"},
   {"Command-Line" = "reference/cli.md"},
+  {"LLMs" = "llms.md"},
   {"History" = "history.md"},
   {"How It Works" = "internals.md"},
   {"Roadmap" = "roadmap.md"},
@@ -61,7 +69,7 @@ favicon = "assets/logo.svg"
 custom_dir = "docs-src/overrides"
 font.text = "Inter"
 font.code = "JetBrains Mono"
-features = ["content.code.copy"]
+features = ["content.code.copy", "navigation.footer"]
 
 # Material palette keywords match the Catppuccin tokens we route into
 # `--md-primary-fg-color` and `--md-accent-fg-color` via catppuccin.css,

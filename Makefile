@@ -1,4 +1,4 @@
-.PHONY: help install demo tinytable watch depmap web sync-webview vscode positron rstudio editors docs docs-serve inject-docs revert release version bump
+.PHONY: help install demo tinytable watch depmap web sync-webview vscode positron rstudio editors docs docs-preview inject-docs revert release version bump
 
 .DEFAULT_GOAL := help
 
@@ -93,7 +93,12 @@ vscode: sync-webview vscode-sync-version ## Build and install the VS Code extens
 	code --install-extension editors/vscode/scrutin-runner-$(VERSION).vsix --force
 	@echo ">>> Reload VS Code window to pick up the new extension <<<"
 
-POSITRON_CLI := /Applications/Positron.app/Contents/Resources/app/bin/code
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+  POSITRON_CLI := /Applications/Positron.app/Contents/Resources/app/bin/code
+else
+  POSITRON_CLI := positron
+endif
 
 positron: sync-webview vscode-sync-version ## Build and install the Positron extension with bundled binary
 	cargo build --release -p scrutin
@@ -204,6 +209,23 @@ docs: inject-docs ## Build the static documentation site
 	uv run zensical build
 	@# zensical copies *.md.in templates into the output verbatim; strip them.
 	@find docs -name '*.md.in' -delete
+	@# Publish raw markdown sources alongside the rendered HTML so LLMs can
+	@# fetch plain markdown from the same origin (e.g. /reporters.md alongside /reporters/).
+	@# Preserves subdirectory layout: docs-src/tools/ruff.md → docs/tools/ruff.md.
+	rsync -am --include='*/' --include='*.md' --exclude='*' docs-src/ docs/
+	@# GitHub Pages runs Jekyll by default, which would re-render the .md
+	@# files instead of serving them raw. `.nojekyll` disables Jekyll entirely
+	@# so every file (including .md and llms-full.txt) is served as-is.
+	@touch docs/.nojekyll
+	@# Single-file concatenation of every doc page for agents that want one
+	@# fetch. Follows the llmstxt.org convention of shipping llms-full.txt
+	@# alongside llms.txt.
+	@( echo "# scrutin: full documentation"; echo; \
+	   cd docs-src && find . -name '*.md' | LC_ALL=C sort | while read f; do \
+	     echo "---"; echo "source: $${f#./}"; echo "---"; echo; \
+	     cat "$$f"; echo; \
+	   done ) > docs/llms-full.txt
 
-docs-serve: inject-docs ## Serve docs-src/ with live-reload on edits
-	uv run zensical serve
+docs-preview: docs ## Build docs and serve statically on :8001 (matches GitHub Pages layout; includes llms.txt + raw .md)
+	@echo "Serving $(PWD)/docs on http://127.0.0.1:8001"
+	@python3 -m http.server --directory docs 8001

@@ -456,6 +456,16 @@ fn apply_action(
             st.nav.file_cursor = 0;
             st.nav.file_scroll = 0;
         }
+        CycleGroupFilter => {
+            st.cycle_group_filter(1);
+            st.nav.file_cursor = 0;
+            st.nav.file_scroll = 0;
+        }
+        CycleGroupFilterBack => {
+            st.cycle_group_filter(-1);
+            st.nav.file_cursor = 0;
+            st.nav.file_scroll = 0;
+        }
         ShrinkList => {
             let p = st.current_list_pct().saturating_sub(LIST_PCT_STEP);
             st.set_current_list_pct(p);

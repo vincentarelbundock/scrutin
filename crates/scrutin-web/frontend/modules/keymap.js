@@ -18,7 +18,7 @@ import {
   toggleMultiSelect, clearMultiSelect,
 } from "./navigation.js";
 import {
-  cyclePlugin, cycleStatus,
+  cyclePlugin, cycleStatus, cycleGroup,
 } from "./render.js";
 import { resizeSidebar } from "./theme.js";
 
@@ -83,6 +83,8 @@ export const ACTION_HANDLERS = {
   filter_status_back: () => cycleStatus(-1),
   filter_tool:        () => cyclePlugin(+1),
   filter_tool_back:   () => cyclePlugin(-1),
+  filter_group:       () => cycleGroup(+1),
+  filter_group_back:  () => cycleGroup(-1),
   open_sort_menu:     () => toggleSortPalette(),
 
   // Actions \u2192 also delegated to the current level handler.

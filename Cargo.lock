@@ -1854,6 +1854,7 @@ dependencies = [
  "clap-markdown",
  "clap_complete",
  "clap_mangen",
+ "dirs",
  "ratatui",
  "scrutin-core",
  "scrutin-tui",

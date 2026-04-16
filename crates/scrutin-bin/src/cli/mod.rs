@@ -49,12 +49,10 @@ pub struct Cli {
 pub enum Command {
     /// Run tests (default).
     Run(RunArgs),
-    /// Initialize .scrutin/config.toml and .scrutin/ in the current package.
-    Init {
-        /// Path to the project (default: current directory).
-        #[arg(default_value = ".")]
-        path: PathBuf,
-    },
+    /// Initialize scaffolding. Default: `.scrutin/config.toml` and runner
+    /// scripts in the current package. `init skill` installs the Agent
+    /// Skill for Claude Code / Codex instead.
+    Init(InitArgs),
     /// Show flaky tests and slowness statistics from the local history DB.
     Stats {
         /// Path to the project (default: current directory).
@@ -68,6 +66,37 @@ pub enum Command {
         /// Output directory for generated files.
         #[arg(default_value = "target/docs")]
         out_dir: PathBuf,
+    },
+}
+
+/// Args for `scrutin init`. Either a nested subcommand (`init skill`) or a
+/// positional project path (`init [PATH]`), never both.
+#[derive(clap::Args)]
+#[command(args_conflicts_with_subcommands = true)]
+pub struct InitArgs {
+    #[command(subcommand)]
+    pub kind: Option<InitKind>,
+
+    /// Path to the project (default: current directory). Used when no
+    /// subcommand is given.
+    #[arg(default_value = ".")]
+    pub path: PathBuf,
+}
+
+#[derive(Subcommand)]
+pub enum InitKind {
+    /// Install the scrutin Agent Skill for Claude Code, Codex, or any
+    /// other agent that loads `~/.claude/skills/<name>/SKILL.md`.
+    ///
+    /// Default destination: `~/.claude/skills/scrutin/`. Pass a directory
+    /// to override, or `-` to write the skill to stdout instead of a file.
+    Skill {
+        /// Destination directory, or `-` for stdout.
+        path: Option<String>,
+
+        /// Overwrite an existing `SKILL.md` at the destination.
+        #[arg(long)]
+        force: bool,
     },
 }
 
@@ -95,20 +124,10 @@ pub struct RunArgs {
 
     /// Override a .scrutin/config.toml field. Repeatable. Dotted keys walk into
     /// nested tables (e.g. `run.workers=8`, `filter.include=["test_math*"]`,
-    /// `watch.enabled=true`). RHS is parsed as a TOML expression, falling
-    /// back to a bare string for unquoted values.
+    /// `watch.enabled=true`, `filter.group=fast`). RHS is parsed as a TOML
+    /// expression, falling back to a bare string for unquoted values.
     #[arg(short = 's', long = "set", value_name = "KEY=VALUE")]
     pub set: Vec<String>,
-
-    /// Activate a named filter group defined under `[filter.groups.<name>]`
-    /// in .scrutin/config.toml. Repeatable and accepts comma-separated values
-    /// (e.g. `-g fast,py_integration`). Selecting any group replaces the
-    /// top-level `[filter]` include/exclude/tools entirely; multiple groups
-    /// union their `include`, `exclude`, and `tools` lists, and a group with
-    /// an empty `tools` list lifts the tool restriction for the whole
-    /// selection.
-    #[arg(short = 'g', long = "group", value_name = "NAME", value_delimiter = ',')]
-    pub groups: Vec<String>,
 }
 
 /// One output reporter. Stream reporters write to stderr / own the terminal;
@@ -232,7 +251,11 @@ pub async fn run() -> Result<()> {
 
     match command {
         Command::Run(args) => run_subcommand(args).await,
-        Command::Init { path } => {
+        Command::Init(InitArgs {
+            kind: Some(InitKind::Skill { path, force }),
+            ..
+        }) => run_init_skill(path.as_deref(), force),
+        Command::Init(InitArgs { kind: None, path }) => {
             let root = std::fs::canonicalize(&path)
                 .with_context(|| format!("path does not exist: {}", path.display()))?;
             let pkg = discover_for_verb(&root)?;
@@ -445,7 +468,7 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
     } else {
         pkg.test_files()?
     };
-    let filter = resolve_filter_args(&cfg, &args.groups)?;
+    let filter = resolve_filter_args(&cfg)?;
     // Tool filter: restrict to files owned by the named tools.
     if !filter.tools.is_empty() {
         test_files.retain(|f| {
@@ -503,6 +526,25 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
     let exit_code = match reporter {
         Reporter::List => unreachable!("handled above"),
         Reporter::Web { addr } => {
+            let mut groups: Vec<scrutin_web::WireFilterGroup> = cfg
+                .filter
+                .groups
+                .iter()
+                .map(|(name, g)| scrutin_web::WireFilterGroup {
+                    name: name.clone(),
+                    include: g.include.clone(),
+                    exclude: g.exclude.clone(),
+                    tools: g.tools.clone(),
+                })
+                .collect();
+            groups.sort_by(|a, b| a.name.cmp(&b.name));
+            let active_group: Option<String> = cfg
+                .filter
+                .group
+                .as_deref()
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .map(String::from);
             scrutin_web::run_web(
                 addr,
                 pkg.clone(),
@@ -513,6 +555,8 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
                 cfg.run.timeout_run_ms,
                 cfg.run.fork_workers,
                 cfg.web.editor.clone(),
+                groups,
+                active_group,
             )
             .await?;
             0
@@ -666,7 +710,7 @@ async fn run_tui_mode(
     cfg: &Config,
 ) -> Result<i32> {
     let log = logbuf::LogBuffer::new();
-    let run_groups: Vec<tui::RunGroup> = cfg
+    let mut run_groups: Vec<tui::RunGroup> = cfg
         .filter
         .groups
         .iter()
@@ -674,8 +718,17 @@ async fn run_tui_mode(
             name: name.clone(),
             include: g.include.clone(),
             exclude: g.exclude.clone(),
+            tools: g.tools.clone(),
         })
         .collect();
+    run_groups.sort_by(|a, b| a.name.cmp(&b.name));
+    let active_group: Option<String> = cfg
+        .filter
+        .group
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(String::from);
     tui::run_tui(
         pkg,
         test_files,
@@ -686,6 +739,7 @@ async fn run_tui_mode(
         dep_map,
         log,
         run_groups,
+        active_group,
         cfg.run.reruns,
         cfg.run.reruns_delay,
         cfg.watch.debounce_ms,
@@ -750,6 +804,48 @@ fn print_stats(root: &Path) {
             eprintln!("{}", style::dim("No slow test data yet."));
         }
     }
+}
+
+// --- Init (skill) ---
+
+/// The canonical Agent Skill, shipped in-repo at `skills/scrutin/SKILL.md`.
+/// Embedded into the binary so `scrutin init skill` can install it without
+/// a separate download.
+const SKILL_MD: &str = include_str!("../../../../skills/scrutin/SKILL.md");
+
+fn run_init_skill(dest: Option<&str>, force: bool) -> Result<()> {
+    if dest == Some("-") {
+        use std::io::Write;
+        let stdout = std::io::stdout();
+        let mut out = stdout.lock();
+        out.write_all(SKILL_MD.as_bytes())?;
+        return Ok(());
+    }
+
+    let dest_dir = match dest {
+        Some(d) => PathBuf::from(d),
+        None => dirs::home_dir()
+            .context("could not locate home directory for default install path")?
+            .join(".claude")
+            .join("skills")
+            .join("scrutin"),
+    };
+
+    std::fs::create_dir_all(&dest_dir)
+        .with_context(|| format!("creating {}", dest_dir.display()))?;
+
+    let skill_path = dest_dir.join("SKILL.md");
+    if skill_path.exists() && !force {
+        anyhow::bail!(
+            "{} already exists; pass --force to overwrite",
+            skill_path.display()
+        );
+    }
+    std::fs::write(&skill_path, SKILL_MD)
+        .with_context(|| format!("writing {}", skill_path.display()))?;
+
+    eprintln!("Installed scrutin skill to {}", skill_path.display());
+    Ok(())
 }
 
 // --- Init ---
@@ -883,24 +979,13 @@ struct ResolvedFilter {
     excludes: Vec<String>,
 }
 
-fn resolve_filter_args(cfg: &Config, groups: &[String]) -> Result<ResolvedFilter> {
-    // When any group is selected, its include/exclude/tools *replace* the
-    // top-level `[filter]`. With no groups, fall through to top-level.
-    let (mut includes, mut excludes) = if groups.iter().any(|g| !g.trim().is_empty()) {
-        (Vec::new(), Vec::new())
-    } else {
-        (cfg.filter.include.clone(), cfg.filter.exclude.clone())
-    };
-    let mut tools: Vec<String> = Vec::new();
-    let mut tools_unrestricted = false;
-    for name in groups {
-        let name = name.trim();
-        if name.is_empty() {
-            continue;
-        }
+fn resolve_filter_args(cfg: &Config) -> Result<ResolvedFilter> {
+    // When `filter.group` is set, its include/exclude/tools *replace* the
+    // top-level `[filter]`. With no group, fall through to top-level.
+    let name = cfg.filter.group.as_deref().map(str::trim).filter(|s| !s.is_empty());
+    if let Some(name) = name {
         let g = cfg.filter.groups.get(name).ok_or_else(|| {
-            let mut known: Vec<&str> =
-                cfg.filter.groups.keys().map(String::as_str).collect();
+            let mut known: Vec<&str> = cfg.filter.groups.keys().map(String::as_str).collect();
             known.sort_unstable();
             let suffix = if known.is_empty() {
                 " (no [filter.groups.*] defined in .scrutin/config.toml)".to_string()
@@ -909,25 +994,18 @@ fn resolve_filter_args(cfg: &Config, groups: &[String]) -> Result<ResolvedFilter
             };
             anyhow::anyhow!("unknown filter group '{}'{}", name, suffix)
         })?;
-        includes.extend(g.include.iter().cloned());
-        excludes.extend(g.exclude.iter().cloned());
-        if g.tools.is_empty() {
-            tools_unrestricted = true;
-        } else {
-            tools.extend(g.tools.iter().cloned());
-        }
-    }
-    if tools_unrestricted {
-        tools.clear();
+        Ok(ResolvedFilter {
+            tools: g.tools.clone(),
+            includes: g.include.clone(),
+            excludes: g.exclude.clone(),
+        })
     } else {
-        tools.sort();
-        tools.dedup();
+        Ok(ResolvedFilter {
+            tools: Vec::new(),
+            includes: cfg.filter.include.clone(),
+            excludes: cfg.filter.exclude.clone(),
+        })
     }
-    Ok(ResolvedFilter {
-        tools,
-        includes,
-        excludes,
-    })
 }
 
 // ---------------------------------------------------------------------------
@@ -1077,7 +1155,7 @@ mod tests {
         assert!("plain:foo".parse::<ReporterSpec>().is_err());
     }
 
-    // ----- resolve_filter_args + -g/--group -----
+    // ----- resolve_filter_args + filter.group -----
 
     fn cfg_with_groups() -> Config {
         use scrutin_core::project::config::FilterGroup;
@@ -1111,18 +1189,19 @@ mod tests {
     }
 
     #[test]
-    fn groups_empty_inherits_top_level_filter() {
+    fn no_group_inherits_top_level_filter() {
         let cfg = cfg_with_groups();
-        let f = resolve_filter_args(&cfg, &[]).unwrap();
+        let f = resolve_filter_args(&cfg).unwrap();
         assert_eq!(f.includes, vec!["test-base*".to_string()]);
         assert!(f.excludes.is_empty());
         assert!(f.tools.is_empty());
     }
 
     #[test]
-    fn single_group_replaces_top_level_filter() {
-        let cfg = cfg_with_groups();
-        let f = resolve_filter_args(&cfg, &["fast".into()]).unwrap();
+    fn group_replaces_top_level_filter() {
+        let mut cfg = cfg_with_groups();
+        cfg.filter.group = Some("fast".into());
+        let f = resolve_filter_args(&cfg).unwrap();
         assert_eq!(
             f.includes,
             vec!["test-unit*".to_string()],
@@ -1133,57 +1212,31 @@ mod tests {
     }
 
     #[test]
-    fn multiple_groups_union_tools() {
-        let cfg = cfg_with_groups();
-        let f = resolve_filter_args(&cfg, &["py_integration".into(), "r_only".into()]).unwrap();
+    fn group_applies_tool_restriction() {
+        let mut cfg = cfg_with_groups();
+        cfg.filter.group = Some("r_only".into());
+        let f = resolve_filter_args(&cfg).unwrap();
         assert_eq!(
             f.tools,
-            vec![
-                "pytest".to_string(),
-                "testthat".into(),
-                "tinytest".into()
-            ]
-        );
-    }
-
-    #[test]
-    fn unrestricted_group_lifts_tool_restriction() {
-        let cfg = cfg_with_groups();
-        let f = resolve_filter_args(&cfg, &["py_integration".into(), "fast".into()]).unwrap();
-        assert!(
-            f.tools.is_empty(),
-            "fast has no tools -> union becomes unrestricted"
+            vec!["testthat".to_string(), "tinytest".into()]
         );
     }
 
     #[test]
     fn unknown_group_errors_with_known_list() {
-        let cfg = cfg_with_groups();
-        let err = resolve_filter_args(&cfg, &["bogus".into()]).unwrap_err();
+        let mut cfg = cfg_with_groups();
+        cfg.filter.group = Some("bogus".into());
+        let err = resolve_filter_args(&cfg).unwrap_err();
         let msg = err.to_string();
         assert!(msg.contains("unknown filter group 'bogus'"));
         assert!(msg.contains("fast"));
     }
 
     #[test]
-    fn group_cli_flag_accepts_comma_values() {
-        // clap value_delimiter = ','
-        let cli = Cli::try_parse_from(["scrutin", "-g", "fast,py_integration"]).unwrap();
-        let groups = match cli.command {
-            Some(Command::Run(a)) => a.groups,
-            _ => cli.run_args.groups,
-        };
-        assert_eq!(groups, vec!["fast".to_string(), "py_integration".into()]);
-    }
-
-    #[test]
-    fn group_cli_flag_repeatable() {
-        let cli = Cli::try_parse_from(["scrutin", "-g", "fast", "--group", "py_integration"])
-            .unwrap();
-        let groups = match cli.command {
-            Some(Command::Run(a)) => a.groups,
-            _ => cli.run_args.groups,
-        };
-        assert_eq!(groups, vec!["fast".to_string(), "py_integration".into()]);
+    fn empty_group_string_inherits_top_level() {
+        let mut cfg = cfg_with_groups();
+        cfg.filter.group = Some(String::new());
+        let f = resolve_filter_args(&cfg).unwrap();
+        assert_eq!(f.includes, vec!["test-base*".to_string()]);
     }
 }

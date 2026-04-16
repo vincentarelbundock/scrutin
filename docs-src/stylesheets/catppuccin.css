@@ -99,8 +99,65 @@
   border-bottom: 1px solid var(--ctp-surface0);
 }
 
+/* Drawer / primary nav title: hide the bare "scrutin" text node that Material
+ * renders next to the logo in the sidebar header. The logo SVG (inside the
+ * <a class="md-logo">) already contains the wordmark, so the extra text is
+ * redundant. Zero the font size on the label and restore it on children so
+ * the logo, repo source block, and level toggles stay visible. */
+.md-nav--primary > .md-nav__title {
+  font-size: 0;
+  color: transparent;
+}
+.md-nav--primary > .md-nav__title > * {
+  font-size: initial;
+  color: var(--md-default-fg-color);
+}
+
 /* Footer matches crust. */
 .md-footer,
 .md-footer-meta {
   background-color: var(--ctp-crust);
+}
+
+/* Vertically compact footer: Material's defaults stack a tall prev/next row
+ * over a copyright row (~120px total). Squash the vertical padding and
+ * line-heights, but leave horizontal layout alone so page titles have the
+ * full row width and never trip the default `.md-ellipsis` truncation. */
+.md-footer__inner {
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+}
+.md-footer__link {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+.md-footer__direction {
+  font-size: 0.55rem;
+  line-height: 1;
+  opacity: 0.6;
+  margin-bottom: 0;
+}
+.md-footer__title {
+  line-height: 1.15;
+}
+.md-footer__button {
+  padding: 0.2rem;
+}
+.md-footer__button svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+/* Undo the default truncation so titles always read in full. */
+.md-footer__title .md-ellipsis {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+.md-footer-meta__inner {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.md-footer-meta .md-copyright {
+  font-size: 0.7rem;
+  line-height: 1.3;
 }

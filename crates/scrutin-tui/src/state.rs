@@ -242,12 +242,14 @@ impl OverlayState {
     }
 }
 
-/// A named filter group exposed in the run menu (mirrors `[filter.groups.*]`).
+/// A named filter group exposed in the run menu and the view filter
+/// cycler (mirrors `[filter.groups.*]`).
 #[derive(Clone)]
 pub struct RunGroup {
     pub name: String,
     pub include: Vec<String>,
     pub exclude: Vec<String>,
+    pub tools: Vec<String>,
 }
 
 /// Three preset list-pane percentages cycled with `+` / `_`. Continuous
@@ -458,8 +460,8 @@ pub(super) struct MultiSelectState {
     pub visual_base: HashSet<PathBuf>,
 }
 
-/// All file-list filtering state. The four `*_filter` fields are
-/// orthogonal: a file shows up only if every filter accepts it.
+/// All file-list filtering state. The `*_filter` fields are orthogonal:
+/// a file shows up only if every filter accepts it.
 pub(super) struct FilterState {
     /// Live filter palette text input (only relevant while typing).
     pub input: String,
@@ -471,6 +473,9 @@ pub(super) struct FilterState {
     pub status: StatusFilter,
     /// Suite chip cycler (testthat/pytest/...).
     pub suite: SuiteFilter,
+    /// Named filter group cycler; `None` = no group filter applied,
+    /// `Some(i)` = `app.run_groups[i]`.
+    pub group: Option<usize>,
     /// Union of `Plugin::supported_outcomes()` across every active suite.
     /// Lets the status-filter cycler skip variants no plugin can produce.
     pub supported_outcomes: std::collections::HashSet<scrutin_core::engine::protocol::Outcome>,
@@ -484,6 +489,7 @@ impl FilterState {
             pre_filter: None,
             status: StatusFilter::All,
             suite: SuiteFilter::new(suites),
+            group: None,
             supported_outcomes,
         }
     }
@@ -1081,6 +1087,10 @@ impl AppState {
     }
 
     pub(super) fn visible_files(&self) -> Vec<usize> {
+        let group = self
+            .filter
+            .group
+            .and_then(|i| self.run_groups.get(i));
         let mut indices: Vec<usize> = (0..self.files.len())
             .filter(|&i| {
                 let f = &self.files[i];
@@ -1091,6 +1101,18 @@ impl AppState {
                 }
                 if !self.filter.suite.accepts(&f.suite) {
                     return false;
+                }
+                if let Some(g) = group {
+                    if !g.tools.is_empty() && !g.tools.iter().any(|t| t == &f.suite) {
+                        return false;
+                    }
+                    if !scrutin_core::filter::path_matches_include_exclude(
+                        &f.path,
+                        &g.include,
+                        &g.exclude,
+                    ) {
+                        return false;
+                    }
                 }
                 use scrutin_core::engine::protocol::Outcome;
                 match self.filter.status {
@@ -1143,6 +1165,36 @@ impl AppState {
         }
 
         indices
+    }
+
+    /// Cycle through the named filter groups: `None` → group[0] → group[1]
+    /// → … → `None`. `delta` is `+1` / `-1`. No-op if there are no groups.
+    pub(super) fn cycle_group_filter(&mut self, delta: i32) {
+        let n = self.run_groups.len();
+        if n == 0 {
+            return;
+        }
+        self.filter.group = match (self.filter.group, delta.signum()) {
+            (None, 1) => Some(0),
+            (None, -1) => Some(n - 1),
+            (Some(i), 1) if i + 1 < n => Some(i + 1),
+            (Some(_), 1) => None,
+            (Some(0), -1) => None,
+            (Some(i), -1) => Some(i - 1),
+            (cur, _) => cur,
+        };
+    }
+
+    /// Label for the active group filter chip (`"all"` when no group active).
+    pub(super) fn group_filter_label(&self) -> &str {
+        match self.filter.group {
+            None => "all",
+            Some(i) => self
+                .run_groups
+                .get(i)
+                .map(|g| g.name.as_str())
+                .unwrap_or("all"),
+        }
     }
 
     /// Recompute `selected` from `visual_base` plus the inclusive range

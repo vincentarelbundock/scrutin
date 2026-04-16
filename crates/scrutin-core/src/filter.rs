@@ -62,6 +62,25 @@ pub fn apply_include_exclude(
     });
 }
 
+/// Single-file variant of [`apply_include_exclude`]. Useful for
+/// row-at-a-time checks (e.g. the TUI's `visible_files` filter).
+pub fn path_matches_include_exclude(
+    path: &std::path::Path,
+    includes: &[String],
+    excludes: &[String],
+) -> bool {
+    let name = path.file_name().unwrap_or_default().to_string_lossy();
+    let included = if includes.is_empty() {
+        true
+    } else {
+        build_glob_set(includes).is_match(name.as_ref())
+    };
+    if !included {
+        return false;
+    }
+    !build_glob_set(excludes).is_match(name.as_ref())
+}
+
 fn build_glob_set(patterns: &[String]) -> GlobSet {
     let mut builder = GlobSetBuilder::new();
     for p in patterns {

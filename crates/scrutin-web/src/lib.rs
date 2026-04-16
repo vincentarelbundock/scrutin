@@ -24,10 +24,12 @@ use anyhow::{Context, Result};
 use scrutin_core::project::package::Package;
 
 pub use state::AppState;
+pub use wire::WireFilterGroup;
 
 /// Entry point: spin up the axum server, serve the embedded frontend, and
 /// block until Ctrl-C. Called from `scrutin-bin/src/cli.rs` when the user
 /// passes `--target web`.
+#[allow(clippy::too_many_arguments)]
 pub async fn run_web(
     addr: SocketAddr,
     pkg: Package,
@@ -38,6 +40,8 @@ pub async fn run_web(
     timeout_run_ms: u64,
     fork_workers: bool,
     editor: Option<String>,
+    groups: Vec<WireFilterGroup>,
+    active_group: Option<String>,
 ) -> Result<()> {
     if !addr.ip().is_loopback() {
         anyhow::bail!(
@@ -46,7 +50,7 @@ pub async fn run_web(
         );
     }
 
-    let state = AppState::new(Arc::new(pkg), test_files, n_workers, watch, timeout_file_ms, timeout_run_ms, fork_workers, editor);
+    let state = AppState::new(Arc::new(pkg), test_files, n_workers, watch, timeout_file_ms, timeout_run_ms, fork_workers, editor, groups, active_group);
 
     // Build dep map eagerly so the watcher can resolve source→test edges.
     state.start_dep_map_build();

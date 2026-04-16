@@ -1,7 +1,7 @@
 {#-
-  Override: adds a top-right "Docs" link in the header pointing at
-  getting-started/. Everything else mirrors zensical's default header
-  (from .venv/lib/python3.12/site-packages/zensical/templates/partials/header.html).
+  Override: adds a top-right "Documentation" link in the header pointing at
+  installation/ (the first sidebar entry). Everything else mirrors zensical's
+  default header (from .venv/lib/python3.12/site-packages/zensical/templates/partials/header.html).
   Keep in sync with upstream when zensical is upgraded.
 -#}
 {% set class = "md-header" %}
@@ -37,7 +37,7 @@
         </div>
       </div>
     </div>
-    <a href="{{ 'getting-started/' | url }}" class="md-header__nav-link">Docs</a>
+    <a href="{{ 'installation/' | url }}" class="md-header__nav-link">Documentation</a>
     {% if config.theme.palette %}
       {% if not config.theme.palette is mapping %}
         {% include "partials/palette.html" %}

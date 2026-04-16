@@ -15,6 +15,7 @@ use crate::state::{AppState, sorted_files};
 use crate::wire::{
     FileId, WireFile, WirePackage, WireSnapshot, WireSuite, WireSuiteAction,
 };
+// WireFilterGroup is re-exported via crate root; not re-imported here.
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -62,6 +63,8 @@ async fn snapshot(State(state): State<AppState>) -> Json<WireSnapshot> {
             .into_iter()
             .map(Into::into)
             .collect(),
+        groups: (*state.groups).clone(),
+        active_group: state.active_group.clone(),
     })
 }
 

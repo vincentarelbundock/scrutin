@@ -374,6 +374,11 @@ impl Default for WatchConfig {
 pub struct FilterConfig {
     pub include: Vec<String>,
     pub exclude: Vec<String>,
+    /// Activate a named filter group defined under `[filter.groups.<name>]`.
+    /// When set, the group's include/exclude/tools *replace* the top-level
+    /// include/exclude/tools for the initial run. The TUI and web can also
+    /// cycle the active group at runtime (keymap f/F).
+    pub group: Option<String>,
     #[serde(default)]
     pub groups: std::collections::HashMap<String, FilterGroup>,
 }

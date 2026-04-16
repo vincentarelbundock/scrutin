@@ -25,6 +25,80 @@ Add custom labels with `--set extras.key=value` on the command line, or an `[ext
 The DDL below is the authoritative schema, loaded verbatim at startup via `CREATE TABLE IF NOT EXISTS`. The same file lives at `crates/scrutin-core/src/storage/sql/schema.sql` and is embedded into the binary with `include_str!`.
 
 <!-- BEGIN schema.sql -->
+```sql
+CREATE TABLE IF NOT EXISTS runs (
+    run_id          TEXT PRIMARY KEY,
+    timestamp       TEXT NOT NULL,
+    hostname        TEXT,
+    ci              TEXT,
+    scrutin_version TEXT NOT NULL,
+
+    git_commit      TEXT,
+    git_branch      TEXT,
+    git_dirty       INTEGER,
+
+    repo_name       TEXT,
+    repo_url        TEXT,
+    repo_root       TEXT,
+
+    build_number    TEXT,
+    build_id        TEXT,
+    build_name      TEXT,
+    build_url       TEXT,
+
+    os_platform     TEXT,
+    os_release      TEXT,
+    os_version      TEXT,
+    os_arch         TEXT
+);
+
+CREATE TABLE IF NOT EXISTS results (
+    run_id          TEXT NOT NULL,
+    run_seq         INTEGER NOT NULL,
+    file            TEXT NOT NULL,
+    tool            TEXT NOT NULL,
+    tool_version    TEXT,
+    app_name        TEXT,
+    app_version     TEXT,
+    subject_kind    TEXT NOT NULL,
+    subject_name    TEXT NOT NULL,
+    subject_parent  TEXT,
+    outcome         TEXT NOT NULL,
+    duration_ms     INTEGER NOT NULL DEFAULT 0,
+    retries         INTEGER NOT NULL DEFAULT 0,
+    total           INTEGER,
+    failed          INTEGER,
+    fraction        REAL,
+    FOREIGN KEY (run_id) REFERENCES runs(run_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_results_run_id       ON results(run_id);
+CREATE INDEX IF NOT EXISTS idx_results_run_seq      ON results(run_seq);
+CREATE INDEX IF NOT EXISTS idx_results_outcome      ON results(outcome);
+CREATE INDEX IF NOT EXISTS idx_results_file_subject ON results(file, subject_name);
+CREATE INDEX IF NOT EXISTS idx_results_tool         ON results(tool);
+
+CREATE TABLE IF NOT EXISTS extras (
+    run_id TEXT NOT NULL,
+    key    TEXT NOT NULL,
+    value  TEXT NOT NULL,
+    PRIMARY KEY (run_id, key),
+    FOREIGN KEY (run_id) REFERENCES runs(run_id)
+);
+
+CREATE TABLE IF NOT EXISTS dependencies (
+    source_file TEXT NOT NULL,
+    test_file   TEXT NOT NULL,
+    PRIMARY KEY (source_file, test_file)
+);
+
+CREATE INDEX IF NOT EXISTS idx_dependencies_test ON dependencies(test_file);
+
+CREATE TABLE IF NOT EXISTS hashes (
+    file TEXT PRIMARY KEY,
+    hash INTEGER NOT NULL
+);
+```
 <!-- END schema.sql -->
 
 ### `runs`
@@ -125,11 +199,41 @@ ORDER BY r.timestamp DESC;
 Flaky tests over the last 10 runs (`scrutin stats` runs a version of this query; the embedded copy is reproduced below):
 
 <!-- BEGIN flaky_tests.sql -->
+```sql
+WITH recent AS (
+    SELECT run_id FROM runs ORDER BY timestamp DESC LIMIT ?1
+),
+stats AS (
+    SELECT file, subject_name,
+           SUM(CASE WHEN outcome IN ('fail','error') THEN 1 ELSE 0 END) AS failures,
+           SUM(CASE WHEN retries > 0 AND outcome = 'pass' THEN 1 ELSE 0 END) AS retry_passes,
+           COUNT(*) AS total
+    FROM results
+    WHERE run_id IN (SELECT run_id FROM recent) AND subject_name != ''
+    GROUP BY file, subject_name
+)
+SELECT file, subject_name, failures, retry_passes, total
+FROM stats
+WHERE total >= ?2
+  AND ((failures > 0 AND failures < total) OR retry_passes > 0)
+```
 <!-- END flaky_tests.sql -->
 
 Slow tests over all recorded runs:
 
 <!-- BEGIN slow_tests.sql -->
+```sql
+SELECT file, subject_name,
+       AVG(duration_ms) AS avg_ms,
+       MAX(duration_ms) AS max_ms,
+       COUNT(*) AS runs
+FROM results
+WHERE subject_name != '' AND duration_ms > 0
+GROUP BY file, subject_name
+HAVING runs >= ?1 AND avg_ms > ?2
+ORDER BY avg_ms DESC
+LIMIT ?3
+```
 <!-- END slow_tests.sql -->
 
 Tests that tend to need retries:

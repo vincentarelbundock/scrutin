@@ -8,6 +8,8 @@ Never use em dashes or en dashes in code, documentation, comments, or commit mes
 
 ## Project Overview
 
+Docs site: <https://vincentarelbundock.github.io/scrutin> (hosted on GitHub Pages under `/scrutin/` subpath; `zensical.toml::site_url` must match).
+
 scrutin is a fast, watch-mode test runner with Rust orchestration. It watches a project's source and test directories, detects which test files are affected by a change, and re-runs only those tests in isolated subprocesses with a live ratatui terminal UI. It started as an R-only runner (testthat + tinytest) but now also supports Python (pytest), and **multiple tools/languages can coexist in the same project root** : a single invocation will detect every tool whose marker files are present and run them concurrently via per-suite worker pools.
 
 **Status**: implemented, unreleased. Cargo workspace with four crates (`scrutin-core`, `scrutin-tui`, `scrutin-web`, `scrutin-bin`); ~7k lines of Rust plus an R companion (`crates/scrutin-core/src/r/runner.R`) and a pytest companion (`crates/scrutin-core/src/python/pytest/runner.py`). The web frontend lives in `scrutin-web` as a vanilla HTML+JS+CSS bundle embedded into the binary via rust-embed.
@@ -32,7 +34,7 @@ scrutin is a fast, watch-mode test runner with Rust orchestration. It watches a 
 - `cargo run -- init demo` / `cargo run -- stats demo` : verb subcommands
 - `make revert` : restore demo lint files (`demo/R/lint.R`, `demo/src/scrutindemo_py/lint.py`) to their unfixed state
 - `make install` : `cargo install` from the bin crate
-- `make docs-serve` : generate CLI reference + serve docs site via zensical
+- `make docs-preview` : build the docs site and serve statically on :8001 (matches GitHub Pages: includes llms.txt, llms-full.txt, and raw .md files)
 - `make vscode` / `make positron` / `make rstudio` : build and install editor extensions
 
 ## Rust edition
@@ -53,23 +55,25 @@ Cargo workspace with four crates:
 ```
 lib.rs
 ├── r/                          ← all R-related code
-│   ├── mod.rs                  registry (plugins()), shared helpers (parse_pkg_name, env, ...)
-│   ├── parse.rs                tree-sitter R parser (defs, identifiers)
-│   ├── depmap.rs               source→tests dep map (multi-suite-aware)
-│   ├── testthat/{mod,plugin,runner}.rs/.R
-│   ├── tinytest/{mod,plugin,runner}.rs/.R
-│   ├── pointblank/{mod,plugin,runner}.rs/.R  data-validation plugin
-│   ├── validate/{mod,plugin,runner}.rs/.R   data-validation plugin (validate pkg)
-│   └── jarl/{mod,plugin}.rs                  R linter plugin (opt-in via jarl.toml)
+│   ├── mod.rs                  data-driven RPlugin struct + registry (plugins())
+│   ├── depmap.rs               cache loader for the source→tests dep map
+│   │                           (populated incrementally at runtime via trace()
+│   │                           instrumentation in the R runners, not static analysis)
+│   ├── runner_r.R              shared R worker infrastructure (sourced by each tool runner)
+│   ├── runner_testthat.R       embedded testthat runner
+│   ├── runner_tinytest.R       embedded tinytest runner
+│   ├── runner_pointblank.R     embedded pointblank runner (data validation)
+│   ├── runner_validate.R       embedded validate runner (data validation)
+│   └── jarl/{mod,plugin}.rs    R linter plugin (structurally distinct; own Plugin impl)
 ├── python/                     ← all Python-related code
 │   ├── mod.rs                  registry
 │   ├── imports.rs              import-graph dep map
-│   ├── pytest/
-│   │   ├── mod.rs
-│   │   ├── plugin.rs
-│   │   └── runner.py           embedded pytest companion script
+│   ├── pytest/{mod,plugin}.rs + runner.py
 │   ├── ruff/{mod,plugin}.rs    Python linter plugin (command mode, like jarl)
-│   └── great_expectations/{mod,plugin}.rs  data-validation plugin
+│   └── great_expectations/{mod,plugin}.rs + runner.py  data-validation plugin
+├── prose/                      ← prose checks (text in code + markdown)
+│   ├── skyspell/{mod,plugin}.rs   spell-check with structured corrections (0-9 chips)
+│   └── typos/{mod,plugin}.rs      typo checker
 ├── analysis/                   ← cross-language utilities only
 │   ├── walk.rs                 shared filesystem walker + ignore list
 │   ├── deps.rs                 resolve_tests (cross-language test resolver)
@@ -77,22 +81,27 @@ lib.rs
 ├── project/
 │   ├── package.rs              Package + TestSuite (multi-suite data model)
 │   ├── config.rs               .scrutin/config.toml parsing + --set overrides
+│   ├── hooks.rs                user-defined project hooks
 │   └── plugin.rs               Plugin trait + PluginAction + all_plugins() registry
 ├── engine/
 │   ├── run_events.rs           the run-engine seam (RunEvent, RunHandle, start_run)
-│   ├── pool.rs                 per-suite async worker pool
+│   ├── pool.rs                 per-suite async worker pool (warm test runners)
+│   ├── command_pool.rs         command-mode pool (linters/validators that shell out per file)
 │   ├── runner.rs               single-subprocess management
 │   ├── protocol.rs             NDJSON wire types
 │   └── watcher.rs              notify-based file watcher
-├── report/junit.rs             JUnit XML writer
-├── storage/sqlite.rs           embedded SQLite (rusqlite, bundled):
-│                               runs + results + extras + dependencies + hashes
-└── filter.rs, git.rs, hooks.rs, logbuf.rs, metadata.rs
+├── storage/                    embedded SQLite (rusqlite, bundled):
+│   ├── sqlite.rs               runs + results + extras + dependencies + hashes
+│   └── sql/                    one .sql file per query
+├── report.rs                   JUnit XML writer
+└── filter.rs, git.rs, keymap.rs, logbuf.rs, metadata.rs, preflight.rs
 ```
 
 **Adding a new language** = drop a sibling directory next to `r/` and `python/`, register the plugins in `project/plugin.rs::all_plugins()`. No edits anywhere else.
 
-**Adding a new tool to an existing language** = drop a sibling directory next to `r/testthat/` and `r/tinytest/`, register in that language's `mod.rs::plugins()`. The shared helpers in `r/mod.rs` cover the boilerplate; new tool files are typically ~60 lines of `Plugin` trait impl. Non-test tools (linters, validators) follow the same pattern: jarl maps lint diagnostics to `warn` events, pointblank maps validation steps to `pass`/`fail`.
+**Adding a new test/validation tool in R** = add one `RPlugin { name, detect_dir, test_dir, runner_script, supported_outcomes, subject_label }` entry to `r/mod.rs::plugins()`, with a sibling `runner_<name>.R` that sources `runner_r.R`. This is how testthat, tinytest, pointblank, and validate are wired: each is ~10 lines of Rust + an R runner script. Everything else (package-name parsing, file predicates, subprocess command shape, env vars, noise filtering) is shared.
+
+**Adding a structurally distinct tool** (linter with command-mode execution, custom actions, non-R language) = drop a sibling directory (like `r/jarl/`, `python/ruff/`, `prose/skyspell/`) with its own `Plugin` impl, and register it in the language's `mod.rs::plugins()`. Example: jarl maps lint diagnostics to `warn` events; ruff exposes "fix"/"fix all" actions; skyspell emits structured corrections.
 
 **Plugin actions** = plugins define actions via `Plugin::actions() -> Vec<PluginAction>`. Each action has a name, label, command (file paths appended), `rerun: bool`, and `scope: ActionScope` (File or All). In the TUI and web's Detail view, actions render inline as a numbered chip row (`[1] Fix file`, `[2] Fix file (unsafe)`, `[3] Fix all`, `[4] Fix all (unsafe)`); pressing the digit invokes the Nth action directly. `ActionScope::File` runs the command on the currently selected file; `ActionScope::All` runs the command on every file in the suite (after include/exclude filters) in a single invocation. Output goes to the shared log buffer (TUI: `L` overlay). Affected files are optionally re-run afterwards. Example: jarl and ruff both expose "fix" / "fix (unsafe)" / "fix all" / "fix all (unsafe)".
 
@@ -112,9 +121,9 @@ lib.rs
 
 - **Project root vs suite root**: `Package.root` is the project root (where `.scrutin/config.toml` lives; anchors `state.db`, runner scripts, hooks, git metadata). `TestSuite.root` is the suite root (per-suite working directory). In single-package projects and auto-detection, they're equal. In monorepos (`[[suite]] root = "r"`, `[[suite]] root = "python"`), each suite points at its own subtree.
 - **`scrutin-core::analysis::hashing`** : multi-suite content fingerprints via `hash_package_files(pkg)`. Walks every active suite's source + test dirs through the shared `analysis::walk` helper. `is_dep_map_stale(pkg, db)` and `snapshot_hashes(pkg, db)` both take `&Package`.
-- **`scrutin-core::r::depmap`** : multi-suite-aware. `build_dep_map(pkg)` iterates every R suite (testthat *and* tinytest), so editing `R/math.R` correctly invalidates test files under both `tests/testthat/` and `inst/tinytest/`.
+- **`scrutin-core::r::depmap`** : cache loader. `build_dep_map(pkg)` reads the persisted dep map from SQLite (`dependencies` table); the map itself is populated incrementally at runtime by `trace()` instrumentation in the R runners, which emit `deps` messages as tests execute. Edits to `R/math.R` invalidate test files under any R suite that previously recorded a call into it (testthat *and* tinytest). `analysis::deps::build_unified_dep_map` combines this cache with Python static import scanning.
 - **`scrutin-tui/src/lib.rs`** : `run_tui` event loop, `start_test_run` (the TUI's bridge into `run_events::start_run`).
-- **`scrutin-tui/src/{state,keymap,input}.rs`** + **`scrutin-tui/src/view/`** : modal TUI. `AppState` is decomposed into named sub-structs by concern: `nav` (mode_stack, cursors, scrolls, viewport heights), `filter` (text/status/suite/outcomes), `display` (sort, watch, layout pct), `multi` (multi-selection), `run` (running, totals, busy/cancel handles). Adding a field has an obvious home; field accesses self-document. The view tree is split into `view/{mod,layout,icons,source,sort,overlays,file_list,counts,hints,breadcrumb,log,normal,detail,failure}.rs` with `mod.rs` owning top-level dispatch.
+- **`scrutin-tui/src/{state,keymap,input}.rs`** + **`scrutin-tui/src/view/`** : modal TUI. `AppState` is decomposed into named sub-structs by concern: `nav` (mode_stack, cursors, scrolls, viewport heights), `filter` (text/status/suite/group/outcomes), `display` (sort, watch, layout pct), `multi` (multi-selection), `run` (running, totals, busy/cancel handles). Adding a field has an obvious home; field accesses self-document. The view tree is split into `view/{mod,layout,icons,source,sort,overlays,file_list,counts,hints,breadcrumb,log,normal,detail,failure}.rs` with `mod.rs` owning top-level dispatch.
 - **TUI mode taxonomy** : `Mode` historically conflated drill *level* (Normal/Detail/Failure) and *overlay* (Help/Log/ActionOutput/Palette). `Level` and `Overlay` enums separate these so dispatch sites can target the axis they care about: `state.level()` returns the topmost non-overlay frame; `state.overlay_kind()` returns `Some(Overlay::*)` if an overlay sits on top. New code prefers these typed accessors over `state.mode()` matches. `Mode` is kept as the stack-frame type for backwards compatibility.
 - **TUI cursor dispatch** : `AppState::move_cursor(mode, delta)` is the single seam for per-mode cursor movement (`isize::MIN/MAX` for top/bottom). Each mode targets its own cursor (`file_cursor` / `test_cursor` / `failure_cursor` / `log_scroll` / `overlay.scroll`); adding a new cursor target is one method change, not 6 dispatch arms.
 - **Overlays** share a single `OverlayState` struct (scroll, view_height, optional cursor) and `draw_text_overlay` renderer. Two flavors: text overlays (Help) are scroll-only; menu overlays (Run, Sort palettes) have a cursor.
@@ -177,4 +186,5 @@ route is additionally wrapped in a `require_loopback` middleware. See
 - **Plugin escape hatches over scrutin-side abstractions.** When users need an obscure tool knob (e.g. `--tb=long` for pytest), prefer a verbatim `extra_args`-style passthrough in the relevant `[<plugin>]` config section over growing an scrutin-level config field. The test for "should scrutin grow first-class config for X?" is *does X make sense for the R plugins too?* `max_fail` and `failed_first` pass that test; `traceback` and `verbosity` don't.
 - **Custom runner scripts via config.** Each tool section (`[testthat]`, `[tinytest]`, `[pytest]`) accepts a `runner` field pointing to a local script. When set, the engine reads that file instead of the built-in default. `scrutin init` writes the default runners to `.scrutin/<tool>/runner.<ext>` so users can edit them (e.g. swap `pkgload::load_all()` for `library()`, add project-specific setup). The config line is commented out by default; the built-in is used unless explicitly overridden.
 - **Modal TUI as orchestrator.** The TUI is structured around modes that own their own keymap tables and layout preferences. The mode chip in the hints bar advertises which mode is active; help and hints are auto-generated from binding tables; Esc uniformly pops a mode stack frame. New modes are a `Mode` variant + a `&[Binding]` slice + (sometimes) an extras handler : not a new dispatch branch in `handle_key`. Plugin actions and spell-check suggestions are rendered as numbered chip rows in the Detail view and invoked by pressing 0-9; their stdout/stderr streams into the shared log buffer (`L`) instead of a dedicated overlay.
-- **Sort modes match across TUI and web.** Five sort modes (sequential, status, name, suite, time) are available in both frontends. `s`/`S` cycles sort mode; `t`/`T` cycles the status filter. The web exposes the same modes via a dropdown and keyboard shortcuts. Status rank order is sourced from `scrutin_core::engine::protocol::Outcome::rank()` (TUI reads directly; web receives `outcome_order` in `/api/snapshot`).
+- **Sort modes match across TUI and web.** Five sort modes (sequential, status, name, suite, time) are available in both frontends. `s`/`S` cycles sort mode; `o`/`O` cycles the status filter, `t`/`T` the suite filter, and `f`/`F` the named-group filter (only meaningful when `[filter.groups.*]` is defined). The web exposes the same modes via dropdowns and keyboard shortcuts. Status rank order is sourced from `scrutin_core::engine::protocol::Outcome::rank()` (TUI reads directly; web receives `outcome_order` in `/api/snapshot`).
+- **Named filter groups unified as view filters.** `[filter.groups.<name>]` presets are activated at startup via `-s filter.group=NAME` (no dedicated `-g` flag) and cycled at runtime via `f`/`F` in the TUI and a `<select>` in the web. When a group is active its `include`/`exclude`/`tools` replace the top-level `[filter]` entries; the web ships `groups` + `active_group` in the snapshot so the frontend can apply the same glob semantics client-side without a round-trip.

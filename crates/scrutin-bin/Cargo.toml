@@ -24,6 +24,7 @@ scrutin-core.workspace = true
 scrutin-tui.workspace = true
 scrutin-web.workspace = true
 clap.workspace = true
+dirs.workspace = true
 anyhow.workspace = true
 ratatui.workspace = true
 tokio.workspace = true

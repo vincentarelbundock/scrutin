@@ -1,0 +1,51 @@
+# scrutin
+
+> Fast watch-mode test runner and quality-check orchestrator for R and Python projects. Auto-detects testthat, tinytest, pytest, pointblank, validate, and Great Expectations. Linters (jarl, ruff) and spell-checkers (skyspell, typos) are opt-in via `.scrutin/config.toml`. A single invocation runs every active suite concurrently.
+
+scrutin is designed to be driven from the command line, from a terminal UI, from a browser dashboard, from editor extensions (VS Code, Positron, RStudio), or from an LLM agent. For agent use, always pass `-r plain` (compact deterministic text + non-zero exit on failure) or `-r junit:report.xml` (structured XML). Never launch scrutin without a reporter from an agent: the default is an interactive TUI.
+
+There is a first-party Agent Skill for Claude Code and any compatible agent. Install it with `scrutin init skill` (writes `~/.claude/skills/scrutin/SKILL.md`) or dump it to stdout with `scrutin init skill -`.
+
+Every doc page below is served as raw Markdown at the same origin. Agents that want the whole site in one fetch can grab [llms-full.txt](https://vincentarelbundock.github.io/scrutin/llms-full.txt).
+
+## Core docs
+
+- [Getting Started](https://vincentarelbundock.github.io/scrutin/getting-started.md): install, first run, basic config
+- [Project Discovery](https://vincentarelbundock.github.io/scrutin/project-discovery.md): how scrutin finds tools and files
+- [Reporters](https://vincentarelbundock.github.io/scrutin/reporters/): `-r plain`, `-r junit:PATH`, `-r github`, `-r list`
+- [Configuration reference](https://vincentarelbundock.github.io/scrutin/reference/configuration.md): every `.scrutin/config.toml` key
+- [Command-line reference](https://vincentarelbundock.github.io/scrutin/reference/cli.md): every flag and subcommand
+- [LLMs](https://vincentarelbundock.github.io/scrutin/llms.md): LLM-friendly features, Agent Skill install, Claude Code / Codex setup
+
+## Tools
+
+- [testthat](https://vincentarelbundock.github.io/scrutin/tools/testthat.md): R unit tests under `tests/testthat/`
+- [tinytest](https://vincentarelbundock.github.io/scrutin/tools/tinytest.md): R unit tests under `inst/tinytest/`
+- [pytest](https://vincentarelbundock.github.io/scrutin/tools/pytest.md): Python unit tests under `tests/test_*.py`
+- [pointblank](https://vincentarelbundock.github.io/scrutin/tools/pointblank.md): R data validation
+- [validate](https://vincentarelbundock.github.io/scrutin/tools/validate.md): R data validation (validate pkg)
+- [Great Expectations](https://vincentarelbundock.github.io/scrutin/tools/great-expectations.md): Python data validation
+- [jarl](https://vincentarelbundock.github.io/scrutin/tools/jarl.md): R linter (opt-in)
+- [ruff](https://vincentarelbundock.github.io/scrutin/tools/ruff.md): Python linter (opt-in)
+- [skyspell](https://vincentarelbundock.github.io/scrutin/tools/skyspell.md): spell checker (opt-in)
+- [typos](https://vincentarelbundock.github.io/scrutin/tools/typos.md): typo checker (opt-in)
+
+## Frontends
+
+- [Terminal UI](https://vincentarelbundock.github.io/scrutin/frontends/terminal-ui.md): ratatui-based interactive runner
+- [Web Dashboard](https://vincentarelbundock.github.io/scrutin/frontends/web.md): browser view, loopback-only
+- [VS Code / Positron](https://vincentarelbundock.github.io/scrutin/frontends/vscode.md): editor extension
+- [RStudio](https://vincentarelbundock.github.io/scrutin/frontends/rstudio.md): RStudio addin
+
+## Internals and specs
+
+- [How It Works](https://vincentarelbundock.github.io/scrutin/internals.md): architecture overview
+- [Parallelism](https://vincentarelbundock.github.io/scrutin/parallelism.md): worker pools, per-suite fan-out
+- [Watch Mode](https://vincentarelbundock.github.io/scrutin/watch-mode.md): dep-map and file invalidation
+- [Filtering](https://vincentarelbundock.github.io/scrutin/filtering.md): include/exclude globs and `[filter.groups.*]`
+
+## Optional
+
+- [Keybindings](https://vincentarelbundock.github.io/scrutin/keybindings.md): TUI keymap (human use, not agent-relevant)
+- [Roadmap](https://vincentarelbundock.github.io/scrutin/roadmap.md)
+- [History](https://vincentarelbundock.github.io/scrutin/history.md)

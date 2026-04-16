@@ -24,7 +24,7 @@ use scrutin_core::project::package::Package;
 use tokio::sync::{RwLock, broadcast};
 
 use crate::wire::{
-    FileId, RunId, WireCounts, WireEvent, WireFile, WireRunSummary, WireStatus,
+    FileId, RunId, WireCounts, WireEvent, WireFile, WireFilterGroup, WireRunSummary, WireStatus,
     tally_file_messages,
 };
 
@@ -59,6 +59,12 @@ pub struct AppState {
     /// action. Whitespace-split into argv tokens so wrappers like
     /// `"code --wait"` work.
     pub editor: Option<String>,
+    /// Named filter groups (`[filter.groups.*]`), shipped to the client in
+    /// `/api/snapshot`. Alphabetical for a stable dropdown order.
+    pub groups: Arc<Vec<WireFilterGroup>>,
+    /// Initially active group from `-s filter.group=NAME`. The client uses
+    /// this to pre-select the dropdown; runtime changes live on the client.
+    pub active_group: Option<String>,
 }
 
 /// A broadcast event plus its monotonic sequence id, so SSE clients can
@@ -75,6 +81,7 @@ pub struct ActiveRun {
 }
 
 impl AppState {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         pkg: Arc<Package>,
         initial_files: Vec<PathBuf>,
@@ -84,8 +91,10 @@ impl AppState {
         timeout_run_ms: u64,
         fork_workers: bool,
         editor: Option<String>,
+        groups: Vec<WireFilterGroup>,
+        active_group: Option<String>,
     ) -> Self {
-        let this = Self::new_inner(pkg, initial_files, n_workers, watch, timeout_file_ms, timeout_run_ms, fork_workers, editor);
+        let this = Self::new_inner(pkg, initial_files, n_workers, watch, timeout_file_ms, timeout_run_ms, fork_workers, editor, groups, active_group);
         // Spawn a background heartbeat that publishes the current busy
         // count + in_progress flag every second. Frontend reads this to
         // drive the "N/total workers" indicator between events.
@@ -112,6 +121,7 @@ impl AppState {
         this
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn new_inner(
         pkg: Arc<Package>,
         initial_files: Vec<PathBuf>,
@@ -121,6 +131,8 @@ impl AppState {
         timeout_run_ms: u64,
         fork_workers: bool,
         editor: Option<String>,
+        groups: Vec<WireFilterGroup>,
+        active_group: Option<String>,
     ) -> Self {
         let root = pkg.root.clone();
         let mut files: HashMap<FileId, WireFile> = HashMap::new();
@@ -151,6 +163,8 @@ impl AppState {
             dep_map: Arc::new(RwLock::new(None)),
             initial_files: Arc::new(initial_files),
             editor,
+            groups: Arc::new(groups),
+            active_group,
         }
     }
 

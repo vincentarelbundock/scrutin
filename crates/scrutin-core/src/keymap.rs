@@ -105,6 +105,8 @@ pub static DEFAULT_KEYMAP: &[KeyBinding] = &[
     KeyBinding { key: "O",       action: "filter_status_back", levels: FD, help: "",                              bar: "",                          when: When::Always },
     KeyBinding { key: "t",       action: "filter_tool",     levels: FD,  help: "t/T filter by tool",              bar: "",                          when: When::Always },
     KeyBinding { key: "T",       action: "filter_tool_back",levels: FD,  help: "",                                bar: "",                          when: When::Always },
+    KeyBinding { key: "f",       action: "filter_group",    levels: FD,  help: "f/F filter by group",             bar: "",                          when: When::Always },
+    KeyBinding { key: "F",       action: "filter_group_back", levels: FD, help: "",                               bar: "",                          when: When::Always },
 
     // ── Display / layout ────────────────────────────────────────
     KeyBinding { key: "s",       action: "open_sort_menu",  levels: FD,  help: "s sort menu",                     bar: "",                          when: When::Always },

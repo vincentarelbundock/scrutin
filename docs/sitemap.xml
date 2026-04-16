@@ -1,90 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
       <url>
-        <loc>https://scrutin.dev/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/getting-started/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/installation/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/project-discovery/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/getting-started/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/testthat/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/project-discovery/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/tinytest/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/tools/testthat/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/pytest/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/tools/tinytest/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/pointblank/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/tools/pytest/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/validate/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/tools/pointblank/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/great-expectations/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/tools/validate/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/jarl/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/tools/great-expectations/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/ruff/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/tools/jarl/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/skyspell/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/tools/ruff/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/tools/typos/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/tools/skyspell/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/frontends/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/tools/typos/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/frontends/terminal-ui/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/frontends/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/frontends/web/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/frontends/terminal-ui/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/frontends/vscode/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/frontends/web/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/frontends/positron/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/frontends/vscode/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/frontends/rstudio/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/frontends/positron/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/reporters/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/frontends/rstudio/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/filtering/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/reporters/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/watch-mode/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/reporters/plain/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/parallelism/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/reporters/junit/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/keybindings/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/reporters/github/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/reference/configuration/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/reporters/list/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/reference/cli/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/filtering/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/history/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/watch-mode/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/internals/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/parallelism/</loc>
       </url>
       <url>
-        <loc>https://scrutin.dev/roadmap/</loc>
+        <loc>https://vincentarelbundock.github.io/scrutin/keybindings/</loc>
+      </url>
+      <url>
+        <loc>https://vincentarelbundock.github.io/scrutin/reference/configuration/</loc>
+      </url>
+      <url>
+        <loc>https://vincentarelbundock.github.io/scrutin/reference/cli/</loc>
+      </url>
+      <url>
+        <loc>https://vincentarelbundock.github.io/scrutin/llms/</loc>
+      </url>
+      <url>
+        <loc>https://vincentarelbundock.github.io/scrutin/history/</loc>
+      </url>
+      <url>
+        <loc>https://vincentarelbundock.github.io/scrutin/internals/</loc>
+      </url>
+      <url>
+        <loc>https://vincentarelbundock.github.io/scrutin/roadmap/</loc>
       </url>
 </urlset>
