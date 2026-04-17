@@ -1908,7 +1908,6 @@ dependencies = [
  "scrutin-core",
  "serde",
  "serde_json",
- "syntect",
  "tokio",
  "tokio-stream",
  "uuid",

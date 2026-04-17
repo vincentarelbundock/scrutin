@@ -5,8 +5,8 @@ import { $ } from "./util.js";
 import { fetchSource, fetchSourceFor, openInEditor, openSourceInEditor } from "./api.js";
 
 /// Render a `WireSource` `{ lines, start_line, highlight_line }` into the
-/// numbered-gutter format. Each `lines[i]` is a server-side syntect
-/// HTML fragment (already escaped), so it is injected via innerHTML.
+/// numbered-gutter format. Each `lines[i]` is a plain HTML-escaped line
+/// from the server (no syntax highlighting), safe to inject via innerHTML.
 export function renderSourceRows(src) {
   const start = src.start_line ?? 1;
   const hl = src.highlight_line;

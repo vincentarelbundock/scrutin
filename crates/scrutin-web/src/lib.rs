@@ -9,7 +9,6 @@
 //! See `docs/web-spec.md` for the full design rationale.
 
 mod assets;
-mod highlight;
 mod routes;
 mod server;
 mod state;

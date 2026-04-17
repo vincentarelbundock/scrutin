@@ -27,21 +27,34 @@ pub fn router() -> Router<AppState> {
         .route("/api/suites", get(suites))
         .route("/api/keymap", get(keymap))
         .route("/api/config", get(config))
-        .route("/syntect.css", get(syntect_css))
 }
 
-async fn syntect_css() -> axum::response::Response {
-    use axum::http::{HeaderValue, StatusCode, header};
-    use axum::response::IntoResponse;
-    (
-        StatusCode::OK,
-        [
-            (header::CONTENT_TYPE, HeaderValue::from_static("text/css; charset=utf-8")),
-            (header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=3600")),
-        ],
-        crate::highlight::theme_css(),
-    )
-        .into_response()
+/// Slice `[start, end)` of `content` into HTML-escaped lines. No syntax
+/// highlighting and no per-token spans: the frontend renders each line
+/// verbatim under `white-space: pre`. Escaping `< > & " '` is the only
+/// transform needed so that lines can be safely injected via `innerHTML`.
+fn escape_lines(content: &str, start: usize, end: usize) -> Vec<String> {
+    content
+        .lines()
+        .skip(start)
+        .take(end.saturating_sub(start))
+        .map(escape_html)
+        .collect()
+}
+
+fn escape_html(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for ch in s.chars() {
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            _ => out.push(ch),
+        }
+    }
+    out
 }
 
 async fn snapshot(State(state): State<AppState>) -> Json<WireSnapshot> {
@@ -133,8 +146,7 @@ async fn file_source(
         }
         _ => (0, total.min(500)),
     };
-    let ext = canon.extension().and_then(|e| e.to_str()).unwrap_or("");
-    let lines = crate::highlight::highlight_slice(ext, &content, start, end);
+    let lines = escape_lines(&content, start, end);
     let display = match &root {
         Some(r) => canon.strip_prefix(r).unwrap_or(&canon).to_string_lossy(),
         None => canon.to_string_lossy(),
@@ -207,8 +219,7 @@ async fn source_for_test(
         }
         _ => (0, total.min(500)),
     };
-    let ext = canon.extension().and_then(|e| e.to_str()).unwrap_or("");
-    let lines = crate::highlight::highlight_slice(ext, &content, start, end);
+    let lines = escape_lines(&content, start, end);
     Ok(Json(serde_json::json!({
         "start_line": start + 1,
         "lines": lines,

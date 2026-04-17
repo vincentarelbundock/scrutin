@@ -247,20 +247,20 @@ body {
   background: var(--gutter-bg);
   border: 1px solid var(--border);
   border-radius: 4px;
-  overflow: hidden;
+  overflow: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
 }
 .source-snippet .source-row {
-  display: grid;
-  grid-template-columns: 40px 1fr;
-  column-gap: 10px;
+  display: flex;
   padding: 0 6px;
 }
 .source-snippet .source-row.highlight {
   background: var(--highlight-bg);
 }
 .source-snippet .gutter {
+  flex: 0 0 40px;
+  margin-right: 10px;
   text-align: right;
   color: var(--fg-dim);
   user-select: none;

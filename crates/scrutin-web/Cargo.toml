@@ -23,6 +23,5 @@ futures.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 xxhash-rust.workspace = true
-syntect.workspace = true
 
 axum.workspace = true
