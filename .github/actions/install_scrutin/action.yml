@@ -1,16 +1,34 @@
 name: Install scrutin
-description: Install the latest scrutin binary from GitHub Releases.
+description: Install a scrutin binary from GitHub Releases.
+
+inputs:
+  version:
+    description: Release tag to install (e.g. "v0.0.14") or "latest".
+    default: latest
+    required: false
 
 runs:
   using: composite
   steps:
+    - name: Resolve release path
+      id: rel
+      shell: bash
+      run: |
+        set -euo pipefail
+        v="${{ inputs.version }}"
+        if [ "$v" = "latest" ]; then
+          echo "path=latest/download" >> "$GITHUB_OUTPUT"
+        else
+          echo "path=download/$v" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Install scrutin (Unix)
       if: runner.os != 'Windows'
       shell: bash
       run: |
         set -euo pipefail
         curl --proto '=https' --tlsv1.2 -LsSf \
-          https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.sh | sh
+          https://github.com/vincentarelbundock/scrutin/releases/${{ steps.rel.outputs.path }}/scrutin-installer.sh | sh
         echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
@@ -19,5 +37,5 @@ runs:
       shell: pwsh
       run: |
         $ErrorActionPreference = "Stop"
-        irm https://github.com/vincentarelbundock/scrutin/releases/latest/download/scrutin-installer.ps1 | iex
+        irm https://github.com/vincentarelbundock/scrutin/releases/${{ steps.rel.outputs.path }}/scrutin-installer.ps1 | iex
         Add-Content -Path $env:GITHUB_PATH -Value "$env:USERPROFILE\.cargo\bin"

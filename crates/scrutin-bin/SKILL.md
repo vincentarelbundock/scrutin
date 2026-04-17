@@ -130,7 +130,7 @@ The scrutin repository ships four composite actions under `.github/actions/` tha
 - **`install_scrutin`**: downloads the latest scrutin release binary via the official installer. Much faster than `cargo install scrutin` on every job, and works on Linux, macOS, and Windows runners.
 - **`install_r`**: installs R plus the package's DESCRIPTION dependencies. On Linux it uses r-ci / r2u for binary apt-based package installs (fast cold-start); on macOS and Windows it falls back to `r-lib/actions`.
 - **`install_python`**: installs `uv` and a pinned Python version. Optional `sync: "true"` input runs `uv sync` in a working directory so pytest sees the project.
-- **`check_r_pkg`**: runs `R CMD check` with `--no-tests --as-cran`, then runs the package's tests via scrutin. The split is the point: `R CMD check` validates docs, examples, vignettes, and CRAN policy without re-running tests, and scrutin then runs them once with `-r github` so failures surface as PR annotations. Default `packages` input pulls in `tinytest` and `pkgload`; override via the `packages` input if the package needs more.
+- **`check_r`**: runs `R CMD check` with `--no-tests --as-cran`, then runs the package's tests via scrutin. The split is the point: `R CMD check` validates docs, examples, vignettes, and CRAN policy without re-running tests, and scrutin then runs them once with `-r github` so failures surface as PR annotations. Default `packages` input pulls in `tinytest` and `pkgload`; override via the `packages` input if the package needs more.
 
 Prefer these over hand-rolled `cargo install` + `setup-r` + `setup-python` steps for R packages. A two-job workflow using them looks like:
 
@@ -141,7 +141,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: vincentarelbundock/scrutin/.github/actions/check_r_pkg@v0.0.7
+      - uses: vincentarelbundock/scrutin/.github/actions/check_r@v0.0.7
 
   test-python:
     runs-on: ubuntu-latest
@@ -153,7 +153,7 @@ jobs:
       - run: scrutin -r github --set run.tool=pytest
 ```
 
-`check_r_pkg` also accepts `reporter:` (default `github`), `tool:` (restrict to one tool), and `scrutin-args:` (extra args appended to the scrutin invocation) inputs for customization.
+`check_r` also accepts `reporter:` (default `github`), `tool:` (restrict to one tool), `scrutin-args:` (extra args appended to the scrutin invocation), and `working-directory:` (package root; set this when the R package lives in a subdirectory of the repo rather than at the top level) inputs for customization.
 
 **Watch mode** → Only meaningful for a human with the TUI or web dashboard open. Do not launch watch mode from an agent.
 

@@ -18,6 +18,17 @@ inputs:
     description: DESCRIPTION Config/Needs/* fields to install (macOS/Windows only).
     default: check
     required: false
+  tinytex:
+    description: Install TinyTeX (needed for vignettes / PDF manuals).
+    default: "true"
+    required: false
+  working-directory:
+    description: |
+      Directory containing DESCRIPTION. Only affects dependency resolution
+      (r-ci install_all on Linux, setup-r-dependencies on macOS/Windows).
+      R itself is installed system-wide regardless.
+    default: "."
+    required: false
 
 runs:
   using: composite
@@ -31,9 +42,13 @@ runs:
         curl -OLs https://eddelbuettel.github.io/r-ci/run.sh
         chmod 0755 run.sh
         ./run.sh bootstrap
-        ./run.sh install_all
+        run_sh="$PWD/run.sh"
+        cd "${{ inputs.working-directory }}"
+        if [ -f DESCRIPTION ]; then
+          "$run_sh" install_all
+        fi
         if [ -n "${{ inputs.packages }}" ]; then
-          ./run.sh install_r ${{ inputs.packages }}
+          "$run_sh" install_r ${{ inputs.packages }}
         fi
 
     # --- macOS / Windows: r-lib/actions --------------------------------------
@@ -50,3 +65,8 @@ runs:
       with:
         extra-packages: ${{ inputs.packages }}
         needs: ${{ inputs.needs }}
+        working-directory: ${{ inputs.working-directory }}
+
+    # --- TinyTeX (all OSes) --------------------------------------------------
+    - uses: r-lib/actions/setup-tinytex@v2
+      if: inputs.tinytex == 'true'

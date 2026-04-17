@@ -1,0 +1,62 @@
+name: Install scrutin tools
+description: |
+  Install optional tools scrutin can orchestrate (linters, spell checkers,
+  data validators). Pass a space-separated `tools:` list.
+
+  Supported: ruff, typos, skyspell, great_expectations.
+  R-side tools (jarl, pointblank, validate) install as CRAN/GitHub R packages
+  via check_r or install_r's `packages:` input instead.
+
+inputs:
+  tools:
+    description: Space-separated list (e.g. "ruff typos skyspell").
+    default: ""
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Install requested tools
+      shell: bash
+      run: |
+        set -euo pipefail
+        for t in ${{ inputs.tools }}; do
+          case "$t" in
+            ruff)
+              uv tool install ruff
+              ;;
+            great_expectations)
+              uv tool install great_expectations
+              ;;
+            typos)
+              # Prebuilt binary release (avoids cargo build time).
+              case "$RUNNER_OS" in
+                Linux)   suffix="x86_64-unknown-linux-musl.tar.gz" ;;
+                macOS)   suffix="aarch64-apple-darwin.tar.gz" ;;
+                Windows) suffix="x86_64-pc-windows-msvc.zip" ;;
+              esac
+              url="https://github.com/crate-ci/typos/releases/latest/download/typos-$suffix"
+              tmp=$(mktemp -d)
+              curl -LsSf "$url" -o "$tmp/typos.archive"
+              if [[ "$suffix" == *.zip ]]; then
+                unzip -q "$tmp/typos.archive" -d "$tmp"
+              else
+                tar -xzf "$tmp/typos.archive" -C "$tmp"
+              fi
+              mkdir -p "$HOME/.local/bin"
+              mv "$tmp/typos" "$HOME/.local/bin/typos"
+              chmod +x "$HOME/.local/bin/typos"
+              echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+              ;;
+            skyspell)
+              cargo install skyspell-cli --locked
+              echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+              ;;
+            "")
+              ;;
+            *)
+              echo "install_tools: unknown tool '$t'" >&2
+              exit 1
+              ;;
+          esac
+        done

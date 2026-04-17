@@ -1,0 +1,60 @@
+name: Check Python package with scrutin
+description: |
+  Install uv + Python, sync the project, install scrutin, then run scrutin.
+  Mirror of check_r for Python projects.
+
+inputs:
+  python-version:
+    description: Python version (e.g. "3.12").
+    default: "3.12"
+    required: false
+  sync:
+    description: Run `uv sync` before invoking scrutin.
+    default: "true"
+    required: false
+  sync-args:
+    description: Extra args appended to `uv sync` (e.g. "--all-extras").
+    default: "--all-extras"
+    required: false
+  working-directory:
+    description: Directory containing pyproject.toml / uv.lock.
+    default: "."
+    required: false
+  reporter:
+    description: scrutin reporter passed via -r.
+    default: github
+    required: false
+  tool:
+    description: Restrict scrutin to a single tool (e.g. pytest, ruff).
+    default: ""
+    required: false
+  scrutin-args:
+    description: Extra arguments appended to the scrutin invocation.
+    default: ""
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - uses: vincentarelbundock/scrutin/.github/actions/install_python@main
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: uv sync
+      if: inputs.sync == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: uv sync --python ${{ inputs.python-version }} ${{ inputs.sync-args }}
+
+    - uses: vincentarelbundock/scrutin/.github/actions/install_scrutin@main
+
+    - name: Run scrutin
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        tool_arg=""
+        if [ -n "${{ inputs.tool }}" ]; then
+          tool_arg="--set run.tool=${{ inputs.tool }}"
+        fi
+        scrutin -r ${{ inputs.reporter }} $tool_arg ${{ inputs.scrutin-args }}
