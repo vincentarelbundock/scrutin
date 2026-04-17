@@ -31,10 +31,10 @@
   --sidebar-w: 420px;
   --topbar-h: 50%;
 }
-/* Semantic theme tokens are aliased onto the shared Catppuccin palette
- * (see catppuccin-palette.css, which is the single source of truth shared
- * with the docs site). Both themes use identical aliases; the palette
- * file swaps the `--ctp-*` hex values per `[data-theme]` selector. */
+/* Semantic theme tokens are aliased onto the shared Nord palette (see
+ * nord-palette.css, which is the single source of truth shared with the
+ * docs site). Surface tokens flip per `[data-theme]`; Frost + Aurora
+ * hues are constant across modes. */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
 body {

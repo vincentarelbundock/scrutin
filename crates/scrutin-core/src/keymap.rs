@@ -110,7 +110,7 @@ pub static DEFAULT_KEYMAP: &[KeyBinding] = &[
 
     // ── Display / layout ────────────────────────────────────────
     KeyBinding { key: "s",       action: "open_sort_menu",  levels: FD,  help: "s sort menu",                     bar: "",                          when: When::Always },
-    KeyBinding { key: "-",       action: "toggle_orientation", levels: FD, help: "- toggle split orientation",    bar: "",                          when: When::Always },
+    KeyBinding { key: "\\",      action: "toggle_orientation", levels: FD, help: "\\ toggle split orientation",   bar: "",                          when: When::Always },
     KeyBinding { key: "(",       action: "shrink_list",     levels: FD,  help: "(/) shrink/grow list pane",       bar: "",                          when: When::Always },
     KeyBinding { key: ")",       action: "grow_list",       levels: FD,  help: "",                                bar: "",                          when: When::Always },
     KeyBinding { key: "Space",   action: "toggle_select",   levels: F,   help: "Space toggle selection",          bar: "",                          when: When::Always },

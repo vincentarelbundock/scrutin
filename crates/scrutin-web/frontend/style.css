@@ -1,27 +1,47 @@
-/* Semantic theme tokens are aliased onto the shared Catppuccin palette
- * (see catppuccin-palette.css, which is the single source of truth shared
- * with the docs site). Both themes use identical aliases; the palette
- * file swaps the `--ctp-*` hex values per `[data-theme]` selector. */
+/* Semantic theme tokens are aliased onto the shared Nord palette (see
+ * nord-palette.css, which is the single source of truth shared with the
+ * docs site). Frost + Aurora hues are constant across themes; only the
+ * surface tokens (bg/fg/border/gutter) flip between Snow Storm and
+ * Polar Night so the same aliases work in both modes. */
 :root,
-:root[data-theme="dark"],
+:root[data-theme="dark"] {
+  --bg:           var(--nord-polar0);
+  --bg-2:         var(--nord-polar1);
+  --bg-3:         var(--nord-polar2);
+  --fg:           var(--nord-snow2);
+  --fg-dim:       var(--nord-snow0);
+  --border:       var(--nord-polar3);
+  --gutter-bg:    var(--nord-polar1);
+  --highlight-bg: var(--nord-polar2);
+  --accent:       var(--nord-frost1);
+  --pass:         var(--nord-green);
+  --fail:         var(--nord-red);
+  --error:        var(--nord-orange);
+  --warn:         var(--nord-yellow);
+  --skip:         var(--nord-polar3);
+  --xfail:        var(--nord-purple);
+  --pending:      var(--nord-polar3);
+  --running:      var(--nord-frost2);
+}
+
 :root[data-theme="light"] {
-  --bg:           var(--ctp-base);
-  --bg-2:         var(--ctp-mantle);
-  --bg-3:         var(--ctp-surface0);
-  --fg:           var(--ctp-text);
-  --fg-dim:       var(--ctp-subtext0);
-  --border:       var(--ctp-surface1);
-  --accent:       var(--ctp-teal);
-  --pass:         var(--ctp-green);
-  --fail:         var(--ctp-red);
-  --error:        var(--ctp-maroon);
-  --warn:         var(--ctp-yellow);
-  --skip:         var(--ctp-overlay1);
-  --xfail:        var(--ctp-mauve);
-  --pending:      var(--ctp-overlay0);
-  --running:      var(--ctp-sky);
-  --gutter-bg:    var(--ctp-mantle);
-  --highlight-bg: var(--ctp-surface0);
+  --bg:           var(--nord-snow2);
+  --bg-2:         var(--nord-snow1);
+  --bg-3:         var(--nord-snow0);
+  --fg:           var(--nord-polar0);
+  --fg-dim:       var(--nord-polar3);
+  --border:       var(--nord-snow0);
+  --gutter-bg:    var(--nord-snow1);
+  --highlight-bg: var(--nord-snow0);
+  --accent:       var(--nord-frost3);
+  --pass:         var(--nord-green);
+  --fail:         var(--nord-red);
+  --error:        var(--nord-orange);
+  --warn:         var(--nord-yellow);
+  --skip:         var(--nord-polar3);
+  --xfail:        var(--nord-purple);
+  --pending:      var(--nord-polar3);
+  --running:      var(--nord-frost3);
 }
 
 * { box-sizing: border-box; }
@@ -174,11 +194,21 @@ body {
 #pane-resizer.active {
   background: var(--accent);
 }
+/* Narrow viewports: stack the file list above the detail pane instead of
+ * hiding one. Mirrors `#layout.horizontal` so both code paths share the
+ * same layout primitives and the resizer (now a row-resize handle)
+ * keeps working. The user-driven `.horizontal` toggle still wins at any
+ * width because its rule comes after this one in source order. */
 @media (max-width: 900px) {
-  #layout { grid-template-columns: 1fr; }
-  #left-pane, #pane-resizer { display: none; }
-  body.show-list #left-pane { display: flex; }
-  body.show-list #right-pane { display: none; }
+  #layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--topbar-h) 6px 1fr;
+  }
+  #pane-resizer {
+    cursor: row-resize;
+    height: 6px;
+  }
+  #left-pane { border-right: none; border-bottom: 1px solid var(--border); }
 }
 
 #left-pane, #right-pane {

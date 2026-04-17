@@ -42,7 +42,14 @@ export function wireSidebarResize() {
   const MAX_W = 900;
   let dragging = false;
 
-  const isHorizontal = () => $("layout")?.classList.contains("horizontal");
+  // Stacked-pane mode kicks in either via the user-toggled `.horizontal`
+  // class or the same narrow-viewport @media breakpoint used in style.css
+  // (max-width: 900px). Keeping the threshold here in sync with the CSS
+  // means dragging the (now row-resize) handle resizes --topbar-h on
+  // narrow screens without any extra plumbing.
+  const isHorizontal = () =>
+    $("layout")?.classList.contains("horizontal") ||
+    window.matchMedia("(max-width: 900px)").matches;
 
   const onMove = (e) => {
     if (!dragging) return;
@@ -87,7 +94,9 @@ export function wireSidebarResize() {
 
 export function resizeSidebar(delta) {
   const layout = $("layout");
-  const horiz = layout && layout.classList.contains("horizontal");
+  const horiz =
+    (layout && layout.classList.contains("horizontal")) ||
+    window.matchMedia("(max-width: 900px)").matches;
   const root = document.documentElement;
   if (horiz) {
     const h = getComputedStyle(root).getPropertyValue("--topbar-h").trim();

@@ -6,7 +6,7 @@ site_description = "Fast watch-mode test runner for R and Python"
 site_url = "https://vincentarelbundock.github.io/scrutin"
 repo_url = "https://github.com/vincentarelbundock/scrutin"
 repo_name = "vincentarelbundock/scrutin"
-extra_css = ["stylesheets/home.css", "stylesheets/catppuccin-palette.css", "stylesheets/catppuccin.css"]
+extra_css = ["stylesheets/home.css", "stylesheets/nord-palette.css", "stylesheets/nord.css"]
 # Lightbox for screenshots: medium-zoom library + init script. Both are
 # served locally (no CDN dependency). Applied to any image with the
 # `.screenshot` class; see `js/lightbox.js`.
@@ -71,22 +71,22 @@ font.text = "Inter"
 font.code = "JetBrains Mono"
 features = ["content.code.copy", "navigation.footer"]
 
-# Material palette keywords match the Catppuccin tokens we route into
-# `--md-primary-fg-color` and `--md-accent-fg-color` via catppuccin.css,
-# so Material's defaults already line up before our overrides apply.
-# Both primary and accent are teal: teal is the single brand color for
-# logos, links, hovers, and the clipboard toast. Catppuccin neutrals
-# (base / mantle / surface / text) handle everything else.
+# Material palette keywords approximate the Nord Frost we route into
+# `--md-primary-fg-color` and `--md-accent-fg-color` via nord.css, so
+# Material's defaults already land in the right hue family before our
+# overrides apply. Both primary and accent are blue: Frost is the
+# single brand color for logos, links, hovers, and the clipboard
+# toast. Snow Storm / Polar Night neutrals handle everything else.
 [[project.theme.palette]]
 scheme = "default"
-primary = "teal"
-accent = "teal"
+primary = "blue"
+accent = "blue"
 toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
 
 [[project.theme.palette]]
 scheme = "slate"
-primary = "teal"
-accent = "teal"
+primary = "blue"
+accent = "blue"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
