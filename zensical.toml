@@ -67,7 +67,7 @@ nav = [
 logo = "assets/logo.svg"
 favicon = "assets/logo.svg"
 custom_dir = "docs-src/overrides"
-font.text = "Inter"
+font.text = "Raleway"
 font.code = "JetBrains Mono"
 features = ["content.code.copy", "navigation.footer"]
 
