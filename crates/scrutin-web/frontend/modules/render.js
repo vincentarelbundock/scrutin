@@ -18,7 +18,7 @@ import {
   rangeSelect, toggleMultiSelect, clearMultiSelect,
 } from "./navigation.js";
 import { toggleTestSortPalette } from "./palettes.js";
-import { applyCorrection, runPluginAction } from "./api.js";
+import { applyCorrection, runPluginAction, diagnoseWithAgent } from "./api.js";
 
 // ── Top-level dispatch ────────────────────────────────────────────────
 
@@ -523,6 +523,9 @@ function renderTestDetail() {
 
   const name = m.test_name ?? "<anon>";
   const bad = isBadOutcome(m);
+  // Only offer the agent handoff for outcomes worth diagnosing. Pass /
+  // skip / xfail have nothing to send.
+  const diagnosable = bad || m.outcome === "warn";
 
   let html = "";
   html += `<div class="detail-section">
@@ -532,6 +535,7 @@ function renderTestDetail() {
       ${m.duration_ms != null ? `<span>${formatMs(m.duration_ms)}</span>` : ""}
       ${m.location ? `<span>${escapeHtml(m.location.file)}${m.location.line != null ? `:${m.location.line}` : ""}</span>` : ""}
       ${bad ? `<button class="edit-btn" id="focus-failure-btn" title="Focus failure (Enter)">focus \u2192</button>` : ""}
+      ${diagnosable ? `<button class="edit-btn" id="diagnose-btn" title="Open this failure in your configured LLM agent (a)">ask agent</button>` : ""}
     </div>
   </div>`;
 
@@ -670,6 +674,9 @@ function renderTestDetail() {
   });
 
   $("focus-failure-btn")?.addEventListener("click", () => enterFailure());
+  $("diagnose-btn")?.addEventListener("click", () =>
+    diagnoseWithAgent(f.id, state.testCursor),
+  );
 
   renderTestSourceInto("detail-test-source", f.id, m.location?.line);
   if (!isWarn) {

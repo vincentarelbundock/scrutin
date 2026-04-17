@@ -7,6 +7,7 @@
 //! scripts. See `CLAUDE.md` at the workspace root for the architecture
 //! overview and the per-crate split rationale.
 
+pub mod agent;
 pub mod analysis;
 pub mod engine;
 pub mod filter;

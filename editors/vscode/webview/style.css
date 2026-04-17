@@ -33,8 +33,9 @@
 }
 /* Semantic theme tokens are aliased onto the shared Nord palette (see
  * nord-palette.css, which is the single source of truth shared with the
- * docs site). Surface tokens flip per `[data-theme]`; Frost + Aurora
- * hues are constant across modes. */
+ * docs site). Frost + Aurora hues are constant across themes; only the
+ * surface tokens (bg/fg/border/gutter) flip between Snow Storm and
+ * Polar Night so the same aliases work in both modes. */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
 body {
@@ -181,11 +182,21 @@ body {
 #pane-resizer.active {
   background: var(--accent);
 }
+/* Narrow viewports: stack the file list above the detail pane instead of
+ * hiding one. Mirrors `#layout.horizontal` so both code paths share the
+ * same layout primitives and the resizer (now a row-resize handle)
+ * keeps working. The user-driven `.horizontal` toggle still wins at any
+ * width because its rule comes after this one in source order. */
 @media (max-width: 900px) {
-  #layout { grid-template-columns: 1fr; }
-  #left-pane, #pane-resizer { display: none; }
-  body.show-list #left-pane { display: flex; }
-  body.show-list #right-pane { display: none; }
+  #layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--topbar-h) 6px 1fr;
+  }
+  #pane-resizer {
+    cursor: row-resize;
+    height: 6px;
+  }
+  #left-pane { border-right: none; border-bottom: 1px solid var(--border); }
 }
 
 #left-pane, #right-pane {
@@ -254,20 +265,20 @@ body {
   background: var(--gutter-bg);
   border: 1px solid var(--border);
   border-radius: 4px;
-  overflow: hidden;
+  overflow: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
 }
 .source-snippet .source-row {
-  display: grid;
-  grid-template-columns: 40px 1fr;
-  column-gap: 10px;
+  display: flex;
   padding: 0 6px;
 }
 .source-snippet .source-row.highlight {
   background: var(--highlight-bg);
 }
 .source-snippet .gutter {
+  flex: 0 0 40px;
+  margin-right: 10px;
   text-align: right;
   color: var(--fg-dim);
   user-select: none;

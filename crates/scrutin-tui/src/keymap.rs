@@ -79,6 +79,7 @@ pub(super) enum Action {
     // Misc
     Quit,
     YankMessage,
+    DiagnoseWithAgent,
 }
 
 /// Controls whether a binding's hint appears in the hints bar. Does not
@@ -263,6 +264,7 @@ impl Action {
             EditSource => "edit_source",
             Quit => "quit",
             YankMessage => "yank_message",
+            DiagnoseWithAgent => "diagnose_with_agent",
         }
     }
 
@@ -305,6 +307,7 @@ impl Action {
             "edit_source" => EditSource,
             "quit" => Quit,
             "yank_message" => YankMessage,
+            "diagnose_with_agent" => DiagnoseWithAgent,
             _ => return None,
         })
     }

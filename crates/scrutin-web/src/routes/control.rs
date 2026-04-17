@@ -25,6 +25,132 @@ pub fn router() -> Router<AppState> {
         .route("/api/open-editor", post(open_editor))
         .route("/api/suite-action", post(suite_action))
         .route("/api/correction", post(correction_action))
+        .route("/api/diagnose", post(diagnose))
+}
+
+#[derive(Deserialize)]
+struct DiagnoseBody {
+    file_id: String,
+    message_index: usize,
+    /// When true (editor-embedded frontends), the server prepares the
+    /// prompt + wrapper script but does not spawn a terminal: the
+    /// response includes `cwd` and the caller runs the script in its
+    /// own integrated terminal.
+    #[serde(default)]
+    defer: bool,
+}
+
+#[derive(Serialize)]
+struct DiagnoseResponse {
+    terminal: String,
+    prompt_path: String,
+    script_path: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cwd: Option<String>,
+}
+
+async fn diagnose(
+    State(state): State<AppState>,
+    Json(body): Json<DiagnoseBody>,
+) -> Result<Json<DiagnoseResponse>, (StatusCode, Json<ErrResp>)> {
+    use scrutin_core::agent::{DiagnoseRequest, diagnose as run_diagnose, prepare_handoff};
+    use scrutin_core::analysis::deps::build_reverse_dep_map;
+
+    let fid: FileId = body.file_id.parse().map_err(|_| bad("invalid file_id"))?;
+
+    // Snapshot the message + file info under the read lock; release it
+    // before the (blocking) prompt build + spawn so other handlers can
+    // make progress while a terminal is opening.
+    let (test_rel, test_abs, message, file_name) = {
+        let fmap = state.files.read().await;
+        let f = fmap.get(&fid).ok_or_else(|| bad("unknown file_id"))?;
+        let m = f
+            .messages
+            .get(body.message_index)
+            .ok_or_else(|| bad("message_index out of range"))?
+            .clone();
+        (
+            f.path.clone(),
+            state.pkg.root.join(&f.path),
+            m,
+            f.name.clone(),
+        )
+    };
+
+    // Resolve dep-mapped production source (best-effort; absent maps
+    // just omit the Source-under-test section in the prompt).
+    let source_abs: Option<std::path::PathBuf> = {
+        let dep_map = state.dep_map.read().await;
+        let reverse = build_reverse_dep_map(&dep_map);
+        reverse.get(&file_name).and_then(|srcs| {
+            let test_stem = file_name
+                .strip_prefix("test-")
+                .or_else(|| file_name.strip_prefix("test_"))
+                .and_then(|s| {
+                    s.strip_suffix(".R")
+                        .or_else(|| s.strip_suffix(".r"))
+                        .or_else(|| s.strip_suffix(".py"))
+                })
+                .unwrap_or("");
+            let pick = srcs
+                .iter()
+                .find(|s| {
+                    std::path::Path::new(s)
+                        .file_stem()
+                        .and_then(|f| f.to_str())
+                        .map(|stem| stem.eq_ignore_ascii_case(test_stem))
+                        .unwrap_or(false)
+                })
+                .or_else(|| srcs.first())?;
+            Some(state.pkg.root.join(pick))
+        })
+    };
+
+    let outcome: scrutin_core::engine::protocol::Outcome = message.outcome.into();
+
+    let req = DiagnoseRequest {
+        pkg_root: &state.pkg.root,
+        test_file_rel: &test_rel,
+        test_file_abs: &test_abs,
+        source_file_abs: source_abs.as_deref(),
+        failing_line: message.location.as_ref().and_then(|l| l.line),
+        outcome,
+        test_name: message.test_name.as_deref(),
+        error_message: message.message.as_deref(),
+        config: &state.agent,
+    };
+
+    if body.defer {
+        match prepare_handoff(req) {
+            Ok(h) => Ok(Json(DiagnoseResponse {
+                terminal: "editor".to_string(),
+                prompt_path: h.prompt_path.display().to_string(),
+                script_path: h.script_path.display().to_string(),
+                cwd: Some(h.cwd.display().to_string()),
+            })),
+            Err(e) => Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrResp {
+                    error: format!("agent handoff failed: {e}"),
+                }),
+            )),
+        }
+    } else {
+        match run_diagnose(req) {
+            Ok(info) => Ok(Json(DiagnoseResponse {
+                terminal: info.terminal,
+                prompt_path: info.prompt_path.display().to_string(),
+                script_path: info.script_path.display().to_string(),
+                cwd: None,
+            })),
+            Err(e) => Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrResp {
+                    error: format!("agent handoff failed: {e}"),
+                }),
+            )),
+        }
+    }
 }
 
 #[derive(Deserialize)]

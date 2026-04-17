@@ -59,6 +59,11 @@ pub struct AppState {
     /// action. Whitespace-split into argv tokens so wrappers like
     /// `"code --wait"` work.
     pub editor: Option<String>,
+    /// Resolved `[agent]` config: which CLI to spawn, optional terminal
+    /// override template, context window size. Shared with the TUI via
+    /// `scrutin_core::agent`. Cloned (small, three fields) so the
+    /// `/api/diagnose` handler doesn't need to hold a lock.
+    pub agent: scrutin_core::project::config::AgentConfig,
     /// Named filter groups (`[filter.groups.*]`), shipped to the client in
     /// `/api/snapshot`. Alphabetical for a stable dropdown order.
     pub groups: Arc<Vec<WireFilterGroup>>,
@@ -91,10 +96,11 @@ impl AppState {
         timeout_run_ms: u64,
         fork_workers: bool,
         editor: Option<String>,
+        agent: scrutin_core::project::config::AgentConfig,
         groups: Vec<WireFilterGroup>,
         active_group: Option<String>,
     ) -> Self {
-        let this = Self::new_inner(pkg, initial_files, n_workers, watch, timeout_file_ms, timeout_run_ms, fork_workers, editor, groups, active_group);
+        let this = Self::new_inner(pkg, initial_files, n_workers, watch, timeout_file_ms, timeout_run_ms, fork_workers, editor, agent, groups, active_group);
         // Spawn a background heartbeat that publishes the current busy
         // count + in_progress flag every second. Frontend reads this to
         // drive the "N/total workers" indicator between events.
@@ -131,6 +137,7 @@ impl AppState {
         timeout_run_ms: u64,
         fork_workers: bool,
         editor: Option<String>,
+        agent: scrutin_core::project::config::AgentConfig,
         groups: Vec<WireFilterGroup>,
         active_group: Option<String>,
     ) -> Self {
@@ -163,6 +170,7 @@ impl AppState {
             dep_map: Arc::new(RwLock::new(None)),
             initial_files: Arc::new(initial_files),
             editor,
+            agent,
             groups: Arc::new(groups),
             active_group,
         }

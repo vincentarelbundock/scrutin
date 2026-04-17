@@ -187,6 +187,33 @@ export async function openInEditor(fileId, line) {
   }
 }
 
+/// Hand the currently selected test message off to the configured LLM
+/// agent CLI (see `[agent]` in .scrutin/config.toml). The server builds
+/// a markdown prompt with windowed test + production source and writes
+/// a wrapper script to $TMPDIR. In standalone mode the server also
+/// spawns a fresh terminal running the script; in editor-embedded mode
+/// (VSCode / Positron) the server defers spawning and the webview
+/// forwards the script path to the extension host, which runs it in an
+/// integrated terminal.
+export async function diagnoseWithAgent(fileId, messageIndex) {
+  const id = fileId ?? state.selected;
+  if (id == null || messageIndex == null) return;
+  const body = { file_id: id, message_index: messageIndex };
+  if (IS_VSCODE) body.defer = true;
+  const res = await postJSON("/api/diagnose", body);
+  if (res === null) return;
+  if (IS_VSCODE) {
+    vscode.postMessage({
+      command: "openAgentTerminal",
+      script: res.script_path,
+      cwd: res.cwd,
+    });
+    toast("opened integrated terminal \u2192 agent");
+  } else {
+    toast(`opened ${res.terminal} \u2192 agent`);
+  }
+}
+
 export async function openSourceInEditor() {
   if (!state.selected) return;
   const src = await fetchSourceFor(state.selected);

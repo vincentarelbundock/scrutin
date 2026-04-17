@@ -20,6 +20,7 @@ pub struct Config {
     pub pytest: PytestConfig,
     pub skyspell: SkyspellConfig,
     pub web: WebConfig,
+    pub agent: AgentConfig,
     pub hooks: HooksConfig,
     pub metadata: MetadataConfig,
     pub preflight: PreflightConfig,
@@ -204,6 +205,47 @@ pub struct WebConfig {
     /// OS-native `open` / `xdg-open` / `start`. Split on whitespace so
     /// wrappers like `"code --wait"` work.
     pub editor: Option<String>,
+}
+
+/// "Send to LLM agent" handoff. Lets the user spawn a CLI agent
+/// (claude, codex, aider, gemini, ...) in a fresh terminal pre-loaded
+/// with a diagnosis prompt for the currently selected test failure.
+///
+/// All three fields are optional: with no `[agent]` block at all the
+/// feature still works out of the box (cli=`claude`, terminal=auto-
+/// detected from `$TMUX` / `$TERM_PROGRAM` / platform fallback,
+/// context=20 lines around the failing line).
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(default)]
+pub struct AgentConfig {
+    /// CLI command to invoke. The diagnosis prompt is passed as a
+    /// single argv (`<cli> "<prompt>"`). Default `"claude"`.
+    pub cli: String,
+    /// Full launch command for the wrapper script. Two placeholders:
+    ///   `{script}` — absolute path to the temporary wrapper script
+    ///   `{cwd}`    — project root (passed as the script's working dir)
+    /// Examples:
+    ///   `"ghostty -e {script}"`
+    ///   `"tmux new-window -c {cwd} {script}"`
+    ///   `"alacritty --working-directory {cwd} -e {script}"`
+    /// When unset, scrutin auto-detects: `$TMUX` set → tmux,
+    /// `$TERM_PROGRAM` known → that terminal, else macOS Terminal /
+    /// `x-terminal-emulator` / common Linux terminals.
+    pub terminal: Option<String>,
+    /// Lines of context to include on each side of the failing line in
+    /// the prompt (both for the test source and dep-mapped production
+    /// source). Default 20.
+    pub context_lines: u32,
+}
+
+impl Default for AgentConfig {
+    fn default() -> Self {
+        Self {
+            cli: "claude".to_string(),
+            terminal: None,
+            context_lines: 20,
+        }
+    }
 }
 
 /// Explicit declaration of a single test suite. Used in `[[suite]]` array

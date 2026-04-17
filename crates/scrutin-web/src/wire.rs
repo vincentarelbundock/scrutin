@@ -109,6 +109,19 @@ impl From<Outcome> for WireOutcome {
     }
 }
 
+impl From<WireOutcome> for Outcome {
+    fn from(o: WireOutcome) -> Self {
+        match o {
+            WireOutcome::Pass => Outcome::Pass,
+            WireOutcome::Fail => Outcome::Fail,
+            WireOutcome::Error => Outcome::Error,
+            WireOutcome::Skip => Outcome::Skip,
+            WireOutcome::Xfail => Outcome::Xfail,
+            WireOutcome::Warn => Outcome::Warn,
+        }
+    }
+}
+
 /// File-level status: the aggregate of a file's events. `Running` during
 /// the run, terminal states afterwards. `Unknown` before the file has
 /// ever been touched by a run.

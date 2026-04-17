@@ -7,7 +7,7 @@ import { $, toast } from "./util.js";
 import { currentLevel } from "./levels.js";
 import {
   cancelRun, rerunSelected, openInEditor, openSourceInEditor,
-  toggleWatch, applyCorrection, runPluginAction,
+  toggleWatch, applyCorrection, runPluginAction, diagnoseWithAgent,
 } from "./api.js";
 import {
   toggleSortPalette, toggleRunPalette,
@@ -101,6 +101,11 @@ export const ACTION_HANDLERS = {
 
   enter_log:     () => {},
   enter_help:    () => toggleHelp(),
+  diagnose_with_agent: () => {
+    if (state.selected != null && state.testCursor != null) {
+      diagnoseWithAgent(state.selected, state.testCursor);
+    }
+  },
   toggle_select: () => { if (state.selected) toggleMultiSelect(state.selected); },
   toggle_visual: () => {},
   shrink_list:   () => resizeSidebar(-40),

@@ -70,6 +70,23 @@ export function createPanel(
           const errMsg = e instanceof Error ? e.message : String(e);
           vscode.window.showErrorMessage(`Could not open file: ${errMsg}`);
         }
+      } else if (msg.command === "openAgentTerminal") {
+        const script: string | undefined = msg.script;
+        const cwd: string | undefined = msg.cwd;
+        if (!script) return;
+        try {
+          const terminal = vscode.window.createTerminal({
+            name: "Scrutin agent",
+            cwd,
+          });
+          terminal.sendText(script);
+          terminal.show();
+        } catch (e: unknown) {
+          const errMsg = e instanceof Error ? e.message : String(e);
+          vscode.window.showErrorMessage(
+            `Could not open agent terminal: ${errMsg}`,
+          );
+        }
       }
     },
     undefined,

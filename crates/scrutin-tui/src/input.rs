@@ -602,6 +602,65 @@ fn apply_action(
                 return Ok(false);
             }
         }
+        DiagnoseWithAgent => {
+            // Pick the current message: failure overlay > detail cursor >
+            // first bad test on the file. Mirrors the YankMessage rules so
+            // `a` and `y` always agree on "the failure I'm looking at."
+            let event = if in_failure {
+                st.failures.get(st.nav.failure_cursor).map(|f| {
+                    (f.message.clone(), f.line, f.outcome, None::<String>)
+                })
+            } else if in_detail {
+                st.sorted_selected_tests()
+                    .get(st.nav.test_cursor)
+                    .map(|t| (t.message.clone(), t.line, t.outcome, Some(t.name.clone())))
+            } else {
+                st.selected_file().and_then(|f| {
+                    f.tests
+                        .iter()
+                        .find(|t| t.is_bad() || matches!(t.outcome, scrutin_core::engine::protocol::Outcome::Warn))
+                        .map(|t| (t.message.clone(), t.line, t.outcome, Some(t.name.clone())))
+                })
+            };
+            let Some((message, line, outcome, test_name)) = event else {
+                st.log.push("scrutin", "ask agent: nothing to diagnose\n");
+                return Ok(false);
+            };
+            let Some(file) = st.selected_file() else {
+                return Ok(false);
+            };
+            let test_abs = file.path.clone();
+            let test_rel = test_abs
+                .strip_prefix(&st.pkg_root)
+                .unwrap_or(&test_abs)
+                .display()
+                .to_string();
+            let source_abs = find_source_for_test(&file.name, &st.pkg_root, &st.reverse_dep_map);
+            let pkg_root = st.pkg_root.clone();
+            let agent = st.agent.clone();
+            // Drop the lock before spawning a subprocess so other UI
+            // tasks aren't blocked while the terminal opens.
+            drop(st);
+            let req = scrutin_core::agent::DiagnoseRequest {
+                pkg_root: &pkg_root,
+                test_file_rel: &test_rel,
+                test_file_abs: &test_abs,
+                source_file_abs: source_abs.as_deref(),
+                failing_line: line,
+                outcome,
+                test_name: test_name.as_deref(),
+                error_message: Some(message.as_str()).filter(|s| !s.is_empty()),
+                config: &agent,
+            };
+            let st2 = state.lock().unwrap();
+            match scrutin_core::agent::diagnose(req) {
+                Ok(info) => st2.log.push(
+                    "scrutin",
+                    &format!("ask agent: opened {} (prompt: {})\n", info.terminal, info.prompt_path.display()),
+                ),
+                Err(e) => st2.log.push("scrutin", &format!("ask agent failed: {e}\n")),
+            }
+        }
     }
     Ok(false)
 }

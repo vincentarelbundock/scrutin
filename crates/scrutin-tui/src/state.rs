@@ -667,6 +667,10 @@ pub(super) struct AppState {
     /// enough to require a TUI restart).
     pub(super) git: GitAvailability,
     pub(super) pkg_root: PathBuf,
+    /// Resolved `[agent]` config for the "ask agent" handoff (`a` key
+    /// in Detail/Failure level). Cloned once at TUI startup; never
+    /// mutated at runtime.
+    pub(super) agent: scrutin_core::project::config::AgentConfig,
 
     // Shared log buffer (subprocess stderr, pool/runner events).
     pub(super) log: LogBuffer,
@@ -736,6 +740,7 @@ impl AppState {
             String,
             std::collections::HashMap<String, String>,
         >,
+        agent: scrutin_core::project::config::AgentConfig,
     ) -> Self {
         let files = test_files
             .iter()
@@ -801,6 +806,7 @@ impl AppState {
             dep_map: dep_map.clone(),
             git: scrutin_core::git::detect_git(&pkg.root),
             pkg_root: pkg.root.clone(),
+            agent,
             log,
             overlay: OverlayState::default(),
             pane_rects: PaneRects::default(),

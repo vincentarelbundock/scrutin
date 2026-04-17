@@ -39,6 +39,7 @@ pub async fn run_web(
     timeout_run_ms: u64,
     fork_workers: bool,
     editor: Option<String>,
+    agent: scrutin_core::project::config::AgentConfig,
     groups: Vec<WireFilterGroup>,
     active_group: Option<String>,
 ) -> Result<()> {
@@ -49,7 +50,7 @@ pub async fn run_web(
         );
     }
 
-    let state = AppState::new(Arc::new(pkg), test_files, n_workers, watch, timeout_file_ms, timeout_run_ms, fork_workers, editor, groups, active_group);
+    let state = AppState::new(Arc::new(pkg), test_files, n_workers, watch, timeout_file_ms, timeout_run_ms, fork_workers, editor, agent, groups, active_group);
 
     // Build dep map eagerly so the watcher can resolve source→test edges.
     state.start_dep_map_build();

@@ -122,6 +122,7 @@ pub static DEFAULT_KEYMAP: &[KeyBinding] = &[
 
     // ── Actions ─────────────────────────────────────────────────
     KeyBinding { key: "y",       action: "yank_message",    levels: ALL, help: "y yank error message to clipboard", bar: "",                        when: When::Always },
+    KeyBinding { key: "a",       action: "diagnose_with_agent", levels: DF, help: "a send selected failure to LLM agent (see [agent] config)", bar: "", when: When::Always },
     KeyBinding { key: "L",       action: "enter_log",       levels: ALL, help: "L open log",                      bar: "",                          when: When::Always },
     KeyBinding { key: "?",       action: "enter_help",      levels: ALL, help: "? keyboard shortcuts",            bar: "? help",                    when: When::Always },
 

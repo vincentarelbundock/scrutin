@@ -541,6 +541,7 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
                 cfg.run.timeout_run_ms,
                 cfg.run.fork_workers,
                 cfg.web.editor.clone(),
+                cfg.agent.clone(),
                 groups,
                 active_group,
             )
@@ -733,6 +734,7 @@ async fn run_tui_mode(
         cfg.run.timeout_run_ms,
         cfg.run.fork_workers,
         &cfg.keymap,
+        cfg.agent.clone(),
     )
     .await?;
     Ok(0)

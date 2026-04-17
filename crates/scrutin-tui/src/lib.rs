@@ -58,6 +58,7 @@ pub async fn run_tui(
     timeout_run_ms: u64,
     fork_workers: bool,
     keymap_config: &std::collections::HashMap<String, std::collections::HashMap<String, String>>,
+    agent: scrutin_core::project::config::AgentConfig,
 ) -> Result<()> {
     // The unified dep map covers every active suite (R via runtime
     // instrumentation, pytest via import scan). R deps are updated
@@ -84,6 +85,7 @@ pub async fn run_tui(
         timeout_run_ms,
         fork_workers,
         keymap_config,
+        agent,
     )));
     {
         let mut st = state.lock().unwrap();

@@ -24,6 +24,9 @@ var state = {
   filterText: "",
   pluginFilter: "",
   statusFilter: "",
+  groupFilter: "",
+  groups: [],
+  // [{ name, include, exclude, tools }]
   sortMode: "status",
   sortReversed: false,
   testSortMode: "status",
@@ -614,6 +617,7 @@ function toggleTestSortPalette() {
 function renderAll() {
   renderHeader();
   populatePluginDropdown();
+  populateGroupDropdown();
   renderColHeaders();
   renderFilterList();
   renderLeftPane();
@@ -711,6 +715,28 @@ function populatePluginDropdown() {
   }
   sel.value = state.pluginFilter;
 }
+function populateGroupDropdown() {
+  const sel = $("group-select");
+  if (!sel) return;
+  const groups = state.groups ?? [];
+  sel.style.display = groups.length > 0 ? "" : "none";
+  const existing = new Set(Array.from(sel.options).map((o) => o.value));
+  const want = /* @__PURE__ */ new Set(["", ...groups.map((g) => g.name)]);
+  if (existing.size !== want.size || [...existing].some((v) => !want.has(v))) {
+    sel.innerHTML = "";
+    const allOpt = document.createElement("option");
+    allOpt.value = "";
+    allOpt.textContent = "all";
+    sel.appendChild(allOpt);
+    for (const g of groups) {
+      const o = document.createElement("option");
+      o.value = g.name;
+      o.textContent = g.name;
+      sel.appendChild(o);
+    }
+  }
+  sel.value = state.groupFilter;
+}
 function renderColHeaders() {
   const hdr = $("col-headers");
   if (!hdr) return;
@@ -746,10 +772,12 @@ function renderColHeaders() {
 function renderFilterList() {
   const q = state.filterText.trim().toLowerCase();
   const plugin = state.pluginFilter;
+  const group = groupByName(state.groupFilter);
   const filtered = state.fileOrder.filter((id) => {
     const f = state.files.get(id);
     if (!f) return false;
     if (plugin && f.suite !== plugin) return false;
+    if (group && !groupAccepts(f, group)) return false;
     if (state.statusFilter) {
       if (state.statusFilter === "warned") {
         if (f.status !== "passed" || (f.counts?.warn ?? 0) === 0) return false;
@@ -796,6 +824,93 @@ function cyclePlugin(delta) {
   state.pluginFilter = names[next];
   const sel = $("plugin-select");
   if (sel) sel.value = state.pluginFilter;
+  renderFilterList();
+  renderLeftPane();
+  renderControls();
+}
+function groupByName(name) {
+  if (!name) return null;
+  return (state.groups ?? []).find((g) => g.name === name) ?? null;
+}
+function globToRegex(glob) {
+  let re = "^";
+  let i = 0;
+  while (i < glob.length) {
+    const c = glob[i];
+    if (c === "*") {
+      re += "[^/]*";
+      i++;
+      continue;
+    }
+    if (c === "?") {
+      re += "[^/]";
+      i++;
+      continue;
+    }
+    if (c === "[") {
+      let j = i + 1;
+      let cls = "[";
+      if (glob[j] === "!") {
+        cls += "^";
+        j++;
+      }
+      while (j < glob.length && glob[j] !== "]") {
+        cls += glob[j];
+        j++;
+      }
+      cls += "]";
+      re += cls;
+      i = j + 1;
+      continue;
+    }
+    if (c === "{") {
+      const end = glob.indexOf("}", i);
+      if (end > 0) {
+        const alts = glob.slice(i + 1, end).split(",").map((s) => s.replace(/[.+^${}()|\\]/g, "\\$&"));
+        re += "(?:" + alts.join("|") + ")";
+        i = end + 1;
+        continue;
+      }
+    }
+    if (/[.+^${}()|\\]/.test(c)) re += "\\" + c;
+    else re += c;
+    i++;
+  }
+  re += "$";
+  try {
+    return new RegExp(re);
+  } catch {
+    return null;
+  }
+}
+function basename(p) {
+  const slash = Math.max(p.lastIndexOf("/"), p.lastIndexOf("\\"));
+  return slash >= 0 ? p.slice(slash + 1) : p;
+}
+function anyMatch(patterns, name) {
+  for (const p of patterns ?? []) {
+    const re = globToRegex(p);
+    if (re && re.test(name)) return true;
+  }
+  return false;
+}
+function groupAccepts(f, g) {
+  if (g.tools && g.tools.length > 0 && !g.tools.includes(f.suite)) return false;
+  const name = basename(f.path || f.name || "");
+  const inc = g.include ?? [];
+  const exc = g.exclude ?? [];
+  if (inc.length > 0 && !anyMatch(inc, name)) return false;
+  if (exc.length > 0 && anyMatch(exc, name)) return false;
+  return true;
+}
+function cycleGroup(delta) {
+  const names = ["", ...(state.groups ?? []).map((g) => g.name)];
+  if (names.length <= 1) return;
+  const i = names.indexOf(state.groupFilter);
+  const next = (i + delta + names.length) % names.length;
+  state.groupFilter = names[next];
+  const sel = $("group-select");
+  if (sel) sel.value = state.groupFilter;
   renderFilterList();
   renderLeftPane();
   renderControls();
@@ -983,6 +1098,7 @@ function renderTestDetail() {
   }
   const name = m.test_name ?? "<anon>";
   const bad = isBadOutcome(m);
+  const diagnosable = bad || m.outcome === "warn";
   let html = "";
   html += `<div class="detail-section">
     <div class="detail-meta">
@@ -991,6 +1107,7 @@ function renderTestDetail() {
       ${m.duration_ms != null ? `<span>${formatMs(m.duration_ms)}</span>` : ""}
       ${m.location ? `<span>${escapeHtml(m.location.file)}${m.location.line != null ? `:${m.location.line}` : ""}</span>` : ""}
       ${bad ? `<button class="edit-btn" id="focus-failure-btn" title="Focus failure (Enter)">focus \u2192</button>` : ""}
+      ${diagnosable ? `<button class="edit-btn" id="diagnose-btn" title="Open this failure in your configured LLM agent (a)">ask agent</button>` : ""}
     </div>
   </div>`;
   if (m.message) {
@@ -1097,6 +1214,10 @@ function renderTestDetail() {
     });
   });
   $("focus-failure-btn")?.addEventListener("click", () => enterFailure());
+  $("diagnose-btn")?.addEventListener(
+    "click",
+    () => diagnoseWithAgent(f.id, state.testCursor)
+  );
   renderTestSourceInto("detail-test-source", f.id, m.location?.line);
   if (!isWarn) {
     renderFnSourceInto("detail-source-fn", f.id, (path) => {
@@ -1240,6 +1361,8 @@ async function fetchSnapshot() {
       });
       setOutcomeRanks(m);
     }
+    state.groups = snap.groups ?? [];
+    state.groupFilter = snap.active_group ?? "";
     if (!state.selected && state.fileOrder.length > 0) {
       state.selected = state.fileOrder[0];
     }
@@ -1354,6 +1477,24 @@ async function openInEditor(fileId, line) {
     if (line != null) body.line = line;
     const res = await postJSON("/api/open-editor", body);
     if (res !== null) notifyOpened(res);
+  }
+}
+async function diagnoseWithAgent(fileId, messageIndex) {
+  const id = fileId ?? state.selected;
+  if (id == null || messageIndex == null) return;
+  const body = { file_id: id, message_index: messageIndex };
+  if (IS_VSCODE) body.defer = true;
+  const res = await postJSON("/api/diagnose", body);
+  if (res === null) return;
+  if (IS_VSCODE) {
+    vscode.postMessage({
+      command: "openAgentTerminal",
+      script: res.script_path,
+      cwd: res.cwd
+    });
+    toast("opened integrated terminal \u2192 agent");
+  } else {
+    toast(`opened ${res.terminal} \u2192 agent`);
   }
 }
 async function openSourceInEditor() {
@@ -1579,7 +1720,7 @@ function wireSidebarResize() {
   const MIN_W = 240;
   const MAX_W = 900;
   let dragging = false;
-  const isHorizontal = () => $("layout")?.classList.contains("horizontal");
+  const isHorizontal = () => $("layout")?.classList.contains("horizontal") || window.matchMedia("(max-width: 900px)").matches;
   const onMove = (e) => {
     if (!dragging) return;
     const layout = $("layout");
@@ -1625,7 +1766,7 @@ function wireSidebarResize() {
 }
 function resizeSidebar(delta) {
   const layout = $("layout");
-  const horiz = layout && layout.classList.contains("horizontal");
+  const horiz = layout && layout.classList.contains("horizontal") || window.matchMedia("(max-width: 900px)").matches;
   const root = document.documentElement;
   if (horiz) {
     const h = getComputedStyle(root).getPropertyValue("--topbar-h").trim();
@@ -1723,6 +1864,8 @@ var ACTION_HANDLERS = {
   filter_status_back: () => cycleStatus(-1),
   filter_tool: () => cyclePlugin(1),
   filter_tool_back: () => cyclePlugin(-1),
+  filter_group: () => cycleGroup(1),
+  filter_group_back: () => cycleGroup(-1),
   open_sort_menu: () => toggleSortPalette(),
   // Actions \u2192 also delegated to the current level handler.
   edit_test: () => openInEditor(),
@@ -1738,6 +1881,11 @@ var ACTION_HANDLERS = {
   enter_log: () => {
   },
   enter_help: () => toggleHelp(),
+  diagnose_with_agent: () => {
+    if (state.selected != null && state.testCursor != null) {
+      diagnoseWithAgent(state.selected, state.testCursor);
+    }
+  },
   toggle_select: () => {
     if (state.selected) toggleMultiSelect(state.selected);
   },
@@ -1859,14 +2007,13 @@ document.addEventListener("DOMContentLoaded", () => {
     renderLeftPane();
     renderControls();
   });
-  wireKeyboard();
-  fetch(`${BASE}/syntect.css`).then((r) => r.ok ? r.text() : "").then((css) => {
-    if (!css) return;
-    const style = document.createElement("style");
-    style.textContent = css;
-    document.head.appendChild(style);
-  }).catch(() => {
+  on("group-select", "change", (e) => {
+    state.groupFilter = e.target.value;
+    renderFilterList();
+    renderLeftPane();
+    renderControls();
   });
+  wireKeyboard();
   fetchSnapshot().then(() => {
     renderAll();
     connectEvents();
