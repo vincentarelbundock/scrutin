@@ -65,7 +65,7 @@ For machine-readable structured output, prefer `-r junit:report.xml` over screen
 
 ## Configuration
 
-scrutin reads `.scrutin/config.toml` (project root, ancestor-walked) and then `~/.config/scrutin/config.toml`. There are **no config environment variables** on purpose: `.scrutin/config.toml` is the only persistent source of truth.
+scrutin reads `.scrutin/config.toml` at the project root (the directory scrutin is invoked in; no ancestor walk) and then `~/.config/scrutin/config.toml`. There are **no config environment variables** on purpose: `.scrutin/config.toml` is the only persistent source of truth.
 
 To scaffold a config file and runner scripts for a new project:
 

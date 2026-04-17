@@ -181,7 +181,7 @@ fn render_file(
                 eprintln!("  {label}  {}", ev.name);
             }
             Outcome::Pass => {
-                eprintln!("  pass  {} ({}ms)", ev.name, ev.duration_ms);
+                eprintln!("  pass  {}", ev.name);
             }
         }
     }

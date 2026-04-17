@@ -180,3 +180,15 @@ Pick where to see your results: a live [terminal UI](frontends/terminal-ui.md), 
     spot regressions, and compare run times across commits.
 
 </div>
+
+<div class="feature-section" markdown>
+
+## Etymology
+
+*Scrutin* is French for a ballot or vote: polling individual verdicts
+into a collective result, much like this tool polls tests, expectations,
+linters, and validators. It comes from the Latin *scrutinium* (a careful
+examination), from *scrutari*, "to sift through the rubbish pile".
+
+</div>
+

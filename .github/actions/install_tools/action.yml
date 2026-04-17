@@ -3,9 +3,9 @@ description: |
   Install optional tools scrutin can orchestrate (linters, spell checkers,
   data validators). Pass a space-separated `tools:` list.
 
-  Supported: ruff, typos, skyspell, great_expectations.
-  R-side tools (jarl, pointblank, validate) install as CRAN/GitHub R packages
-  via check_r or install_r's `packages:` input instead.
+  Supported: ruff, typos, skyspell, great_expectations, jarl, pointblank,
+  validate. R-side tools (jarl, pointblank, validate) require R to already
+  be installed (call install_r first).
 
 inputs:
   tools:
@@ -51,6 +51,9 @@ runs:
             skyspell)
               cargo install skyspell-cli --locked
               echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+              ;;
+            jarl|pointblank|validate)
+              Rscript -e "install.packages('$t', repos='https://cloud.r-project.org')"
               ;;
             "")
               ;;

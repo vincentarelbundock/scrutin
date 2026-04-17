@@ -130,7 +130,7 @@ lib.rs
 
 Communication protocol: NDJSON over the worker's stdout, one message per line.
 
-Config precedence: defaults → `.scrutin/config.toml` (ancestor-walked from project root, fallback `~/.config/scrutin/config.toml`) → `--set` overrides → CLI flags. **scrutin intentionally has no config env vars** : `.scrutin/config.toml` is the only persistent source of truth.
+Config precedence: defaults → `.scrutin/config.toml` at the project root (the directory scrutin is invoked in; no ancestor walk), fallback `~/.config/scrutin/config.toml` → `--set` overrides → CLI flags. **scrutin intentionally has no config env vars** : `.scrutin/config.toml` is the only persistent source of truth.
 
 ## Fixtures
 
