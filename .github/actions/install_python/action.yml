@@ -16,6 +16,10 @@ inputs:
     description: Directory to run `uv sync` in (when sync=true).
     default: "."
     required: false
+  sync-args:
+    description: Extra args appended to `uv sync` (e.g. "--all-extras").
+    default: ""
+    required: false
 
 runs:
   using: composite
@@ -33,4 +37,4 @@ runs:
       if: inputs.sync == 'true'
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: uv sync --python ${{ inputs.python-version }}
+      run: uv sync --python ${{ inputs.python-version }} ${{ inputs.sync-args }}

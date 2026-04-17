@@ -1,85 +1,36 @@
-name: Check R package + run tests with scrutin
+name: R CMD build + check
 description: |
-  Run R CMD check with --no-tests (so docs, examples, vignettes, and CRAN
-  policy are validated but test files are not executed), then run the
-  package's tests via scrutin.
+  Run R CMD build followed by R CMD check --no-tests (so docs, examples,
+  vignettes, and CRAN policy are validated but test files are not executed).
+  Assumes R and the package's dependencies are already installed (call
+  install_r first). Does not install or invoke scrutin.
 
-  On Linux, R CMD build + R CMD check are invoked directly against the
+  On Linux, R CMD build + R CMD check shell out directly against the
   r-ci / r2u system R install. On macOS and Windows, the check is delegated
-  to r-lib/actions/check-r-package@v2, which pairs naturally with the
-  r-lib/actions setup-r install used by `install_r` on those OSes.
+  to r-lib/actions/check-r-package@v2, which requires rcmdcheck; install it
+  via install_r's `packages:` input on those OSes.
 
 inputs:
-  r-version:
-    description: R version to install.
-    default: release
-    required: false
-  packages:
-    description: Extra R packages to install beyond what DESCRIPTION declares.
-    default: "tinytest pkgload"
-    required: false
   check-args:
-    description: |
-      Whitespace-separated flags passed to R CMD check. Override only if you
-      need flags beyond the default --no-manual --no-tests --as-cran.
+    description: Whitespace-separated flags passed to R CMD check.
     default: "--no-manual --no-tests --as-cran"
     required: false
   build-args:
-    description: Whitespace-separated flags passed to R CMD build before check.
+    description: Whitespace-separated flags passed to R CMD build.
     default: "--no-manual --compact-vignettes=gs+qpdf"
     required: false
   upload-snapshots:
     description: Upload testthat snapshot diffs on failure (macOS/Windows only).
     default: "true"
     required: false
-  reporter:
-    description: scrutin reporter passed via -r (github, plain, junit:PATH, ...).
-    default: github
-    required: false
-  tool:
-    description: Restrict scrutin to a single tool (e.g. tinytest, testthat).
-    default: ""
-    required: false
-  scrutin-args:
-    description: Extra arguments appended to the scrutin invocation.
-    default: ""
-    required: false
   working-directory:
-    description: |
-      Package root (where DESCRIPTION lives). Set this when the R package
-      is in a subdirectory of the repo rather than at the top level.
+    description: Package root (directory containing DESCRIPTION).
     default: "."
     required: false
 
 runs:
   using: composite
   steps:
-    # --- Install R + deps ----------------------------------------------------
-    # Linux uses r-ci/r2u (system R, apt-installed binaries). r-ci's `install_r`
-    # does not understand pak-style `any::` prefixes, so we pass plain package
-    # names. rcmdcheck is not needed on Linux because the check step shells
-    # out to `R CMD check` directly.
-    - name: Install R + deps (Linux)
-      if: runner.os == 'Linux'
-      uses: vincentarelbundock/scrutin/.github/actions/install_r@main
-      with:
-        r-version: ${{ inputs.r-version }}
-        packages: ${{ inputs.packages }}
-        needs: check
-        working-directory: ${{ inputs.working-directory }}
-
-    # macOS/Windows go through r-lib/actions/setup-r-dependencies, which does
-    # understand `any::`. rcmdcheck is required by r-lib/actions/check-r-package.
-    - name: Install R + deps + rcmdcheck (macOS/Windows)
-      if: runner.os != 'Linux'
-      uses: vincentarelbundock/scrutin/.github/actions/install_r@main
-      with:
-        r-version: ${{ inputs.r-version }}
-        packages: any::rcmdcheck ${{ inputs.packages }}
-        needs: check
-        working-directory: ${{ inputs.working-directory }}
-
-    # --- R CMD build + check -------------------------------------------------
     - name: R CMD build + check (Linux)
       if: runner.os == 'Linux'
       shell: bash
@@ -90,9 +41,7 @@ runs:
         pkg_tarball=$(ls -t *.tar.gz | head -n1)
         _R_CHECK_CRAN_INCOMING_=false R CMD check ${{ inputs.check-args }} "$pkg_tarball"
 
-    # r-lib/actions/check-r-package wants its args as R-vector strings, e.g.
-    # 'c("--no-manual","--no-tests","--as-cran")'. Convert from the universal
-    # whitespace-separated form on the spot.
+    # r-lib/actions/check-r-package wants its args as R-vector strings.
     - name: Convert args to R vectors (macOS/Windows)
       if: runner.os != 'Linux'
       id: r_args
@@ -121,17 +70,3 @@ runs:
         upload-snapshots: ${{ inputs.upload-snapshots }}
         args: ${{ steps.r_args.outputs.check }}
         build_args: ${{ steps.r_args.outputs.build }}
-
-    # --- scrutin -------------------------------------------------------------
-    - uses: vincentarelbundock/scrutin/.github/actions/install_scrutin@main
-
-    - name: Run tests with scrutin
-      shell: bash
-      working-directory: ${{ inputs.working-directory }}
-      run: |
-        set -euo pipefail
-        tool_arg=""
-        if [ -n "${{ inputs.tool }}" ]; then
-          tool_arg="--set run.tool=${{ inputs.tool }}"
-        fi
-        scrutin -r ${{ inputs.reporter }} $tool_arg ${{ inputs.scrutin-args }}
