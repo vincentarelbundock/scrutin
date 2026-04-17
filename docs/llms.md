@@ -8,8 +8,7 @@ From a failing test, hand the failure off to a CLI agent in one keystroke.
 
 **How to trigger:**
 
-- **TUI**: press `a` on a failing test in the Detail or Failure view.
-- **Web dashboard**: click the "ask agent" button next to a failure.
+- Press `a` on a failing test in the Detail or Failure view.
 
 **What Scrutin sends:** a Markdown prompt containing the outcome, error message, a windowed slice of the test source around the failing line, and (when a dep-map entry is known) a windowed slice of the production source under test. The prompt lands on disk in `$TMPDIR` so you can re-use it. Scrutin then launches the configured agent CLI in a terminal, cwd set to the project root.
 
@@ -46,20 +45,9 @@ scrutin -r junit:report.xml            # run + structured sidecar for programmat
 
 The process exit code is the source of truth: `0` when every file passes, non-zero when any file fails. Agents should trust the exit code and not try to parse counts from plain text. For structured counts and per-test metadata, use `-r junit:report.xml`.
 
-## What makes it LLM-friendly
+## Agent Skill
 
-- **Deterministic plain reporter** (`-r plain`): compact, colorless, one line per file, failure blocks with source pointers, final tally.
-- **Structured output on demand**: `-r junit:report.xml` writes a machine-parseable JUnit XML sidecar; `-r github` emits GitHub Actions annotations; `-r list` enumerates files that would run without spawning any subprocess.
-- **Exit code is the source of truth**: `0` when every file passes, non-zero when any file fails.
-- **No config environment variables**: every persistent setting lives in `.scrutin/config.toml`. One-off overrides go through `--set key=value` (TOML-parsed). There are no hidden env vars to set or leak.
-- **Preflight checks fail fast**: missing tool binaries, empty suite roots, and import errors produce a single actionable message before any run starts, instead of hundreds of per-file errors.
-- **Shipped Agent Skill**: `scrutin init skill` writes a `SKILL.md` that teaches any compatible agent exactly when and how to invoke *Scrutin*.
-- **`llms.txt` index**: served at [vincentarelbundock.github.io/scrutin/llms.txt](https://vincentarelbundock.github.io/scrutin/llms.txt) for agents that crawl the documentation.
-- **CLAUDE.md in the repo**: contributors using Claude Code get architectural context automatically.
-
-## Install the Agent Skill
-
-The canonical skill ships inside the *Scrutin* binary.
+An agent "skill" is a markdown that guides an agent when using certain tools, or when accomplishing certain tasks. The canonical agent skill for *Scrutin* ships inside the binary.
 
 === "Claude Code (default location)"
     ```bash
@@ -81,7 +69,7 @@ The canonical skill ships inside the *Scrutin* binary.
 
 Add `--force` to overwrite an existing `SKILL.md`.
 
-## Claude Code
+### Claude Code
 
 Once `~/.claude/skills/scrutin/SKILL.md` is in place, Claude Code activates the skill automatically whenever a user message mentions tests, linting, watch mode, or refers to a project that contains `.scrutin/` or a *Scrutin*-relevant marker file. No per-project setup is required.
 
@@ -95,7 +83,7 @@ git commit -m "add scrutin Agent Skill"
 
 Claude Code loads both user-level and project-level skills; the project-local one travels with the repo.
 
-## Codex, Aider, and other agents
+### Codex, Aider, and other agents
 
 Agents that don't natively load `SKILL.md` files can still use the same content. Two common patterns:
 
@@ -109,3 +97,16 @@ Either way, the instructions boil down to: call `scrutin -r plain` (or `-r junit
 *Scrutin* publishes an [llms.txt](https://vincentarelbundock.github.io/scrutin/llms.txt) index at the documentation root following the [llmstxt.org](https://llmstxt.org) convention. Agents that crawl documentation can fetch it to land on the right pages (reporters, configuration, command-line reference, per-tool guides) without reading the whole site.
 
 See the [Reporters](reporters/index.md) page for each reporter's full output and the [Configuration reference](reference/configuration.md) for every tunable key.
+
+## What makes Scrutin LLM-friendly
+
+- **Deterministic plain reporter** (`-r plain`): compact, colorless, one line per file, failure blocks with source pointers, final tally.
+- **Structured output on demand**: `-r junit:report.xml` writes a machine-parseable JUnit XML sidecar; `-r github` emits GitHub Actions annotations; `-r list` enumerates files that would run without spawning any subprocess.
+- **Exit code is the source of truth**: `0` when every file passes, non-zero when any file fails.
+- **No config environment variables**: every persistent setting lives in `.scrutin/config.toml`. One-off overrides go through `--set key=value` (TOML-parsed). There are no hidden env vars to set or leak.
+- **Preflight checks fail fast**: missing tool binaries, empty suite roots, and import errors produce a single actionable message before any run starts, instead of hundreds of per-file errors.
+- **Shipped Agent Skill**: `scrutin init skill` writes a `SKILL.md` that teaches any compatible agent exactly when and how to invoke *Scrutin*.
+- **`llms.txt` index**: served at [vincentarelbundock.github.io/scrutin/llms.txt](https://vincentarelbundock.github.io/scrutin/llms.txt) for agents that crawl the documentation.
+- **CLAUDE.md in the repo**: contributors using Claude Code get architectural context automatically.
+
+
