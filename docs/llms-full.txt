@@ -1953,7 +1953,7 @@ Run every quality check on your project using a single command: unit tests, data
 </div>
 
 <button class="hero-video-poster" data-video="assets/demo.mp4" aria-label="Play demo video">
-  <img src="assets/screenshot_tui_normal.png" alt="Demo video poster">
+  <img src="assets/demo_screenshot.png" alt="Demo video poster">
   <span class="hero-video-play" aria-hidden="true">▶</span>
 </button>
 
