@@ -251,6 +251,36 @@
 
 
 # ---------------------------------------------------------------------------
+# [agent]: send-to-LLM-agent handoff (`a` key in TUI Detail/Failure level
+#                                     and the "ask agent" button in -r web)
+# ---------------------------------------------------------------------------
+# When you press `a` on a failing test, scrutin assembles a markdown
+# diagnosis prompt (outcome + error + windowed test source + windowed
+# dep-mapped production source) and spawns the configured CLI agent in
+# a fresh terminal window pointed at the project root.
+#
+# All three fields are optional; with no [agent] block scrutin uses
+# claude + auto-detected terminal + 20 lines of context.
+#
+# [agent]
+# cli           = "claude"   # or "codex", "aider", "gemini", ...
+# context_lines = 20         # lines of source on each side of the failing line
+#
+# Terminal launch: when `terminal` is unset, scrutin picks one in this
+# order: $TMUX set → tmux new-window; $TERM_PROGRAM matches a known
+# terminal (ghostty / iTerm.app / WezTerm / Apple_Terminal / kitty /
+# alacritty) → that terminal; macOS → Terminal.app; Linux → $TERMINAL,
+# x-terminal-emulator, then common emulators on $PATH.
+#
+# Override with a template containing `{script}` (path to wrapper
+# script) and / or `{cwd}` (project root):
+#
+# terminal = "ghostty -e {script}"
+# terminal = "tmux new-window -c {cwd} {script}"
+# terminal = "alacritty --working-directory {cwd} -e {script}"
+
+
+# ---------------------------------------------------------------------------
 # [hooks]: lifecycle hook scripts
 # ---------------------------------------------------------------------------
 # Process hooks run once per invocation from the Rust binary.
@@ -297,7 +327,7 @@
 # ---------------------------------------------------------------------------
 # Custom runner scripts: `scrutin init` writes the embedded defaults to
 # .scrutin/runners/<tool>.<ext> (e.g. .scrutin/runners/testthat.R,
-# .scrutin/runners/pytest.py). Edit those files in place to swap package
+# .scrutin/runners/scrutin_pytest.py). Edit those files in place to swap package
 # loading, add project setup, or tweak the reporter; the engine picks
 # them up automatically over the embedded default whenever present.
 # Delete a file in that directory to fall back to the built-in runner.
@@ -355,7 +385,7 @@
 # "f"        = "filter_group"
 # "F"        = "filter_group_back"
 # "s"        = "open_sort_menu"
-# "-"        = "toggle_orientation"
+# "\"        = "toggle_orientation"
 # "("        = "shrink_list"
 # ")"        = "grow_list"
 # "Space"    = "toggle_select"
@@ -397,12 +427,13 @@
 # "f"        = "filter_group"
 # "F"        = "filter_group_back"
 # "s"        = "open_sort_menu"
-# "-"        = "toggle_orientation"
+# "\"        = "toggle_orientation"
 # "("        = "shrink_list"
 # ")"        = "grow_list"
 # "e"        = "edit_test"
 # "E"        = "edit_source"
 # "y"        = "yank_message"
+# "a"        = "diagnose_with_agent"
 # "L"        = "enter_log"
 # "?"        = "enter_help"
 
@@ -423,6 +454,7 @@
 # "e"    = "edit_test"
 # "E"    = "edit_source"
 # "y"    = "yank_message"
+# "a"    = "diagnose_with_agent"
 # "L"    = "enter_log"
 # "?"    = "enter_help"
 

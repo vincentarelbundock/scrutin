@@ -1,10 +1,18 @@
+/* Unified content widths so prose, screenshots, cards, and video
+ * all share a consistent column. Override per-block only when a
+ * block is deliberately smaller (e.g. the hero video and 2x2 grid). */
+:root {
+  --scrutin-content-width: 40rem;
+  --scrutin-content-narrow: 28rem;
+}
+
 /* Hide site name text in navbar — logo is sufficient */
 .md-header__topic .md-ellipsis {
   visibility: hidden;
 }
 
 /* Extra header link (Docs) injected by overrides/partials/header.html.
- * Color / hover come from catppuccin.css; only the link-specific layout
+ * Color / hover come from nord.css; only the link-specific layout
  * (sizing, padding, rounded corners) lives here. */
 .md-header__nav-link {
   text-decoration: none;
@@ -38,7 +46,7 @@ h1#__skip {
 }
 
 .hero p {
-  max-width: 36rem;
+  max-width: var(--scrutin-content-width);
   margin-left: auto;
   margin-right: auto;
   text-align: justify;
@@ -70,7 +78,7 @@ h1#__skip {
 /* Section headings */
 .feature-section {
   text-align: center;
-  max-width: 40rem;
+  max-width: var(--scrutin-content-width);
   margin: 0 auto;
 }
 
@@ -89,7 +97,7 @@ h1#__skip {
   gap: 1.5rem;
   justify-content: center;
   margin: 1.5rem auto 2rem;
-  max-width: 56rem;
+  max-width: var(--scrutin-content-width);
   padding: 0 1rem;
 }
 
@@ -107,7 +115,7 @@ h1#__skip {
 .screenshot-full {
   text-align: center;
   margin: 1.5rem auto;
-  max-width: 44rem;
+  max-width: var(--scrutin-content-width);
   padding: 0 1rem;
 }
 
@@ -120,10 +128,10 @@ h1#__skip {
   cursor: zoom-in;
 }
 
-/* Medium-zoom overlay: use Catppuccin crust for the backdrop so the
- * lightbox feels part of the theme rather than a black modal. */
+/* Medium-zoom overlay: use the deepest Polar Night tone for the backdrop
+ * so the lightbox feels part of the theme rather than a black modal. */
 .medium-zoom-overlay {
-  background: var(--ctp-crust) !important;
+  background: var(--nord-polar0) !important;
 }
 
 /* Cap zoomed screenshots so they don't fill the entire viewport on
@@ -147,6 +155,84 @@ h1#__skip {
   font-size: 0.9rem;
 }
 
+/* Hero video poster: click-to-play thumbnail */
+.hero-video-poster {
+  display: block;
+  position: relative;
+  width: 100%;
+  max-width: 28rem;
+  margin: 1.5rem auto 2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.hero-video-poster img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.hero-video-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: rgba(15, 17, 21, 0.7);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  padding-left: 0.25rem;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.hero-video-poster:hover .hero-video-play {
+  background: rgba(15, 17, 21, 0.9);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.video-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--nord-polar0, rgba(15, 17, 21, 0.95));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: zoom-out;
+}
+
+.video-zoomed {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* 2x2 responsive screenshot grid */
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin: 1.5rem auto 2rem;
+  max-width: var(--scrutin-content-width);
+  padding: 0 1rem;
+}
+
+@media (max-width: 40rem) {
+  .screenshot-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Caption text below screenshots */
 .feature-caption {
   text-align: center;
@@ -161,6 +247,12 @@ h1#__skip {
    (with `.md-typeset` for specificity over the theme's default). */
 .md-typeset .grid.cards.wide {
   grid-template-columns: repeat(2, 1fr);
+}
+
+.md-typeset .grid.cards {
+  max-width: var(--scrutin-content-width);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Feature grid cards */

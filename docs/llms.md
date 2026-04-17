@@ -83,3 +83,34 @@ And avoid:
 - Guessing configuration env vars: there are none. Use `--set key=value` or edit `.scrutin/config.toml`.
 
 See the [Reporters](reporters/index.md) page for each reporter's full output and the [Configuration reference](reference/configuration.md) for every tunable key.
+
+## Ask an agent about a failure
+
+The flow so far has been *agent calls Scrutin*. The reverse direction is also built in: from a failing test, hand the failure off to a CLI agent in one keystroke.
+
+**How to trigger:**
+
+- **TUI**: press `a` on a failing test in the Detail or Failure view.
+- **Web dashboard**: click the "ask agent" button next to a failure.
+
+**What Scrutin sends:** a Markdown prompt containing the outcome, error message, a windowed slice of the test source around the failing line, and (when a dep-map entry is known) a windowed slice of the production source under test. The prompt lands on disk in `$TMPDIR` so you can re-use it. Scrutin then launches the configured agent CLI in a terminal, cwd set to the project root.
+
+**Where the terminal opens:**
+
+- **Standalone TUI / browser**: a fresh OS terminal window. Scrutin auto-picks one (tmux if `$TMUX` is set, then `$TERM_PROGRAM`, then the OS default); override with `terminal = "..."` under `[agent]`.
+- **Embedded in VS Code / Positron**: the editor's integrated terminal, inside the same window as the dashboard. No configuration required; Scrutin detects the webview host and forwards the script to the extension automatically.
+
+**Configure in `.scrutin/config.toml`:**
+
+```toml
+[agent]
+cli           = "claude"          # or "codex", "aider", "gemini", ...
+context_lines = 20                # lines of source on each side of the failing line
+
+# Optional: override terminal selection (standalone only). Placeholders
+# {script} and {cwd} are substituted at launch time.
+# terminal = "ghostty -e {script}"
+# terminal = "tmux new-window -c {cwd} {script}"
+```
+
+All three fields are optional; with no `[agent]` block Scrutin uses `claude`, 20 lines of context, and an auto-detected terminal. The agent CLI must be on `$PATH`.

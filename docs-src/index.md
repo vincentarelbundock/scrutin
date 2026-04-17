@@ -34,6 +34,11 @@ Run every quality check on your project using a single command: unit tests, data
 
 </div>
 
+<button class="hero-video-poster" data-video="assets/demo.mp4" aria-label="Play demo video">
+  <img src="assets/screenshot_tui_normal.png" alt="Demo video poster">
+  <span class="hero-video-play" aria-hidden="true">▶</span>
+</button>
+
 ---
 
 <div class="feature-section" markdown>
@@ -41,14 +46,6 @@ Run every quality check on your project using a single command: unit tests, data
 ## See everything in one place
 
 Pick where to see your results: a live [terminal UI](frontends/terminal-ui.md), a [browser dashboard](frontends/web.md), or embedded inside your editor ([VS Code](frontends/vscode.md), [Positron](frontends/positron.md), or [RStudio](frontends/rstudio.md)). *Scrutin* can also emit [JUnit XML](reporters/junit.md) for CI platforms, [GitHub Actions annotations](reporters/github.md) for pull-request comments, or [plain text](reporters/plain.md) for shell pipelines.
-
-</div>
-
-<div class="screenshot-row" markdown>
-
-![Terminal UI](assets/screenshot_tui_normal.png){ .screenshot }
-
-![Failure detail](assets/screenshot_tui_failure.png){ .screenshot }
 
 </div>
 
@@ -114,11 +111,18 @@ Pick where to see your results: a live [terminal UI](frontends/terminal-ui.md), 
 
 <div class="feature-section" markdown>
 
-## Editor integrations
+## In the terminal or in your favorite editor
 
 </div>
 
-<div class="screenshot-row three" markdown>
+<div class="screenshot-grid" markdown>
+
+<div class="screenshot-card" markdown>
+![Terminal UI](assets/screenshot_tui_normal.png){ .screenshot }
+
+[**Terminal**](frontends/terminal-ui.md)
+{ .screenshot-label }
+</div>
 
 <div class="screenshot-card" markdown>
 ![VS Code](assets/screenshot_vscode_normal.png){ .screenshot }

@@ -214,7 +214,7 @@ No shared-ancestor requirement: routing is per-glob match, so a suite can pull f
 
 #### Custom runner script
 
-`scrutin init` writes the default runners to `.scrutin/runners/<tool>.<ext>` (e.g. `.scrutin/runners/testthat.R`, `.scrutin/runners/pytest.py`). Edit those files in place to swap the default behaviour: for example, to replace `pkgload::load_all()` with `library()` in the testthat runner. The engine automatically prefers a file in `.scrutin/runners/` over the embedded default whenever it exists, with no config change. `scrutin init` is idempotent: re-running prints `<path> already exists, skipping.` for each existing file instead of overwriting. Delete a file to fall back to the built-in default, or run `scrutin init` again to re-create it.
+`scrutin init` writes the default runners to `.scrutin/runners/<tool>.<ext>` (e.g. `.scrutin/runners/testthat.R`, `.scrutin/runners/scrutin_pytest.py`). Python plugins use the `scrutin_<name>.py` form (not `<name>.py`) because Python prepends the script's directory to `sys.path[0]`, so a runner literally called `pytest.py` would shadow `import pytest` from inside itself. Edit those files in place to swap the default behaviour: for example, to replace `pkgload::load_all()` with `library()` in the testthat runner. The engine automatically prefers a file in `.scrutin/runners/` over the embedded default whenever it exists, with no config change. `scrutin init` is idempotent: re-running prints `<path> already exists, skipping.` for each existing file instead of overwriting. Delete a file to fall back to the built-in default, or run `scrutin init` again to re-create it.
 
 For an explicit suite that points at a runner somewhere else in the repo, set `runner` on the suite:
 

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/logo.svg">
-      <meta name="generator" content="zensical-0.0.33">
+      <meta name="generator" content="zensical-0.0.32">
     
     
       
@@ -53,16 +53,16 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
         <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../stylesheets/home.css">
     
-      <link rel="stylesheet" href="../stylesheets/catppuccin-palette.css">
+      <link rel="stylesheet" href="../stylesheets/nord-palette.css">
     
-      <link rel="stylesheet" href="../stylesheets/catppuccin.css">
+      <link rel="stylesheet" href="../stylesheets/nord.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,a=__md_scope)=>JSON.parse(t.getItem(a.pathname+"."+e)),__md_set=(e,t,a=localStorage,_=__md_scope)=>{try{a.setItem(_.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
     
@@ -80,7 +80,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -149,7 +149,7 @@
     
     
     
-    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
     
       <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
@@ -159,7 +159,7 @@
     
     
     
-    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
     
       <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
@@ -2312,7 +2312,7 @@
 </span></code></pre></div>
 <p>No shared-ancestor requirement: routing is per-glob match, so a suite can pull files from anywhere on disk.</p>
 <h4 id="custom-runner-script">Custom runner script<a class="headerlink" href="#custom-runner-script" title="Permanent link">&para;</a></h4>
-<p><code>scrutin init</code> writes the default runners to <code>.scrutin/runners/&lt;tool&gt;.&lt;ext&gt;</code> (e.g. <code>.scrutin/runners/testthat.R</code>, <code>.scrutin/runners/pytest.py</code>). Edit those files in place to swap the default behaviour: for example, to replace <code>pkgload::load_all()</code> with <code>library()</code> in the testthat runner. The engine automatically prefers a file in <code>.scrutin/runners/</code> over the embedded default whenever it exists, with no config change. <code>scrutin init</code> is idempotent: re-running prints <code>&lt;path&gt; already exists, skipping.</code> for each existing file instead of overwriting. Delete a file to fall back to the built-in default, or run <code>scrutin init</code> again to re-create it.</p>
+<p><code>scrutin init</code> writes the default runners to <code>.scrutin/runners/&lt;tool&gt;.&lt;ext&gt;</code> (e.g. <code>.scrutin/runners/testthat.R</code>, <code>.scrutin/runners/scrutin_pytest.py</code>). Python plugins use the <code>scrutin_&lt;name&gt;.py</code> form (not <code>&lt;name&gt;.py</code>) because Python prepends the script's directory to <code>sys.path[0]</code>, so a runner literally called <code>pytest.py</code> would shadow <code>import pytest</code> from inside itself. Edit those files in place to swap the default behaviour: for example, to replace <code>pkgload::load_all()</code> with <code>library()</code> in the testthat runner. The engine automatically prefers a file in <code>.scrutin/runners/</code> over the embedded default whenever it exists, with no config change. <code>scrutin init</code> is idempotent: re-running prints <code>&lt;path&gt; already exists, skipping.</code> for each existing file instead of overwriting. Delete a file to fall back to the built-in default, or run <code>scrutin init</code> again to re-create it.</p>
 <p>For an explicit suite that points at a runner somewhere else in the repo, set <code>runner</code> on the suite:</p>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">[[suite]]</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">tool</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;testthat&quot;</span>
@@ -2453,7 +2453,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.code.copy","navigation.footer"],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
     
     
-      <script src="../assets/javascripts/bundle.63456bd9.min.js"></script>
+      <script src="../assets/javascripts/bundle.91a19a9e.min.js"></script>
       
         <script src="../js/medium-zoom.min.js"></script>
       

@@ -1,0 +1,49 @@
+/* Shared Nord palette.
+ *
+ * Single source of truth for scrutin's color palette. Both the docs
+ * site (zensical / mkdocs-material) and the web dashboard consume this
+ * file to stay visually consistent. Update the hex values here to
+ * update everywhere.
+ *
+ * Wired into:
+ *   - crates/scrutin-web/frontend/index.html (direct <link>, embedded
+ *     into the binary via rust-embed alongside style.css)
+ *   - docs-src/stylesheets/nord-palette.css (copied by Makefile's
+ *     inject-docs step from this file)
+ *
+ * Scheme dispatch covers both namespaces:
+ *   - Material (docs):   [data-md-color-scheme="default"|"slate"]
+ *   - Dashboard (web):   :root[data-theme="light"|"dark"]
+ *
+ * Snow Storm  -> Material "default" / dashboard "light".
+ * Polar Night -> Material "slate"   / dashboard "dark".
+ *
+ * Frost (blues/teals) and Aurora (status hues) are constant across both
+ * modes so accents and pass/fail/warn colors stay recognisable.
+ */
+
+[data-md-color-scheme="default"],
+:root[data-theme="light"],
+[data-md-color-scheme="slate"],
+:root[data-theme="dark"] {
+  /* Polar Night (dark surfaces) */
+  --nord-polar0:   #2e3440;
+  --nord-polar1:   #3b4252;
+  --nord-polar2:   #434c5e;
+  --nord-polar3:   #4c566a;
+  /* Snow Storm (light surfaces) */
+  --nord-snow0:    #d8dee9;
+  --nord-snow1:    #e5e9f0;
+  --nord-snow2:    #eceff4;
+  /* Frost (cool accents) */
+  --nord-frost0:   #8fbcbb;
+  --nord-frost1:   #88c0d0;
+  --nord-frost2:   #81a1c1;
+  --nord-frost3:   #5e81ac;
+  /* Aurora (status hues) */
+  --nord-red:      #bf616a;
+  --nord-orange:   #d08770;
+  --nord-yellow:   #ebcb8b;
+  --nord-green:    #a3be8c;
+  --nord-purple:   #b48ead;
+}

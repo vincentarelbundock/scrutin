@@ -1952,6 +1952,11 @@ Run every quality check on your project using a single command: unit tests, data
 
 </div>
 
+<button class="hero-video-poster" data-video="assets/demo.mp4" aria-label="Play demo video">
+  <img src="assets/screenshot_tui_normal.png" alt="Demo video poster">
+  <span class="hero-video-play" aria-hidden="true">▶</span>
+</button>
+
 ---
 
 <div class="feature-section" markdown>
@@ -1959,14 +1964,6 @@ Run every quality check on your project using a single command: unit tests, data
 ## See everything in one place
 
 Pick where to see your results: a live [terminal UI](frontends/terminal-ui.md), a [browser dashboard](frontends/web.md), or embedded inside your editor ([VS Code](frontends/vscode.md), [Positron](frontends/positron.md), or [RStudio](frontends/rstudio.md)). *Scrutin* can also emit [JUnit XML](reporters/junit.md) for CI platforms, [GitHub Actions annotations](reporters/github.md) for pull-request comments, or [plain text](reporters/plain.md) for shell pipelines.
-
-</div>
-
-<div class="screenshot-row" markdown>
-
-![Terminal UI](assets/screenshot_tui_normal.png){ .screenshot }
-
-![Failure detail](assets/screenshot_tui_failure.png){ .screenshot }
 
 </div>
 
@@ -2032,11 +2029,18 @@ Pick where to see your results: a live [terminal UI](frontends/terminal-ui.md), 
 
 <div class="feature-section" markdown>
 
-## Editor integrations
+## In the terminal or in your favorite editor
 
 </div>
 
-<div class="screenshot-row three" markdown>
+<div class="screenshot-grid" markdown>
+
+<div class="screenshot-card" markdown>
+![Terminal UI](assets/screenshot_tui_normal.png){ .screenshot }
+
+[**Terminal**](frontends/terminal-ui.md)
+{ .screenshot-label }
+</div>
 
 <div class="screenshot-card" markdown>
 ![VS Code](assets/screenshot_vscode_normal.png){ .screenshot }
@@ -2472,6 +2476,37 @@ And avoid:
 
 See the [Reporters](reporters/index.md) page for each reporter's full output and the [Configuration reference](reference/configuration.md) for every tunable key.
 
+## Ask an agent about a failure
+
+The flow so far has been *agent calls Scrutin*. The reverse direction is also built in: from a failing test, hand the failure off to a CLI agent in one keystroke.
+
+**How to trigger:**
+
+- **TUI**: press `a` on a failing test in the Detail or Failure view.
+- **Web dashboard**: click the "ask agent" button next to a failure.
+
+**What Scrutin sends:** a Markdown prompt containing the outcome, error message, a windowed slice of the test source around the failing line, and (when a dep-map entry is known) a windowed slice of the production source under test. The prompt lands on disk in `$TMPDIR` so you can re-use it. Scrutin then launches the configured agent CLI in a terminal, cwd set to the project root.
+
+**Where the terminal opens:**
+
+- **Standalone TUI / browser**: a fresh OS terminal window. Scrutin auto-picks one (tmux if `$TMUX` is set, then `$TERM_PROGRAM`, then the OS default); override with `terminal = "..."` under `[agent]`.
+- **Embedded in VS Code / Positron**: the editor's integrated terminal, inside the same window as the dashboard. No configuration required; Scrutin detects the webview host and forwards the script to the extension automatically.
+
+**Configure in `.scrutin/config.toml`:**
+
+```toml
+[agent]
+cli           = "claude"          # or "codex", "aider", "gemini", ...
+context_lines = 20                # lines of source on each side of the failing line
+
+# Optional: override terminal selection (standalone only). Placeholders
+# {script} and {cwd} are substituted at launch time.
+# terminal = "ghostty -e {script}"
+# terminal = "tmux new-window -c {cwd} {script}"
+```
+
+All three fields are optional; with no `[agent]` block Scrutin uses `claude`, 20 lines of context, and an auto-detected terminal. The agent CLI must be on `$PATH`.
+
 ---
 source: parallelism.md
 ---
@@ -2722,7 +2757,7 @@ No shared-ancestor requirement: routing is per-glob match, so a suite can pull f
 
 #### Custom runner script
 
-`scrutin init` writes the default runners to `.scrutin/runners/<tool>.<ext>` (e.g. `.scrutin/runners/testthat.R`, `.scrutin/runners/pytest.py`). Edit those files in place to swap the default behaviour: for example, to replace `pkgload::load_all()` with `library()` in the testthat runner. The engine automatically prefers a file in `.scrutin/runners/` over the embedded default whenever it exists, with no config change. `scrutin init` is idempotent: re-running prints `<path> already exists, skipping.` for each existing file instead of overwriting. Delete a file to fall back to the built-in default, or run `scrutin init` again to re-create it.
+`scrutin init` writes the default runners to `.scrutin/runners/<tool>.<ext>` (e.g. `.scrutin/runners/testthat.R`, `.scrutin/runners/scrutin_pytest.py`). Python plugins use the `scrutin_<name>.py` form (not `<name>.py`) because Python prepends the script's directory to `sys.path[0]`, so a runner literally called `pytest.py` would shadow `import pytest` from inside itself. Edit those files in place to swap the default behaviour: for example, to replace `pkgload::load_all()` with `library()` in the testthat runner. The engine automatically prefers a file in `.scrutin/runners/` over the embedded default whenever it exists, with no config change. `scrutin init` is idempotent: re-running prints `<path> already exists, skipping.` for each existing file instead of overwriting. Delete a file to fall back to the built-in default, or run `scrutin init` again to re-create it.
 
 For an explicit suite that points at a runner somewhere else in the repo, set `runner` on the suite:
 
@@ -3139,6 +3174,36 @@ source: reference/configuration.md
 
 
 # ---------------------------------------------------------------------------
+# [agent]: send-to-LLM-agent handoff (`a` key in TUI Detail/Failure level
+#                                     and the "ask agent" button in -r web)
+# ---------------------------------------------------------------------------
+# When you press `a` on a failing test, scrutin assembles a markdown
+# diagnosis prompt (outcome + error + windowed test source + windowed
+# dep-mapped production source) and spawns the configured CLI agent in
+# a fresh terminal window pointed at the project root.
+#
+# All three fields are optional; with no [agent] block scrutin uses
+# claude + auto-detected terminal + 20 lines of context.
+#
+# [agent]
+# cli           = "claude"   # or "codex", "aider", "gemini", ...
+# context_lines = 20         # lines of source on each side of the failing line
+#
+# Terminal launch: when `terminal` is unset, scrutin picks one in this
+# order: $TMUX set → tmux new-window; $TERM_PROGRAM matches a known
+# terminal (ghostty / iTerm.app / WezTerm / Apple_Terminal / kitty /
+# alacritty) → that terminal; macOS → Terminal.app; Linux → $TERMINAL,
+# x-terminal-emulator, then common emulators on $PATH.
+#
+# Override with a template containing `{script}` (path to wrapper
+# script) and / or `{cwd}` (project root):
+#
+# terminal = "ghostty -e {script}"
+# terminal = "tmux new-window -c {cwd} {script}"
+# terminal = "alacritty --working-directory {cwd} -e {script}"
+
+
+# ---------------------------------------------------------------------------
 # [hooks]: lifecycle hook scripts
 # ---------------------------------------------------------------------------
 # Process hooks run once per invocation from the Rust binary.
@@ -3185,7 +3250,7 @@ source: reference/configuration.md
 # ---------------------------------------------------------------------------
 # Custom runner scripts: `scrutin init` writes the embedded defaults to
 # .scrutin/runners/<tool>.<ext> (e.g. .scrutin/runners/testthat.R,
-# .scrutin/runners/pytest.py). Edit those files in place to swap package
+# .scrutin/runners/scrutin_pytest.py). Edit those files in place to swap package
 # loading, add project setup, or tweak the reporter; the engine picks
 # them up automatically over the embedded default whenever present.
 # Delete a file in that directory to fall back to the built-in runner.
@@ -3243,7 +3308,7 @@ source: reference/configuration.md
 # "f"        = "filter_group"
 # "F"        = "filter_group_back"
 # "s"        = "open_sort_menu"
-# "-"        = "toggle_orientation"
+# "\"        = "toggle_orientation"
 # "("        = "shrink_list"
 # ")"        = "grow_list"
 # "Space"    = "toggle_select"
@@ -3285,12 +3350,13 @@ source: reference/configuration.md
 # "f"        = "filter_group"
 # "F"        = "filter_group_back"
 # "s"        = "open_sort_menu"
-# "-"        = "toggle_orientation"
+# "\"        = "toggle_orientation"
 # "("        = "shrink_list"
 # ")"        = "grow_list"
 # "e"        = "edit_test"
 # "E"        = "edit_source"
 # "y"        = "yank_message"
+# "a"        = "diagnose_with_agent"
 # "L"        = "enter_log"
 # "?"        = "enter_help"
 
@@ -3311,6 +3377,7 @@ source: reference/configuration.md
 # "e"    = "edit_test"
 # "E"    = "edit_source"
 # "y"    = "yank_message"
+# "a"    = "diagnose_with_agent"
 # "L"    = "enter_log"
 # "?"    = "enter_help"
 
@@ -3869,7 +3936,7 @@ extra_args = ["--tb=short", "-vv"]
 
 ## Custom runner
 
-`scrutin init` writes the default runner to `.scrutin/runners/pytest.py`. Edit that file in place: the engine picks it up automatically whenever it exists. To point at a different path, set `runner` on an explicit suite:
+`scrutin init` writes the default runner to `.scrutin/runners/scrutin_pytest.py` (the `scrutin_` prefix avoids the runner shadowing `import pytest` from inside itself). Edit that file in place: the engine picks it up automatically whenever it exists. To point at a different path, set `runner` on an explicit suite:
 
 ```toml
 [[suite]]

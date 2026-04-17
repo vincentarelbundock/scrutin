@@ -1,0 +1,180 @@
+/* Map Nord palette tokens onto Material's theme variables.
+ *
+ * The `--nord-*` variables are defined in `nord-palette.css`, which is
+ * the shared palette (single source of truth, also loaded by the web
+ * dashboard). This file only covers the Material-specific mappings
+ * (primary / accent / default surfaces / code / links).
+ *
+ * Color discipline: Frost (#88c0d0) is the single brand color. Both
+ * `--md-primary-fg-color` (logos, links at rest) and
+ * `--md-accent-fg-color` (link hover, sidebar active, clipboard toast,
+ * scrollbar thumb hover, card hover, ...) point at the same Frost hue,
+ * so every place Material reaches for an accent gets it for free. Every
+ * other surface is a neutral Snow Storm (light) / Polar Night (dark)
+ * token.
+ */
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:          var(--nord-frost1);
+  --md-primary-fg-color--light:   #a3cbd8;
+  --md-primary-fg-color--dark:    #5e8fa0;
+  --md-primary-bg-color:          var(--nord-snow2);
+  --md-primary-bg-color--light:   var(--nord-snow1);
+
+  --md-accent-fg-color:           var(--nord-frost1);
+  --md-accent-fg-color--transparent: rgba(136, 192, 208, 0.12);
+  --md-accent-bg-color:           var(--nord-snow2);
+  --md-accent-bg-color--light:    var(--nord-snow1);
+
+  --md-default-bg-color:          var(--nord-snow2);
+  --md-default-fg-color:          var(--nord-polar0);
+  --md-default-fg-color--light:   var(--nord-polar2);
+  --md-default-fg-color--lighter: var(--nord-polar3);
+  --md-default-fg-color--lightest:var(--nord-snow0);
+
+  --md-code-bg-color:             var(--nord-snow1);
+  --md-code-fg-color:             var(--nord-polar0);
+
+  --md-typeset-a-color:           var(--nord-frost3);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:          var(--nord-frost1);
+  --md-primary-fg-color--light:   #b8d8e0;
+  --md-primary-fg-color--dark:    #5e8fa0;
+  --md-primary-bg-color:          var(--nord-polar0);
+  --md-primary-bg-color--light:   var(--nord-polar1);
+
+  --md-accent-fg-color:           var(--nord-frost1);
+  --md-accent-fg-color--transparent: rgba(136, 192, 208, 0.12);
+  --md-accent-bg-color:           var(--nord-polar0);
+  --md-accent-bg-color--light:    var(--nord-polar1);
+
+  --md-default-bg-color:          var(--nord-polar0);
+  --md-default-fg-color:          var(--nord-snow2);
+  --md-default-fg-color--light:   var(--nord-snow0);
+  --md-default-fg-color--lighter: var(--nord-polar3);
+  --md-default-fg-color--lightest:var(--nord-polar3);
+
+  --md-code-bg-color:             var(--nord-polar1);
+  --md-code-fg-color:             var(--nord-snow2);
+
+  --md-typeset-a-color:           var(--nord-frost1);
+}
+
+/* Header: Nord-native polar bar. */
+.md-header {
+  background-color: var(--nord-polar1);
+  color: var(--nord-snow2);
+  border-bottom: 1px solid var(--nord-polar2);
+}
+[data-md-color-scheme="default"] .md-header {
+  background-color: var(--nord-snow1);
+  color: var(--nord-polar0);
+  border-bottom: 1px solid var(--nord-snow0);
+}
+.md-header .md-logo,
+.md-header .md-logo img,
+.md-header .md-logo svg {
+  color: var(--nord-frost1);
+}
+.md-header__button {
+  color: inherit;
+}
+.md-header__nav-link {
+  color: inherit;
+}
+.md-header__nav-link:hover {
+  background: transparent;
+}
+
+/* Sidebar active item gets a neutral surface tint behind the Frost text.
+ * Material's default `--md-accent-fg-color--transparent` background
+ * already reads as a faint Frost wash through the accent variable, but
+ * a solid Polar surface gives a more solid "you are here" affordance
+ * without adding a second color to the palette. Selectors mirror
+ * Material's own specificity so they win the cascade without
+ * !important. */
+[data-md-color-scheme="slate"] .md-nav--primary .md-nav__item .md-nav__link--active {
+  background-color: var(--nord-polar2);
+}
+[data-md-color-scheme="default"] .md-nav--primary .md-nav__item .md-nav__link--active {
+  background-color: var(--nord-snow0);
+}
+
+/* Tabs bar (if navigation.tabs is enabled) tracks the header. */
+.md-tabs {
+  background-color: var(--nord-polar1);
+  border-bottom: 1px solid var(--nord-polar2);
+}
+[data-md-color-scheme="default"] .md-tabs {
+  background-color: var(--nord-snow1);
+  border-bottom: 1px solid var(--nord-snow0);
+}
+
+/* Drawer / primary nav title: hide the bare "scrutin" text node that Material
+ * renders next to the logo in the sidebar header. The logo SVG (inside the
+ * <a class="md-logo">) already contains the wordmark, so the extra text is
+ * redundant. Zero the font size on the label and restore it on children so
+ * the logo, repo source block, and level toggles stay visible. */
+.md-nav--primary > .md-nav__title {
+  font-size: 0;
+  color: transparent;
+}
+.md-nav--primary > .md-nav__title > * {
+  font-size: initial;
+  color: var(--md-default-fg-color);
+}
+
+/* Footer matches the deepest surface tone in each theme. */
+.md-footer,
+.md-footer-meta {
+  background-color: var(--nord-polar0);
+}
+[data-md-color-scheme="default"] .md-footer,
+[data-md-color-scheme="default"] .md-footer-meta {
+  background-color: var(--nord-snow0);
+}
+
+/* Vertically compact footer: Material's defaults stack a tall prev/next row
+ * over a copyright row (~120px total). Squash the vertical padding and
+ * line-heights, but leave horizontal layout alone so page titles have the
+ * full row width and never trip the default `.md-ellipsis` truncation. */
+.md-footer__inner {
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+}
+.md-footer__link {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+.md-footer__direction {
+  font-size: 0.55rem;
+  line-height: 1;
+  opacity: 0.6;
+  margin-bottom: 0;
+}
+.md-footer__title {
+  line-height: 1.15;
+}
+.md-footer__button {
+  padding: 0.2rem;
+}
+.md-footer__button svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+/* Undo the default truncation so titles always read in full. */
+.md-footer__title .md-ellipsis {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+.md-footer-meta__inner {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.md-footer-meta .md-copyright {
+  font-size: 0.7rem;
+  line-height: 1.3;
+}
