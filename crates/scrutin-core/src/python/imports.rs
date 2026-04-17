@@ -71,7 +71,25 @@ pub fn build_import_map(pkg: &Package) -> HashMap<String, Vec<String>> {
             }
         }
     }
-    let test_set: HashSet<PathBuf> = pkg.test_files().unwrap_or_default().into_iter().collect();
+    // Restrict `test_set` to pytest-owned files. `pkg.test_files()` would
+    // also include lint targets from sibling suites (ruff, skyspell), which
+    // treat `.py` source files as subjects; those files would then be
+    // excluded from `module_to_file` and imports like
+    // `from scrutindemo_py import add` would no longer resolve.
+    let mut test_set: HashSet<PathBuf> = HashSet::new();
+    for suite in &pkg.test_suites {
+        if suite.plugin.name() != "pytest" {
+            continue;
+        }
+        for dir in suite.run_search_dirs() {
+            if !dir.is_dir() {
+                continue;
+            }
+            for f in walk::collect_files(&dir, |p| suite.owns_test_file(p)) {
+                test_set.insert(f);
+            }
+        }
+    }
 
     // Module-name → source-file index. Best-effort: handles flat layout
     // (`pkg/foo.py`) and src layout (`src/pkg/foo.py`) by stripping a

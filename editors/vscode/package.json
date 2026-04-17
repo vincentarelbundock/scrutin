@@ -2,7 +2,7 @@
   "name": "scrutin-runner",
   "displayName": "Scrutin Runner",
   "description": "Fast, watch-mode test runner for R and Python, integrated into VS Code and Positron.",
-  "version": "0.0.13",
+  "version": "0.0.15",
   "publisher": "VincentArel-Bundock",
   "license": "MIT",
   "icon": "images/icon.png",

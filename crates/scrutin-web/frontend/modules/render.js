@@ -415,6 +415,7 @@ function renderTestListLeft() {
       renderLeftPane();
       renderRightPane();
     });
+    li.addEventListener("dblclick", () => currentLevel().onEnter());
     ul.appendChild(li);
   }
 }
@@ -505,8 +506,10 @@ function renderTestListRight() {
   body.querySelectorAll(".test-row").forEach((el) => {
     el.addEventListener("click", () => {
       state.testCursor = parseInt(el.dataset.idx, 10);
-      enterDetail();
+      renderLeftPane();
+      renderRightPane();
     });
+    el.addEventListener("dblclick", () => enterDetail());
   });
 }
 

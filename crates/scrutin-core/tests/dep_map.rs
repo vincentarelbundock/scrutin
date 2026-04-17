@@ -550,3 +550,58 @@ fn unified_dep_map_merges_r_cache_and_python_imports() {
     );
 }
 
+#[test]
+fn import_map_not_clobbered_by_linter_suites() {
+    // Regression: when a command-mode linter like ruff is active alongside
+    // pytest, `Package::test_files()` returns every `.py` under the project
+    // (ruff treats source files as lint subjects). The import-graph builder
+    // used to pass that union as its `test_set` blacklist, which dropped
+    // source files from the module index and broke `from pkg import x`
+    // resolution. The builder must scope its test set to pytest-owned files.
+    let tmp = pytest_project();
+    let root = tmp.path();
+    write(&root.join("src/pkg/__init__.py"), "def add(a, b): return a + b\n");
+    write(
+        &root.join("tests/test_pkg.py"),
+        "from pkg import add\n\ndef test_add(): assert add(1, 2) == 3\n",
+    );
+
+    let py_plugin = plugin_by_name("pytest").expect("pytest registered");
+    let ruff_plugin = plugin_by_name("ruff").expect("ruff registered");
+    let py_suite = TestSuite::new(
+        py_plugin,
+        root.to_path_buf(),
+        vec!["tests/**/test_*.py".into()],
+        vec!["src/**/*.py".into(), "**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
+    let ruff_suite = TestSuite::new(
+        ruff_plugin,
+        root.to_path_buf(),
+        vec!["**/*.py".into()],
+        vec!["**/*.py".into()],
+        WorkerHookPaths::default(),
+        None,
+    )
+    .expect("compile globs");
+    let pkg = Package {
+        name: "demo".into(),
+        root: root.to_path_buf(),
+        test_suites: vec![py_suite, ruff_suite],
+        pytest_extra_args: Vec::new(),
+        skyspell_extra_args: Vec::new(),
+        skyspell_add_args: Vec::new(),
+        python_interpreter: Vec::new(),
+        env: BTreeMap::new(),
+    };
+
+    let map = build_import_map(&pkg);
+    assert_eq!(
+        map.get("src/pkg/__init__.py").map(|v| v.as_slice()),
+        Some(&["test_pkg.py".to_string()][..]),
+        "source→test edge must survive a co-resident lint suite; got {map:?}"
+    );
+}
+

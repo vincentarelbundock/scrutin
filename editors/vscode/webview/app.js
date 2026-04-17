@@ -1004,6 +1004,7 @@ function renderTestListLeft() {
       renderLeftPane();
       renderRightPane();
     });
+    li.addEventListener("dblclick", () => currentLevel().onEnter());
     ul.appendChild(li);
   }
 }
@@ -1081,8 +1082,10 @@ function renderTestListRight() {
   body.querySelectorAll(".test-row").forEach((el) => {
     el.addEventListener("click", () => {
       state.testCursor = parseInt(el.dataset.idx, 10);
-      enterDetail();
+      renderLeftPane();
+      renderRightPane();
     });
+    el.addEventListener("dblclick", () => enterDetail());
   });
 }
 function renderTestDetail() {
@@ -1479,9 +1482,13 @@ async function openInEditor(fileId, line) {
     if (res !== null) notifyOpened(res);
   }
 }
-async function diagnoseWithAgent(fileId, messageIndex) {
+async function diagnoseWithAgent(fileId, sortedIndex) {
   const id = fileId ?? state.selected;
-  if (id == null || messageIndex == null) return;
+  if (id == null || sortedIndex == null) return;
+  const msg = state.testFiltered?.[sortedIndex];
+  const f = state.files?.get(id);
+  const rawIndex = msg && f?.messages ? f.messages.indexOf(msg) : -1;
+  const messageIndex = rawIndex >= 0 ? rawIndex : sortedIndex;
   const body = { file_id: id, message_index: messageIndex };
   if (IS_VSCODE) body.defer = true;
   const res = await postJSON("/api/diagnose", body);

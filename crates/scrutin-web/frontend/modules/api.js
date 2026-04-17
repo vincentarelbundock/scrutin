@@ -195,9 +195,18 @@ export async function openInEditor(fileId, line) {
 /// (VSCode / Positron) the server defers spawning and the webview
 /// forwards the script path to the extension host, which runs it in an
 /// integrated terminal.
-export async function diagnoseWithAgent(fileId, messageIndex) {
+export async function diagnoseWithAgent(fileId, sortedIndex) {
   const id = fileId ?? state.selected;
-  if (id == null || messageIndex == null) return;
+  if (id == null || sortedIndex == null) return;
+  // `sortedIndex` is a cursor into `state.testFiltered` (sorted/filtered
+  // view), but the server indexes into the raw `f.messages` array. Remap
+  // by object identity so the cursor survives any sort/filter state. The
+  // fallback of `sortedIndex` itself matters only when testFiltered is
+  // empty (keyboard-handler guard rails would normally prevent that).
+  const msg = state.testFiltered?.[sortedIndex];
+  const f = state.files?.get(id);
+  const rawIndex = msg && f?.messages ? f.messages.indexOf(msg) : -1;
+  const messageIndex = rawIndex >= 0 ? rawIndex : sortedIndex;
   const body = { file_id: id, message_index: messageIndex };
   if (IS_VSCODE) body.defer = true;
   const res = await postJSON("/api/diagnose", body);
