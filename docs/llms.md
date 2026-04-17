@@ -1,12 +1,56 @@
 # LLMs
 
-*Scrutin* is designed to be driven from an LLM agent (Claude Code, Codex, Aider, Cursor, Continue, and anything else that can shell out). This page collects the features that make it agent-friendly, how to install the first-party Agent Skill, and recommended patterns for calling *Scrutin* from a non-interactive model.
+*Scrutin* is designed to work with LLM agents (Claude Code, Codex, Aider, Cursor, Continue, and anything else that can shell out) in both directions: you can ask an agent for help directly from a failing test, and agents can drive *Scrutin* non-interactively to run and interpret suites.
+
+## Ask an agent about a failure
+
+From a failing test, hand the failure off to a CLI agent in one keystroke.
+
+**How to trigger:**
+
+- **TUI**: press `a` on a failing test in the Detail or Failure view.
+- **Web dashboard**: click the "ask agent" button next to a failure.
+
+**What Scrutin sends:** a Markdown prompt containing the outcome, error message, a windowed slice of the test source around the failing line, and (when a dep-map entry is known) a windowed slice of the production source under test. The prompt lands on disk in `$TMPDIR` so you can re-use it. Scrutin then launches the configured agent CLI in a terminal, cwd set to the project root.
+
+**Where the terminal opens:**
+
+- **Standalone TUI / browser**: a fresh OS terminal window. Scrutin auto-picks one (tmux if `$TMUX` is set, then `$TERM_PROGRAM`, then the OS default); override with `terminal = "..."` under `[agent]`.
+- **Embedded in VS Code / Positron**: the editor's integrated terminal, inside the same window as the dashboard. No configuration required; Scrutin detects the webview host and forwards the script to the extension automatically.
+
+**Configure in `.scrutin/config.toml`:**
+
+```toml
+[agent]
+cli           = "claude"          # or "codex", "aider", "gemini", ...
+context_lines = 20                # lines of source on each side of the failing line
+
+# Optional: override terminal selection (standalone only). Placeholders
+# {script} and {cwd} are substituted at launch time.
+# terminal = "ghostty -e {script}"
+# terminal = "tmux new-window -c {cwd} {script}"
+```
+
+All three fields are optional; with no `[agent]` block Scrutin uses `claude`, 20 lines of context, and an auto-detected terminal. The agent CLI must be on `$PATH`.
+
+## Plain text output
+
+The plain reporter (`-r plain`) is the recommended mode for agent consumption. It produces deterministic, colorless output (no ANSI escapes when stderr is not a tty), one line per file, with failure blocks that include `At: <path>:<line>` pointers an agent can open directly, and a final tally. Because the format is stable across runs, it can be pasted directly into a model's context window.
+
+```bash
+scrutin -r plain                       # full run, deterministic output
+scrutin -r plain --set run.max_fail=1  # stop after the first failing file
+scrutin -r list                        # enumerate test files without running them
+scrutin -r junit:report.xml            # run + structured sidecar for programmatic parsing
+```
+
+The process exit code is the source of truth: `0` when every file passes, non-zero when any file fails. Agents should trust the exit code and not try to parse counts from plain text. For structured counts and per-test metadata, use `-r junit:report.xml`.
 
 ## What makes it LLM-friendly
 
-- **Deterministic plain reporter** (`-r plain`): compact, colorless (no ANSI when stderr is not a tty), one line per file, a failure block with `At: <path>:<line>` pointers, and a final tally. Suitable for direct inclusion in a model's response.
+- **Deterministic plain reporter** (`-r plain`): compact, colorless, one line per file, failure blocks with source pointers, final tally.
 - **Structured output on demand**: `-r junit:report.xml` writes a machine-parseable JUnit XML sidecar; `-r github` emits GitHub Actions annotations; `-r list` enumerates files that would run without spawning any subprocess.
-- **Exit code is the source of truth**: `0` when every file passes, non-zero when any file fails. Agents should trust the exit code and not try to parse counts from plain text.
+- **Exit code is the source of truth**: `0` when every file passes, non-zero when any file fails.
 - **No config environment variables**: every persistent setting lives in `.scrutin/config.toml`. One-off overrides go through `--set key=value` (TOML-parsed). There are no hidden env vars to set or leak.
 - **Preflight checks fail fast**: missing tool binaries, empty suite roots, and import errors produce a single actionable message before any run starts, instead of hundreds of per-file errors.
 - **Shipped Agent Skill**: `scrutin init skill` writes a `SKILL.md` that teaches any compatible agent exactly when and how to invoke *Scrutin*.
@@ -64,53 +108,4 @@ Either way, the instructions boil down to: call `scrutin -r plain` (or `-r junit
 
 *Scrutin* publishes an [llms.txt](https://vincentarelbundock.github.io/scrutin/llms.txt) index at the documentation root following the [llmstxt.org](https://llmstxt.org) convention. Agents that crawl documentation can fetch it to land on the right pages (reporters, configuration, command-line reference, per-tool guides) without reading the whole site.
 
-## Agent best practices
-
-When calling *Scrutin* from a non-interactive model, prefer these patterns:
-
-```bash
-scrutin -r plain                       # full run, deterministic output
-scrutin -r plain --set run.max_fail=1  # stop after first failing file
-scrutin -r list                        # enumerate without running
-scrutin -r junit:report.xml            # run + structured sidecar
-```
-
-And avoid:
-
-- Launching `scrutin` with no `-r` flag: defaults to an interactive TUI that will hang without a human at the keyboard.
-- Enabling watch mode from an agent: watch is only useful with a live frontend (TUI or web dashboard).
-- Parsing tallies from plain text: use the exit code, or `-r junit:report.xml` for counts.
-- Guessing configuration env vars: there are none. Use `--set key=value` or edit `.scrutin/config.toml`.
-
 See the [Reporters](reporters/index.md) page for each reporter's full output and the [Configuration reference](reference/configuration.md) for every tunable key.
-
-## Ask an agent about a failure
-
-The flow so far has been *agent calls Scrutin*. The reverse direction is also built in: from a failing test, hand the failure off to a CLI agent in one keystroke.
-
-**How to trigger:**
-
-- **TUI**: press `a` on a failing test in the Detail or Failure view.
-- **Web dashboard**: click the "ask agent" button next to a failure.
-
-**What Scrutin sends:** a Markdown prompt containing the outcome, error message, a windowed slice of the test source around the failing line, and (when a dep-map entry is known) a windowed slice of the production source under test. The prompt lands on disk in `$TMPDIR` so you can re-use it. Scrutin then launches the configured agent CLI in a terminal, cwd set to the project root.
-
-**Where the terminal opens:**
-
-- **Standalone TUI / browser**: a fresh OS terminal window. Scrutin auto-picks one (tmux if `$TMUX` is set, then `$TERM_PROGRAM`, then the OS default); override with `terminal = "..."` under `[agent]`.
-- **Embedded in VS Code / Positron**: the editor's integrated terminal, inside the same window as the dashboard. No configuration required; Scrutin detects the webview host and forwards the script to the extension automatically.
-
-**Configure in `.scrutin/config.toml`:**
-
-```toml
-[agent]
-cli           = "claude"          # or "codex", "aider", "gemini", ...
-context_lines = 20                # lines of source on each side of the failing line
-
-# Optional: override terminal selection (standalone only). Placeholders
-# {script} and {cwd} are substituted at launch time.
-# terminal = "ghostty -e {script}"
-# terminal = "tmux new-window -c {cwd} {script}"
-```
-
-All three fields are optional; with no `[agent]` block Scrutin uses `claude`, 20 lines of context, and an auto-detected terminal. The agent CLI must be on `$PATH`.

@@ -26,6 +26,18 @@ Prebuilt binaries are published with each [release](https://github.com/vincentar
 
 Once the binary is on `PATH`, run `scrutin --version` to confirm the install.
 
+## Editor extensions
+
+With the binary installed above, *Scrutin* already works from any terminal. 
+
+If you want to call *Scrutin* from your editor instead, install the relevant extension:
+
+- **VS Code**: install from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=VincentArel-Bundock.scrutin-runner). See the [VS Code page](frontends/vscode.md) for usage.
+- **Positron**: install from [Open VSX](https://open-vsx.org/extension/VincentArel-Bundock/scrutin-runner) (same extension as VS Code). See the [Positron page](frontends/positron.md).
+- **RStudio**: `R CMD INSTALL` the addin. See the [RStudio page](frontends/rstudio.md).
+
+The VS Code and Positron extensions bundle *Scrutin* directly; the RStudio addin shells out to the `scrutin` binary on `PATH`.
+
 ## External tools
 
 *Scrutin* orchestrates third-party tools but does not ship them. You only need to install the ones your project uses; each tool's docs page covers what *Scrutin* does with it.
@@ -91,13 +103,3 @@ Standalone binaries. Put them on `PATH`.
 Test frameworks and data-validation tools auto-detect from marker files (`DESCRIPTION`, `pyproject.toml`, `tests/testthat/`, ...) and activate automatically. Linters and spell checkers are opt-in: add a one-line `[[suite]]` entry in `.scrutin/config.toml`, covered in [Getting Started](getting-started.md).
 
 At startup *Scrutin* checks that every required binary is reachable and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Set `[preflight] command_tools = false` to bypass the check.
-
-## Editor extensions (optional)
-
-If you want *Scrutin* inside your editor, install the relevant extension:
-
-- [VS Code](frontends/vscode.md): Marketplace or Open VSX
-- [Positron](frontends/positron.md): same `.vsix` as VS Code
-- [RStudio](frontends/rstudio.md): `R CMD INSTALL` the addin
-
-The extensions shell out to the `scrutin` binary, so they pick up whatever you installed above.

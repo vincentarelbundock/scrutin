@@ -364,6 +364,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#editor-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editor extensions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#external-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -410,17 +421,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#editor-extensions-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Editor extensions (optional)
-      
-    </span>
-  </a>
   
 </li>
       
@@ -1778,6 +1778,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#editor-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editor extensions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#external-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1827,17 +1838,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#editor-extensions-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Editor extensions (optional)
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1882,6 +1882,15 @@
 </div>
 </div>
 <p>Once the binary is on <code>PATH</code>, run <code>scrutin --version</code> to confirm the install.</p>
+<h2 id="editor-extensions">Editor extensions<a class="headerlink" href="#editor-extensions" title="Permanent link">&para;</a></h2>
+<p>With the binary installed above, <em>Scrutin</em> already works from any terminal. </p>
+<p>If you want to call <em>Scrutin</em> from your editor instead, install the relevant extension:</p>
+<ul>
+<li><strong>VS Code</strong>: install from the <a href="https://marketplace.visualstudio.com/items?itemName=VincentArel-Bundock.scrutin-runner">Visual Studio Marketplace</a>. See the <a href="../frontends/vscode/">VS Code page</a> for usage.</li>
+<li><strong>Positron</strong>: install from <a href="https://open-vsx.org/extension/VincentArel-Bundock/scrutin-runner">Open VSX</a> (same extension as VS Code). See the <a href="../frontends/positron/">Positron page</a>.</li>
+<li><strong>RStudio</strong>: <code>R CMD INSTALL</code> the addin. See the <a href="../frontends/rstudio/">RStudio page</a>.</li>
+</ul>
+<p>The VS Code and Positron extensions bundle <em>Scrutin</em> directly; the RStudio addin shells out to the <code>scrutin</code> binary on <code>PATH</code>.</p>
 <h2 id="external-tools">External tools<a class="headerlink" href="#external-tools" title="Permanent link">&para;</a></h2>
 <p><em>Scrutin</em> orchestrates third-party tools but does not ship them. You only need to install the ones your project uses; each tool's docs page covers what <em>Scrutin</em> does with it.</p>
 <h3 id="test-frameworks">Test frameworks<a class="headerlink" href="#test-frameworks" title="Permanent link">&para;</a></h3>
@@ -2016,14 +2025,6 @@
 </div>
 <p>Test frameworks and data-validation tools auto-detect from marker files (<code>DESCRIPTION</code>, <code>pyproject.toml</code>, <code>tests/testthat/</code>, ...) and activate automatically. Linters and spell checkers are opt-in: add a one-line <code>[[suite]]</code> entry in <code>.scrutin/config.toml</code>, covered in <a href="../getting-started/">Getting Started</a>.</p>
 <p>At startup <em>Scrutin</em> checks that every required binary is reachable and refuses to run a suite whose binary is missing, with a pointer to the tool's homepage. Set <code>[preflight] command_tools = false</code> to bypass the check.</p>
-<h2 id="editor-extensions-optional">Editor extensions (optional)<a class="headerlink" href="#editor-extensions-optional" title="Permanent link">&para;</a></h2>
-<p>If you want <em>Scrutin</em> inside your editor, install the relevant extension:</p>
-<ul>
-<li><a href="../frontends/vscode/">VS Code</a>: Marketplace or Open VSX</li>
-<li><a href="../frontends/positron/">Positron</a>: same <code>.vsix</code> as VS Code</li>
-<li><a href="../frontends/rstudio/">RStudio</a>: <code>R CMD INSTALL</code> the addin</li>
-</ul>
-<p>The extensions shell out to the <code>scrutin</code> binary, so they pick up whatever you installed above.</p>
 
 
 
