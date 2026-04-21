@@ -15,7 +15,7 @@ use tokio::task::JoinSet;
 
 use crate::engine::pool::{BusyCounter, CancelHandle};
 use crate::engine::protocol::{Event, Message};
-use crate::engine::run_events::FileResult;
+use crate::engine::run_events::{FileResult, PoolMsg};
 use crate::logbuf::LogBuffer;
 use crate::project::package::{Package, TestSuite};
 
@@ -50,7 +50,7 @@ impl CommandPool {
         }
     }
 
-    pub async fn run_tests(&self, test_files: &[PathBuf], tx: mpsc::UnboundedSender<FileResult>) {
+    pub(crate) async fn run_tests(&self, test_files: &[PathBuf], tx: mpsc::UnboundedSender<PoolMsg>) {
         let mut set: JoinSet<()> = JoinSet::new();
 
         for test_file in test_files {
@@ -72,20 +72,21 @@ impl CommandPool {
 
                 if cancel.is_file_cancelled(&file) {
                     drop(permit);
-                    let _ = tx.send(cancelled_result(&file));
+                    let _ = tx.send(PoolMsg::FileFinished(cancelled_result(&file)));
                     return;
                 }
 
                 busy.inc();
+                let _ = tx.send(PoolMsg::FileStarted(file.clone()));
                 let messages = run_command(&pkg, &suite, &file, timeout, log.as_ref()).await;
                 busy.dec();
                 drop(permit);
 
-                let _ = tx.send(FileResult {
+                let _ = tx.send(PoolMsg::FileFinished(FileResult {
                     file,
                     messages,
                     cancelled: false,
-                });
+                }));
             });
         }
 

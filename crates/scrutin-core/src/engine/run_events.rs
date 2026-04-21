@@ -20,9 +20,10 @@ use tokio::sync::mpsc;
 
 use crate::engine::command_pool::CommandPool;
 use crate::engine::pool::{BusyCounter, CancelHandle, ForkPool, ProcessPool};
-use crate::engine::protocol::Message;
+use crate::engine::protocol::{Event, Message};
 use crate::logbuf::LogBuffer;
-use crate::project::package::Package;
+use crate::project::package::{Package, TestSuite};
+use crate::r::LoadStrategy;
 
 pub struct FileResult {
     pub file: PathBuf,
@@ -46,8 +47,18 @@ impl FileResult {
 }
 
 pub enum RunEvent {
+    FileStarted(PathBuf),
     FileFinished(FileResult),
     Complete,
+}
+
+/// Internal message type sent from pool tasks to the run-events forwarder.
+/// Separates the "this file started" signal (needed for live status) from
+/// the "this file finished" payload so consumers can show a spinner for
+/// in-progress files without conflating them with pending ones.
+pub(crate) enum PoolMsg {
+    FileStarted(PathBuf),
+    FileFinished(FileResult),
 }
 
 #[derive(Clone)]
@@ -66,7 +77,7 @@ enum Pool {
 }
 
 impl Pool {
-    async fn run_tests(&self, files: &[PathBuf], tx: mpsc::UnboundedSender<FileResult>) {
+    async fn run_tests(&self, files: &[PathBuf], tx: mpsc::UnboundedSender<PoolMsg>) {
         match self {
             Pool::Fork(p) => p.run_tests(files, tx).await,
             Pool::Worker(p) => p.run_tests(files, tx).await,
@@ -111,6 +122,76 @@ pub async fn start_run(
         }
     }
 
+    // Local mutable copy of the package's suites so we can inject per-run
+    // env vars (e.g. `R_LIBS_USER` from a pre-pool `R CMD INSTALL`). The
+    // pool constructors borrow these by reference, and the kept tempdirs
+    // are moved into the spawned task below so they outlive the run.
+    let mut suites: Vec<TestSuite> = pkg.test_suites.clone();
+    let mut install_tempdirs: Vec<tempfile::TempDir> = Vec::new();
+    // Synthesized FileResults for install failures, drained at the start
+    // of the spawned task so frontends see them before any worker output.
+    let mut preflight_failures: Vec<FileResult> = Vec::new();
+
+    for (idx, files_for_suite) in buckets.iter().enumerate() {
+        if files_for_suite.is_empty() {
+            continue;
+        }
+        let suite = &suites[idx];
+        if suite.plugin.language() != "r" || suite.r_load != LoadStrategy::Install {
+            continue;
+        }
+        match install_r_package_to_tempdir(suite, log.as_ref()) {
+            Ok(td) => {
+                let lib_path = td.path().to_string_lossy().into_owned();
+                suites[idx]
+                    .extra_env
+                    .push(("R_LIBS_USER".into(), lib_path));
+                install_tempdirs.push(td);
+            }
+            Err(err) => {
+                let msg = format!(
+                    "R CMD INSTALL failed for suite '{}': {}",
+                    suite.plugin.name(),
+                    err
+                );
+                if let Some(ref lb) = log {
+                    lb.push("engine", &format!("{}\n", msg));
+                }
+                for f in files_for_suite {
+                    let basename = f
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .unwrap_or("")
+                        .to_string();
+                    preflight_failures.push(FileResult {
+                        file: f.clone(),
+                        messages: vec![Message::Event(Event::engine_error(
+                            basename,
+                            msg.clone(),
+                        ))],
+                        cancelled: false,
+                    });
+                }
+            }
+        }
+    }
+
+    // Drop bucket entries whose install failed, so we don't spin up a pool
+    // that would just fail per-file all over again.
+    let install_failed: std::collections::HashSet<usize> = preflight_failures
+        .iter()
+        .filter_map(|fr| {
+            suites
+                .iter()
+                .position(|s| s.owns_test_file(&fr.file))
+        })
+        .collect();
+    let buckets: Vec<Vec<PathBuf>> = buckets
+        .into_iter()
+        .enumerate()
+        .map(|(idx, b)| if install_failed.contains(&idx) { Vec::new() } else { b })
+        .collect();
+
     // Spawn one pool per non-empty suite. Every pool shares one
     // `CancelHandle` (so a single `cancel_all()` fans out) and one
     // `BusyCounter` (so the frontend's "running N workers" indicator
@@ -123,7 +204,7 @@ pub async fn start_run(
         if files_for_suite.is_empty() {
             continue;
         }
-        let suite = &pkg.test_suites[idx];
+        let suite = &suites[idx];
 
         // Command-mode plugins (jarl, ruff) get a lightweight pool that
         // spawns one short-lived command per file. Worker-mode plugins
@@ -178,8 +259,19 @@ pub async fn start_run(
     let (event_tx, event_rx) = mpsc::unbounded_channel::<RunEvent>();
 
     let cancel_for_task = handle.cancel.clone();
+    // Move tempdirs into the task so they're dropped (and the temp R
+    // libraries deleted) only after the run completes.
+    let _kept_tempdirs = install_tempdirs;
     tokio::spawn(async move {
-        let (result_tx, mut result_rx) = mpsc::unbounded_channel::<FileResult>();
+        // Keep tempdirs alive for the run's duration.
+        let _kept_tempdirs = _kept_tempdirs;
+        let (result_tx, mut result_rx) = mpsc::unbounded_channel::<PoolMsg>();
+
+        // Surface install failures up front, before any worker output, so
+        // the frontend shows them as ordinary file results.
+        for fr in preflight_failures {
+            let _ = result_tx.send(PoolMsg::FileFinished(fr));
+        }
 
         // Run suites sequentially so each suite gets the full worker pool.
         // This avoids spawning N workers x M suites simultaneously (each
@@ -220,9 +312,15 @@ pub async fn start_run(
 
         loop {
             tokio::select! {
-                result = result_rx.recv() => {
-                    match result {
-                        Some(r) => {
+                msg = result_rx.recv() => {
+                    match msg {
+                        Some(PoolMsg::FileStarted(path)) => {
+                            if event_tx.send(RunEvent::FileStarted(path)).is_err() {
+                                cancel_for_task.cancel_all();
+                                break;
+                            }
+                        }
+                        Some(PoolMsg::FileFinished(r)) => {
                             if event_tx.send(RunEvent::FileFinished(r)).is_err() {
                                 // Consumer dropped the receiver: cancel
                                 // everything in flight so workers stop
@@ -246,4 +344,58 @@ pub async fn start_run(
     });
 
     Ok((handle, event_rx))
+}
+
+/// Install an R package source tree into a fresh temp library via
+/// `R CMD INSTALL`. Returns the kept `TempDir` (caller is responsible for
+/// keeping it alive — when dropped, the lib is wiped).
+///
+/// Synchronous on purpose: this is a one-shot pre-pool step that gates the
+/// entire run. Workers can't usefully start until it finishes.
+fn install_r_package_to_tempdir(
+    suite: &TestSuite,
+    log: Option<&LogBuffer>,
+) -> Result<tempfile::TempDir> {
+    let td = tempfile::Builder::new()
+        .prefix("scrutin-r-lib-")
+        .tempdir()
+        .map_err(|e| anyhow::anyhow!("could not create temp R library dir: {e}"))?;
+    let lib = td.path().to_string_lossy().into_owned();
+    let root = suite.root.to_string_lossy().into_owned();
+
+    if let Some(lb) = log {
+        lb.push(
+            "engine",
+            &format!("R CMD INSTALL --library={} {}\n", lib, root),
+        );
+    }
+
+    let output = std::process::Command::new("R")
+        .arg("CMD")
+        .arg("INSTALL")
+        .arg("--no-multiarch")
+        .arg("--no-test-load")
+        .arg(format!("--library={}", lib))
+        .arg(&root)
+        .output()
+        .map_err(|e| anyhow::anyhow!("could not spawn R CMD INSTALL: {e}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        // Last few lines of stderr is usually the actionable bit.
+        let tail: String = stderr
+            .lines()
+            .rev()
+            .take(20)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect::<Vec<_>>()
+            .join("\n");
+        let combined = if tail.is_empty() { stdout.into_owned() } else { tail };
+        anyhow::bail!("exit {}\n{}", output.status, combined);
+    }
+
+    Ok(td)
 }

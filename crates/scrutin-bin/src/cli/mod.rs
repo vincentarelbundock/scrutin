@@ -284,6 +284,7 @@ fn discover_for_verb(root: &Path) -> Result<Package> {
         Vec::new(),
         |_| Ok(scrutin_core::project::package::WorkerHookPaths::default()),
         Default::default(),
+        None,
     )
 }
 
@@ -436,6 +437,7 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
                 })
             },
             cfg.env.clone(),
+            cfg.r.load,
         )?
     };
     let n_workers = cfg.run.workers.unwrap_or_else(ProcessPool::default_workers);
@@ -504,14 +506,46 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
 
     // Watch mode: TUI and web use the config default (true); plain and
     // JUnit default to one-shot. Override with `-s watch.enabled=true/false`.
-    let watch = match reporter {
+    let mut watch = match reporter {
         Reporter::Tui | Reporter::Web { .. } => cfg.watch.enabled,
         Reporter::Plain | Reporter::Github | Reporter::Junit(_) | Reporter::List => false,
     };
 
+    // Collect UI-level notices (config warnings, compatibility downgrades)
+    // to surface in the TUI notice bar and web toast. Plain/GitHub reporters
+    // get the same messages emitted to stderr instead.
+    let mut notices: Vec<String> = Vec::new();
+
+    // `load = "install"` runs `R CMD INSTALL` before each run cycle.
+    // In watch mode that means a full recompile on every file change, which
+    // is almost never what the user wants. Downgrade to one-shot and warn.
+    if watch {
+        if let Some(s) = pkg
+            .test_suites
+            .iter()
+            .find(|s| s.r_load == scrutin_core::r::LoadStrategy::Install)
+        {
+            let msg = format!(
+                "suite '{}' has load = \"install\"; watch mode disabled. \
+                 Use load = \"load_all\" or load = \"library\" to enable watch mode.",
+                s.plugin.name()
+            );
+            notices.push(msg.clone());
+            watch = false;
+        }
+    }
+
+    // Plain and GitHub reporters have no notice bar: emit notices to stderr.
+    if matches!(reporter, Reporter::Plain | Reporter::Github | Reporter::Junit(_)) {
+        for msg in &notices {
+            eprintln!("{}", style::yellow(format!("warning: {msg}")));
+        }
+    }
+
     let exit_code = match reporter {
         Reporter::List => unreachable!("handled above"),
         Reporter::Web { addr } => {
+            let notices_for_web = notices.clone();
             let mut groups: Vec<scrutin_web::WireFilterGroup> = cfg
                 .filter
                 .groups
@@ -544,6 +578,7 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
                 cfg.agent.clone(),
                 groups,
                 active_group,
+                notices_for_web,
             )
             .await?;
             0
@@ -557,6 +592,7 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
                 n_workers,
                 watch,
                 dep_map,
+                notices,
                 &cfg,
             )
             .await?
@@ -694,6 +730,7 @@ async fn run_tui_mode(
     n_workers: usize,
     watch: bool,
     dep_map: Option<std::collections::HashMap<String, Vec<String>>>,
+    notices: Vec<String>,
     cfg: &Config,
 ) -> Result<i32> {
     let log = logbuf::LogBuffer::new();
@@ -725,6 +762,7 @@ async fn run_tui_mode(
         watch,
         dep_map,
         log,
+        notices,
         run_groups,
         active_group,
         cfg.run.reruns,

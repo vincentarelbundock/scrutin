@@ -9,7 +9,7 @@ use crate::state::*;
 use super::breadcrumb::draw_breadcrumb_bar;
 use super::counts::draw_counts_bar;
 use super::file_list::draw_file_list;
-use super::hints::draw_hints_bar;
+use super::hints::{draw_hints_bar, draw_notice_bar};
 use super::icons::test_icon_color;
 use super::layout::{main_focused, pane_block, split_panes, PaneLayout};
 use super::source::{file_line_count, load_source_context_ex};
@@ -18,7 +18,9 @@ pub(super) fn draw_normal(f: &mut ratatui::Frame, state: &mut AppState) {
     // Vertical chrome collapses on short terminals: drop the hints bar
     // first, then the counts bar. The header always stays.
     let total_h = f.area().height;
+    let notice = state.active_notice();
     let show_counts = total_h >= COUNTS_BAR_MIN_ROWS;
+    let show_notice = total_h >= HINTS_BAR_MIN_ROWS && notice.is_some();
     let show_hints  = total_h >= HINTS_BAR_MIN_ROWS;
 
     let mut constraints: Vec<Constraint> = vec![
@@ -26,6 +28,7 @@ pub(super) fn draw_normal(f: &mut ratatui::Frame, state: &mut AppState) {
         Constraint::Min(3),    // file list / split body
     ];
     if show_counts { constraints.push(Constraint::Length(1)); }
+    if show_notice { constraints.push(Constraint::Length(1)); }
     if show_hints  { constraints.push(Constraint::Length(1)); }
 
     let chunks = Layout::default()
@@ -48,6 +51,7 @@ pub(super) fn draw_normal(f: &mut ratatui::Frame, state: &mut AppState) {
     }
     let mut idx = 2;
     if show_counts { draw_counts_bar(f, state, chunks[idx]); idx += 1; }
+    if show_notice { draw_notice_bar(f, notice.as_deref().unwrap_or(""), chunks[idx]); idx += 1; }
     if show_hints  { draw_hints_bar(f, state, chunks[idx]); }
 }
 

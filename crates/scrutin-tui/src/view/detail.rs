@@ -7,7 +7,7 @@ use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
 
 use crate::state::*;
 use super::breadcrumb::draw_breadcrumb_bar;
-use super::hints::format_key;
+use super::hints::{draw_notice_bar, format_key};
 use super::icons::test_icon_color;
 use super::layout::{adjust_scroll, split_panes, PaneLayout};
 use super::sort::sort_tests;
@@ -16,16 +16,20 @@ use super::source::load_source_context_ex;
 pub(super) fn draw_detail(f: &mut ratatui::Frame, state: &mut AppState) {
     let list_pct = state.current_list_pct();
     let horizontal = state.current_horizontal();
-    let preview_height = Constraint::Length(0);
+    let notice = state.active_notice();
+    let show_notice = f.area().height >= HINTS_BAR_MIN_ROWS && notice.is_some();
+
+    let mut constraints: Vec<Constraint> = vec![
+        Constraint::Length(1), // header
+        Constraint::Min(3),    // body
+        Constraint::Length(0), // preview (unused)
+    ];
+    if show_notice { constraints.push(Constraint::Length(1)); }
+    constraints.push(Constraint::Length(1)); // status bar
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(1),
-            Constraint::Min(3),
-            preview_height,
-            Constraint::Length(1),
-        ])
+        .constraints(constraints)
         .split(f.area());
 
     draw_breadcrumb_bar(f, state, chunks[0]);
@@ -81,7 +85,9 @@ pub(super) fn draw_detail(f: &mut ratatui::Frame, state: &mut AppState) {
         ];
         f.render_widget(Paragraph::new(lines), body_area);
         state.nav.source_scroll_max = 0;
-        draw_detail_status_bar(f, chunks[3]);
+        let bar_base = 3 + usize::from(show_notice);
+        if show_notice { draw_notice_bar(f, notice.as_deref().unwrap_or(""), chunks[3]); }
+        draw_detail_status_bar(f, chunks[bar_base]);
         return;
     }
 
@@ -101,7 +107,9 @@ pub(super) fn draw_detail(f: &mut ratatui::Frame, state: &mut AppState) {
         }
     }
 
-    draw_detail_status_bar(f, chunks[3]);
+    let bar_base = 3 + usize::from(show_notice);
+    if show_notice { draw_notice_bar(f, notice.as_deref().unwrap_or(""), chunks[3]); }
+    draw_detail_status_bar(f, chunks[bar_base]);
 }
 
 fn build_detail_test_items(

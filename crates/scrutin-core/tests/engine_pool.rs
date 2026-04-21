@@ -148,6 +148,7 @@ fn fake_package(root: &Path) -> Package {
         vec!["src/**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     Package {
@@ -185,6 +186,7 @@ async fn collect_results(
     let mut out = Vec::new();
     while let Some(evt) = rx.recv().await {
         match evt {
+            RunEvent::FileStarted(_) => {}
             RunEvent::FileFinished(fr) => out.push(fr),
             RunEvent::Complete => break,
         }
@@ -296,6 +298,7 @@ async fn pool_honors_worker_concurrency_cap() {
         vec!["src/**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let pkg = Package {
@@ -448,6 +451,7 @@ async fn pool_multi_suite_fan_out_runs_concurrently() {
         vec!["src/**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let suite_b = TestSuite::new(
@@ -457,6 +461,7 @@ async fn pool_multi_suite_fan_out_runs_concurrently() {
         vec!["src/**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let pkg = Package {
@@ -511,6 +516,7 @@ async fn pool_shared_cancel_handle_cancels_all_suites() {
         vec!["src/**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let suite_b = TestSuite::new(
@@ -520,6 +526,7 @@ async fn pool_shared_cancel_handle_cancels_all_suites() {
         vec!["src/**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let pkg = Package {
@@ -552,6 +559,7 @@ async fn pool_shared_cancel_handle_cancels_all_suites() {
     let mut count = 0usize;
     while let Some(evt) = rx.recv().await {
         match evt {
+            RunEvent::FileStarted(_) => {}
             RunEvent::FileFinished(_) => count += 1,
             RunEvent::Complete => break,
         }
@@ -592,6 +600,7 @@ async fn pool_cancel_all_stops_remaining_files() {
         vec!["src/**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let pkg = Package {
@@ -614,6 +623,7 @@ async fn pool_cancel_all_stops_remaining_files() {
     let mut cancelled_count = 0usize;
     while let Some(evt) = rx.recv().await {
         match evt {
+            RunEvent::FileStarted(_) => {}
             RunEvent::FileFinished(fr) => {
                 if fr.cancelled {
                     cancelled_count += 1;
@@ -680,6 +690,7 @@ async fn pool_finds_runner_when_suite_root_differs_from_pkg_root() {
         vec!["src/**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let pkg = Package {

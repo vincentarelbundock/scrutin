@@ -66,6 +66,17 @@ pub(super) fn draw_file_list(f: &mut ratatui::Frame, state: &mut AppState, area:
             .max(1)
     } else { 1 };
 
+    // Spinning-ball frame for running files: quarter-filled circles that
+    // cycle at ~5 fps (200 ms/frame, 800 ms/rotation), driven by wall-clock
+    // time so all running rows animate in sync.
+    const SPINNER: [&str; 4] = ["\u{25d0}", "\u{25d3}", "\u{25d1}", "\u{25d2}"];
+    let spinner_frame = (std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+        / 200
+        % 4) as usize;
+
     let end = (state.nav.file_scroll + height).min(visible.len());
     let items: Vec<ListItem> = visible[state.nav.file_scroll..end]
         .iter()
@@ -75,7 +86,7 @@ pub(super) fn draw_file_list(f: &mut ratatui::Frame, state: &mut AppState, area:
             let entry = &state.files[i];
             let (icon, color) = match &entry.status {
                 FileStatus::Pending => ("\u{25cb}", Color::DarkGray),
-                FileStatus::Running => ("\u{25cc}", Color::Yellow),
+                FileStatus::Running => (SPINNER[spinner_frame], Color::Yellow),
                 FileStatus::Passed { warned, .. } if *warned > 0 => ("\u{25cf}", Color::Yellow),
                 FileStatus::Passed   { .. } => ("\u{25cf}", Color::Green),
                 FileStatus::Failed   { .. } => ("\u{25cf}", Color::Red),

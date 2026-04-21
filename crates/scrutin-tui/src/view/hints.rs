@@ -4,7 +4,7 @@
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::Paragraph;
+use ratatui::widgets::{Paragraph, Wrap};
 
 use crate::keymap::{self, Binding, PaletteKind};
 use crate::state::*;
@@ -58,6 +58,22 @@ pub(super) fn draw_hints_bar(f: &mut ratatui::Frame, state: &AppState, area: Rec
         spans.push(Span::styled(label, Style::default().fg(Color::Cyan)));
     }
     f.render_widget(Paragraph::new(Line::from(spans)), area);
+}
+
+/// Render a one-line notice bar. Call only when `state.active_notice()` is
+/// `Some`; the caller is responsible for allocating the row.
+pub(super) fn draw_notice_bar(f: &mut ratatui::Frame, msg: &str, area: Rect) {
+    let text = format!(" \u{26a0}  {}  \u{2022}  L: log", msg);
+    f.render_widget(
+        Paragraph::new(Line::from(Span::styled(
+            text,
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        )))
+        .wrap(Wrap { trim: true }),
+        area,
+    );
 }
 
 /// Format a binding's key chord for the help overlay ("Ctrl-d", "j", "\u{21b5}").

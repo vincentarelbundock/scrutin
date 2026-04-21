@@ -88,6 +88,7 @@ pub async fn run(
                     cancel.cancel_all();
                 }
             }
+            RunEvent::FileStarted(_) => {}
             RunEvent::Complete => break,
         }
     }

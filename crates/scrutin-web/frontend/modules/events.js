@@ -27,7 +27,7 @@ export function connectEvents() {
   const kinds = [
     "run_started", "file_started", "file_finished",
     "run_complete", "run_cancelled", "watcher_triggered",
-    "log", "heartbeat",
+    "notice", "log", "heartbeat",
   ];
   for (const k of kinds) {
     es.addEventListener(k, (ev) => {
@@ -121,6 +121,10 @@ function apply(kind, data) {
 
     case "watcher_triggered":
       setStatus(`watcher: ${data.changed_files.length} files changed`);
+      break;
+
+    case "notice":
+      toast(data.message);
       break;
 
     case "log":

@@ -11,6 +11,7 @@ use ratatui::widgets::{Paragraph, Wrap};
 use crate::find_source_for_test;
 use crate::state::{self, *};
 use super::breadcrumb::draw_breadcrumb_bar;
+use super::hints::draw_notice_bar;
 use super::layout::pane_block;
 use super::source::load_source_context;
 use state::{MIN_LIST_COLS, MIN_MAIN_COLS};
@@ -22,9 +23,12 @@ pub(super) fn draw_failure(f: &mut ratatui::Frame, state: &mut AppState) {
     let failure_file_path = failure.file_path.clone();
     let failure_file_name = failure.file.clone();
 
+    let notice = state.active_notice();
+    let show_notice = f.area().height >= HINTS_BAR_MIN_ROWS && notice.is_some();
     let show_hints = f.area().height >= HINTS_BAR_MIN_ROWS;
     let mut constraints: Vec<Constraint> = vec![Constraint::Length(1), Constraint::Min(5)];
-    if show_hints { constraints.push(Constraint::Length(1)); }
+    if show_notice { constraints.push(Constraint::Length(1)); }
+    if show_hints  { constraints.push(Constraint::Length(1)); }
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(constraints)
@@ -72,12 +76,17 @@ pub(super) fn draw_failure(f: &mut ratatui::Frame, state: &mut AppState) {
         state.nav.failure_scroll = 0;
     }
 
+    let mut chrome_idx = 2;
+    if show_notice {
+        draw_notice_bar(f, notice.as_deref().unwrap_or(""), chunks[chrome_idx]);
+        chrome_idx += 1;
+    }
     if show_hints {
         let line = Line::from(Span::styled(
             " j/k next/prev  e edit test  s edit source  Esc back",
             Style::default().fg(Color::DarkGray),
         ));
-        f.render_widget(Paragraph::new(line), chunks[2]);
+        f.render_widget(Paragraph::new(line), chunks[chrome_idx]);
     }
 }
 

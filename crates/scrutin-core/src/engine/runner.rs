@@ -76,6 +76,20 @@ impl RProcess {
         for (k, v) in plugin.env_vars(&suite.root) {
             cmd.env(k, v);
         }
+        // Load strategy: tells the R runner how to make the package under
+        // test available (`load_all` / `library` / `none`). Non-R suites
+        // ignore it. Only emit when not the default so we don't spray a
+        // meaningless env var into pytest/ruff/skyspell subprocesses.
+        if plugin.language() == "r"
+            && suite.r_load != crate::r::LoadStrategy::default()
+        {
+            cmd.env("SCRUTIN_LOAD_STRATEGY", suite.r_load.worker_env_value());
+        }
+        // Per-suite extra env populated by the engine (e.g. R_LIBS_USER
+        // pointing at the temp library written by a pre-pool R CMD INSTALL).
+        for (k, v) in &suite.extra_env {
+            cmd.env(k, v);
+        }
         if let Some(p) = &suite.worker_hooks.startup {
             cmd.env("SCRUTIN_WORKER_STARTUP", p);
         }

@@ -303,6 +303,19 @@ impl AppState {
         tokio::spawn(async move {
             while let Some(ev) = rx.recv().await {
                 match ev {
+                    RunEvent::FileStarted(path) => {
+                        let rel = path.strip_prefix(&state.pkg.root)
+                            .unwrap_or(&path)
+                            .to_path_buf();
+                        let file_id = FileId::of(&rel);
+                        {
+                            let mut fmap = state.files.write().await;
+                            if let Some(f) = fmap.get_mut(&file_id) {
+                                f.status = WireStatus::Running;
+                            }
+                        }
+                        state.publish(WireEvent::FileStarted { run_id, file_id }).await;
+                    }
                     RunEvent::FileFinished(result) => {
                         // Merge runtime dep observations into the dep map.
                         if let Some((test_file, sources)) = result.deps() {

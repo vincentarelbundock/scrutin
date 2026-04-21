@@ -24,6 +24,7 @@ tokio.workspace = true
 rusqlite.workspace = true
 uuid.workspace = true
 globset.workspace = true
+tempfile = "3"
 
 [dev-dependencies]
 tempfile = "3"

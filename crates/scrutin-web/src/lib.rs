@@ -42,6 +42,7 @@ pub async fn run_web(
     agent: scrutin_core::project::config::AgentConfig,
     groups: Vec<WireFilterGroup>,
     active_group: Option<String>,
+    notices: Vec<String>,
 ) -> Result<()> {
     if !addr.ip().is_loopback() {
         anyhow::bail!(
@@ -51,6 +52,9 @@ pub async fn run_web(
     }
 
     let state = AppState::new(Arc::new(pkg), test_files, n_workers, watch, timeout_file_ms, timeout_run_ms, fork_workers, editor, agent, groups, active_group);
+    for msg in notices {
+        state.publish(crate::wire::WireEvent::Notice { message: msg }).await;
+    }
 
     // Build dep map eagerly so the watcher can resolve source→test edges.
     state.start_dep_map_build();

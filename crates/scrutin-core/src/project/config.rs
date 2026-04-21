@@ -16,6 +16,7 @@ pub struct Config {
     /// auto-detection against the project root.
     #[serde(default, rename = "suite")]
     pub suites: Vec<SuiteConfig>,
+    pub r: RConfig,
     pub python: PythonConfig,
     pub pytest: PytestConfig,
     pub skyspell: SkyspellConfig,
@@ -85,6 +86,20 @@ pub struct LanguageHooks {
 pub struct ToolHooks {
     pub worker_startup: Option<PathBuf>,
     pub worker_teardown: Option<PathBuf>,
+}
+
+/// R-level config (applies to all R tools: testthat, tinytest, pointblank,
+/// validate). Per-suite `[[suite]] load` wins when set.
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
+#[serde(default)]
+pub struct RConfig {
+    /// Default load strategy for every R suite that doesn't set its own
+    /// `[[suite]] load`. One of `load_all`, `install`, `library`, `none`.
+    /// When unset (the default), scrutin auto-detects: packages with
+    /// `NeedsCompilation: yes` in DESCRIPTION or C/C++/Fortran files under
+    /// `src/` get `install`; pure-R packages get `load_all`.
+    /// Override from the CLI with `-s r.load=install`.
+    pub load: Option<crate::r::LoadStrategy>,
 }
 
 /// Python-level config (applies to all Python tools: pytest,
@@ -276,6 +291,11 @@ pub struct SuiteConfig {
     /// the engine reads this file instead of the embedded default.
     #[serde(default)]
     pub runner: Option<PathBuf>,
+    /// How an R suite makes the package available to its workers.
+    /// One of `load_all`, `install`, `library`, `none`. When unset, falls
+    /// back to `[r] load` (default `load_all`). Ignored for non-R suites.
+    #[serde(default)]
+    pub load: Option<crate::r::LoadStrategy>,
 }
 
 fn default_suite_root() -> PathBuf {

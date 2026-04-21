@@ -674,6 +674,10 @@ pub(super) struct AppState {
 
     // Shared log buffer (subprocess stderr, pool/runner events).
     pub(super) log: LogBuffer,
+    /// Ephemeral notices (config warnings, compatibility downgrades). Each
+    /// entry carries its push time so the view can expire it after a TTL.
+    /// Also written to `log` so `L` shows them persistently.
+    pub(super) notices: std::collections::VecDeque<(String, Instant)>,
     /// Shared overlay state for all overlay modes (Help, ActionOutput,
     /// Palette menus). Reset when pushing a new overlay mode.
     pub(super) overlay: OverlayState,
@@ -808,11 +812,33 @@ impl AppState {
             pkg_root: pkg.root.clone(),
             agent,
             log,
+            notices: std::collections::VecDeque::new(),
             overlay: OverlayState::default(),
             pane_rects: PaneRects::default(),
             suite_actions,
             suite_roots,
         }
+    }
+
+    /// Push a notice that appears in the temporary notice bar and also in
+    /// the persistent `L` log overlay.
+    pub(super) fn push_notice(&mut self, msg: impl Into<String>) {
+        let msg = msg.into();
+        self.log.push("scrutin", &format!("{}\n", msg));
+        self.notices.push_back((msg, Instant::now()));
+    }
+
+    /// Return the most recently pushed notice if it is still within the
+    /// display TTL (8 s), expiring stale entries from the front as a side
+    /// effect. Returns `None` when no live notice exists.
+    pub(super) fn active_notice(&mut self) -> Option<String> {
+        let ttl = Duration::from_secs(8);
+        while self.notices.front().is_some_and(|(_, t)| t.elapsed() >= ttl) {
+            self.notices.pop_front();
+        }
+        self.notices.back()
+            .filter(|(_, t)| t.elapsed() < ttl)
+            .map(|(s, _)| s.clone())
     }
 
     /// Top of the mode stack. Stack invariant: never empty.
@@ -1008,16 +1034,15 @@ impl AppState {
                 entry.attempt = 0;
                 entry.flaky = false;
                 if files_to_run.contains(&entry.path) {
-                    entry.status = FileStatus::Running;
+                    entry.status = FileStatus::Pending;
                     entry.tests.clear();
                 }
             }
         } else {
             // Rerun continuation: roll back the previous-attempt totals
             // for the files we're about to re-run, then mark them
-            // running with the new attempt counter. Failures from prior
-            // attempts on these files are evicted from `failures` so the
-            // failure-list view doesn't show stale entries.
+            // pending with the new attempt counter. They'll flip to
+            // Running when a worker actually picks them up.
             self.run.current_attempt = attempt;
             self.failures
                 .retain(|f| !files_to_run.contains(&f.file_path));
@@ -1029,9 +1054,15 @@ impl AppState {
                 // global counters before clearing it.
                 self.run.run_totals.saturating_sub(&entry.status.counts());
                 entry.attempt = attempt;
-                entry.status = FileStatus::Running;
+                entry.status = FileStatus::Pending;
                 entry.tests.clear();
             }
+        }
+    }
+
+    pub(super) fn set_file_running(&mut self, path: &std::path::Path) {
+        if let Some(entry) = self.files.iter_mut().find(|e| e.path == path) {
+            entry.status = FileStatus::Running;
         }
     }
 

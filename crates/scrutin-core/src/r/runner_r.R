@@ -213,6 +213,45 @@ if (nzchar(.scrutin_env$worker_startup_path)) {
 # clear, actionable message. Otherwise the user sees a generic "there
 # is no package called 'pkgload'" repeated once per test file.
 .scrutin_env$load_package <- function() {
+  # Always parse the package name from DESCRIPTION -- setup_tracing() needs
+  # it regardless of which loading strategy we pick, and some strategies
+  # (library/none) skip pkgload entirely.
+  desc <- file.path(.scrutin_env$pkg_dir, "DESCRIPTION")
+  if (file.exists(desc)) {
+    lines <- readLines(desc, warn = FALSE)
+    m <- grep("^Package:", lines, value = TRUE)
+    if (length(m) > 0) {
+      .scrutin_env$pkg_name <- trimws(sub("^Package:", "", m[1]))
+    }
+  }
+
+  strategy <- Sys.getenv("SCRUTIN_LOAD_STRATEGY", "load_all")
+
+  if (strategy == "none") {
+    return(invisible())
+  }
+
+  if (strategy == "library") {
+    pkg <- .scrutin_env$pkg_name
+    if (is.null(pkg) || !nzchar(pkg)) return(invisible())
+    tryCatch(
+      suppressPackageStartupMessages(
+        library(pkg, character.only = TRUE)
+      ),
+      error = function(e) {
+        .scrutin_env$emit(.scrutin_env$event(
+          file = "",
+          outcome = "error",
+          subject_kind = "engine",
+          subject_name = "<library>",
+          message = paste("library() failed:", conditionMessage(e))
+        ))
+      }
+    )
+    return(invisible())
+  }
+
+  # Default: pkgload::load_all (fast inner loop for pure-R packages).
   if (!requireNamespace("pkgload", quietly = TRUE)) {
     .scrutin_env$emit(.scrutin_env$event(
       file = "<worker_startup>",
@@ -222,7 +261,7 @@ if (nzchar(.scrutin_env$worker_startup_path)) {
       message = paste(
         "scrutin's default R runner requires 'pkgload', which is not installed.",
         "Fix: install.packages('pkgload')",
-        "Or edit .scrutin/runners/<tool>.R to use library() instead of pkgload::load_all().",
+        "Or set [[suite]] load = \"install\" / \"library\" in .scrutin/config.toml.",
         sep = "\n"
       )
     ))
@@ -230,14 +269,6 @@ if (nzchar(.scrutin_env$worker_startup_path)) {
   }
   tryCatch({
     pkgload::load_all(.scrutin_env$pkg_dir, quiet = TRUE)
-    desc <- file.path(.scrutin_env$pkg_dir, "DESCRIPTION")
-    if (file.exists(desc)) {
-      lines <- readLines(desc, warn = FALSE)
-      m <- grep("^Package:", lines, value = TRUE)
-      if (length(m) > 0) {
-        .scrutin_env$pkg_name <- trimws(sub("^Package:", "", m[1]))
-      }
-    }
   }, error = function(e) {
     .scrutin_env$emit(.scrutin_env$event(
       file = "",

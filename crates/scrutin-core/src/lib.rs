@@ -14,6 +14,7 @@ pub mod filter;
 pub mod git;
 pub mod keymap;
 pub mod logbuf;
+pub mod noticebuf;
 pub mod metadata;
 pub mod preflight;
 pub mod project;

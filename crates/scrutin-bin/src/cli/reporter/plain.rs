@@ -306,6 +306,7 @@ async fn run_via_engine(
                     cancel.cancel_all();
                 }
             }
+            RunEvent::FileStarted(_) => {}
             RunEvent::Complete => break,
         }
     }

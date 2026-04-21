@@ -49,6 +49,7 @@ pub async fn run_tui(
     watch: bool,
     mut dep_map: Option<std::collections::HashMap<String, Vec<String>>>,
     log: LogBuffer,
+    notices: Vec<String>,
     run_groups: Vec<RunGroup>,
     active_group: Option<String>,
     rerun_max: u32,
@@ -89,6 +90,9 @@ pub async fn run_tui(
     )));
     {
         let mut st = state.lock().unwrap();
+        for msg in notices {
+            st.push_notice(msg);
+        }
         if let Some(name) = active_group.as_deref() {
             st.filter.group = run_groups.iter().position(|g| g.name == name);
         }
@@ -211,6 +215,9 @@ pub async fn run_tui(
             None => break,
         };
         match evt {
+            TuiEvent::Run(RunEvent::FileStarted(path)) => {
+                state.lock().unwrap().set_file_running(&path);
+            }
             TuiEvent::Run(RunEvent::FileFinished(result)) => {
                 // Merge runtime dep observations before consuming the result.
                 if let Some((test_file, sources)) = result.deps() {

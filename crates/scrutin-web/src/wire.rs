@@ -385,6 +385,12 @@ pub enum WireEvent {
         changed_files: Vec<String>,
         will_rerun: Vec<FileId>,
     },
+    /// UI-level notice (config warning, compatibility downgrade, etc.).
+    /// Shown as a temporary toast in the browser and accessible via the
+    /// log overlay. Distinct from `Log` which carries subprocess stderr.
+    Notice {
+        message: String,
+    },
     Log {
         level: String,
         message: String,
@@ -407,6 +413,7 @@ impl WireEvent {
             Self::RunComplete { .. } => "run_complete",
             Self::RunCancelled { .. } => "run_cancelled",
             Self::WatcherTriggered { .. } => "watcher_triggered",
+            Self::Notice { .. } => "notice",
             Self::Log { .. } => "log",
             Self::Heartbeat { .. } => "heartbeat",
         }

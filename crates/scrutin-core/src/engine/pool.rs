@@ -12,7 +12,7 @@ use tokio::sync::{Notify, Semaphore, mpsc};
 use tokio::task::JoinSet;
 
 use crate::engine::protocol::{Event, Message};
-use crate::engine::run_events::FileResult;
+use crate::engine::run_events::{FileResult, PoolMsg};
 use crate::engine::runner::RProcess;
 use crate::logbuf::LogBuffer;
 use crate::project::package::{Package, TestSuite};
@@ -167,7 +167,7 @@ impl ProcessPool {
         self.busy.clone()
     }
 
-    pub async fn run_tests(&self, test_files: &[PathBuf], tx: mpsc::UnboundedSender<FileResult>) {
+    pub(crate) async fn run_tests(&self, test_files: &[PathBuf], tx: mpsc::UnboundedSender<PoolMsg>) {
         let mut set: JoinSet<()> = JoinSet::new();
 
         // Each spawned task acquires a semaphore permit (which awaits if
@@ -204,7 +204,7 @@ impl ProcessPool {
                         .lock()
                         .map(|s| s.clone())
                         .unwrap_or_else(|_| "worker startup hook failed".to_string());
-                    let _ = tx.send(startup_error_result(&file, &msg));
+                    let _ = tx.send(PoolMsg::FileFinished(startup_error_result(&file, &msg)));
                     drop(permit);
                     return;
                 }
@@ -212,7 +212,7 @@ impl ProcessPool {
                 // Pre-flight: if cancelled before we even popped a worker,
                 // synthesize a Cancelled result and skip.
                 if cancel.is_file_cancelled(&file) {
-                    let _ = tx.send(cancelled_result(&file));
+                    let _ = tx.send(PoolMsg::FileFinished(cancelled_result(&file)));
                     drop(permit);
                     return;
                 }
@@ -225,7 +225,7 @@ impl ProcessPool {
                     None => {
                         // Should be unreachable: a permit implies a worker.
                         // Bail defensively rather than unwrap-panic.
-                        let _ = tx.send(FileResult {
+                        let _ = tx.send(PoolMsg::FileFinished(FileResult {
                             file: file.clone(),
                             messages: vec![Message::Event(Event::engine_error(
                                 file.file_name()
@@ -235,12 +235,14 @@ impl ProcessPool {
                                 "internal: worker queue empty under permit",
                             ))],
                             cancelled: false,
-                        });
+                        }));
                         drop(permit);
                         return;
                     }
                 };
                 busy.inc();
+                // Signal that this file is now actively being processed.
+                let _ = tx.send(PoolMsg::FileStarted(file.clone()));
 
                 // Re-check after acquiring the worker — the user may have
                 // cancelled while we were waiting for the queue.
@@ -248,7 +250,7 @@ impl ProcessPool {
                     busy.dec();
                     workers.lock().unwrap().push_back(worker);
                     drop(permit);
-                    let _ = tx.send(cancelled_result(&file));
+                    let _ = tx.send(PoolMsg::FileFinished(cancelled_result(&file)));
                     return;
                 }
 
@@ -277,7 +279,7 @@ impl ProcessPool {
                         busy.dec();
                         workers.lock().unwrap().push_back(worker);
                         drop(permit);
-                        let _ = tx.send(cancelled_result(&file));
+                        let _ = tx.send(PoolMsg::FileFinished(cancelled_result(&file)));
                         return;
                     }
                     Outcome::Finished(Ok(msgs)) => msgs,
@@ -297,7 +299,7 @@ impl ProcessPool {
                             busy.dec();
                             workers.lock().unwrap().push_back(worker);
                             drop(permit);
-                            let _ = tx.send(startup_error_result(&file, rest));
+                            let _ = tx.send(PoolMsg::FileFinished(startup_error_result(&file, rest)));
                             return;
                         }
                         // Worker is likely dead — try to respawn it.
@@ -333,11 +335,11 @@ impl ProcessPool {
                 busy.dec();
                 workers.lock().unwrap().push_back(worker);
                 drop(permit);
-                let _ = tx.send(FileResult {
+                let _ = tx.send(PoolMsg::FileFinished(FileResult {
                     file,
                     messages,
                     cancelled: false,
-                });
+                }));
             });
         }
 
@@ -470,7 +472,7 @@ impl ForkPool {
         self.busy.clone()
     }
 
-    pub async fn run_tests(&self, test_files: &[PathBuf], tx: mpsc::UnboundedSender<FileResult>) {
+    pub(crate) async fn run_tests(&self, test_files: &[PathBuf], tx: mpsc::UnboundedSender<PoolMsg>) {
         let mut set: JoinSet<()> = JoinSet::new();
 
         for test_file in test_files {
@@ -491,11 +493,12 @@ impl ForkPool {
 
                 if cancel.is_file_cancelled(&file) {
                     drop(permit);
-                    let _ = tx.send(cancelled_result(&file));
+                    let _ = tx.send(PoolMsg::FileFinished(cancelled_result(&file)));
                     return;
                 }
 
                 busy.inc();
+                let _ = tx.send(PoolMsg::FileStarted(file.clone()));
 
                 // Write the file path to the parent's stdin AND accept the
                 // child's TCP connection under the same lock. This serializes
@@ -565,7 +568,7 @@ impl ForkPool {
                     Ok(msgs) => msgs,
                     Err(e) => {
                         if cancel.is_file_cancelled(&file) {
-                            let _ = tx.send(cancelled_result(&file));
+                            let _ = tx.send(PoolMsg::FileFinished(cancelled_result(&file)));
                             return;
                         }
                         let name = file.file_name()
@@ -579,11 +582,11 @@ impl ForkPool {
                     }
                 };
 
-                let _ = tx.send(FileResult {
+                let _ = tx.send(PoolMsg::FileFinished(FileResult {
                     file,
                     messages,
                     cancelled: false,
-                });
+                }));
             });
         }
 

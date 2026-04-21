@@ -46,6 +46,7 @@ fn pytest_package(root: &Path) -> Package {
         ],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     Package {
@@ -512,6 +513,7 @@ fn unified_dep_map_merges_r_cache_and_python_imports() {
         vec!["R/**/*.R".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let py_suite = TestSuite::new(
@@ -524,6 +526,7 @@ fn unified_dep_map_merges_r_cache_and_python_imports() {
         vec!["src/**/*.py".into(), "lib/**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let pkg = Package {

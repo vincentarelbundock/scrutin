@@ -13,12 +13,93 @@
 use std::path::Path;
 use std::sync::Arc;
 
+use serde::{Deserialize, Serialize};
+
 use crate::analysis::walk;
 use crate::engine::protocol::Outcome;
 use crate::project::plugin::Plugin;
 
 pub mod depmap;
 pub mod jarl;
+
+/// How an R suite makes the package under test available to its workers.
+///
+/// - `LoadAll` (default): `pkgload::load_all()` per worker. Fast inner loop,
+///   reflects current source. Requires a working compile toolchain.
+/// - `Install`: `R CMD INSTALL` once into a temp library before workers
+///   spawn; workers then `library(pkg)`. The right choice for packages with
+///   non-trivial `src/` whose tests are designed against the installed
+///   package (e.g. RcppArmadillo's tinytest). Watch mode is silently
+///   downgraded to one-shot when this strategy is active.
+/// - `Library`: workers just `library(pkg)`; assumes the package is already
+///   installed somewhere on `.libPaths()`. No compile, no install.
+/// - `None`: skip package loading entirely. For tests that import nothing
+///   from the package under test.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LoadStrategy {
+    #[default]
+    LoadAll,
+    Install,
+    Library,
+    None,
+}
+
+impl LoadStrategy {
+    /// Value passed to the worker via `SCRUTIN_LOAD_STRATEGY`. Matches the
+    /// strings `runner_r.R::load_package()` checks. `Install` is reported
+    /// to the worker as `library` because the install is performed host-side
+    /// before spawn; the worker only needs to call `library(pkg)`.
+    pub fn worker_env_value(self) -> &'static str {
+        match self {
+            LoadStrategy::LoadAll => "load_all",
+            LoadStrategy::Install | LoadStrategy::Library => "library",
+            LoadStrategy::None => "none",
+        }
+    }
+}
+
+/// Resolve the effective load strategy for a suite. When `explicit` is
+/// `Some`, it wins unconditionally. When `None`, auto-detect by inspecting
+/// the suite root: if the R package declares compiled code (via
+/// `NeedsCompilation: yes` in DESCRIPTION or by having C/C++/Fortran sources
+/// under `src/`), choose `Install`; otherwise `LoadAll`.
+pub fn resolve_r_load(explicit: Option<LoadStrategy>, suite_root: &Path) -> LoadStrategy {
+    explicit.unwrap_or_else(|| {
+        if r_needs_compilation(suite_root) {
+            LoadStrategy::Install
+        } else {
+            LoadStrategy::LoadAll
+        }
+    })
+}
+
+/// Return `true` when the R package at `root` requires a compiled `src/`.
+/// Checks `DESCRIPTION: NeedsCompilation: yes` first (authoritative), then
+/// falls back to the physical presence of C/C++/Fortran files in `src/`.
+pub fn r_needs_compilation(root: &Path) -> bool {
+    let desc = root.join("DESCRIPTION");
+    if let Ok(contents) = std::fs::read_to_string(&desc) {
+        for line in contents.lines() {
+            if let Some(rest) = line.strip_prefix("NeedsCompilation:") {
+                return rest.trim().eq_ignore_ascii_case("yes");
+            }
+        }
+    }
+    let src = root.join("src");
+    if src.is_dir() {
+        if let Ok(entries) = std::fs::read_dir(&src) {
+            for entry in entries.flatten() {
+                if let Some(ext) = entry.path().extension().and_then(|e| e.to_str()) {
+                    if matches!(ext, "c" | "cpp" | "cc" | "cxx" | "f" | "f90" | "f95" | "f03") {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    false
+}
 
 /// Every R plugin compiled into the binary. Called by the central plugin
 /// registry in `project::plugin::all_plugins()`.

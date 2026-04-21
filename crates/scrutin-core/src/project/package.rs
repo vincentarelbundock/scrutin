@@ -53,6 +53,14 @@ pub struct TestSuite {
     /// predicate (which is meant for auto-walked trees) would only drop
     /// legitimate inputs (e.g. skyspell on `.R`, `.py`, `.rs` sources).
     pub explicit_files: bool,
+    /// R-only: how this suite makes the package available to workers.
+    /// Ignored for non-R suites.
+    pub r_load: crate::r::LoadStrategy,
+    /// Per-suite extra environment variables, populated at run time by
+    /// the engine (e.g. `R_LIBS_USER` after a pre-pool `R CMD INSTALL`).
+    /// Applied after `plugin.env_vars` and after scrutin's own injections,
+    /// but before user `[env]`, in `engine::runner::spawn_inner`.
+    pub extra_env: Vec<(String, String)>,
 }
 
 impl TestSuite {
@@ -71,6 +79,7 @@ impl TestSuite {
         watch: Vec<String>,
         worker_hooks: WorkerHookPaths,
         runner_override: Option<PathBuf>,
+        r_load: crate::r::LoadStrategy,
     ) -> Result<Self> {
         let root = strip_verbatim_prefix(root);
 
@@ -106,6 +115,8 @@ impl TestSuite {
             worker_hooks,
             runner_override,
             explicit_files: false,
+            r_load,
+            extra_env: Vec::new(),
         })
     }
 
@@ -180,6 +191,7 @@ impl Package {
         python_interpreter: Vec<String>,
         mut resolve_hooks: impl FnMut(&dyn Plugin) -> Result<WorkerHookPaths>,
         env: BTreeMap<String, String>,
+        r_default_load: Option<crate::r::LoadStrategy>,
     ) -> Result<Self> {
         let mut test_suites = Vec::new();
         let mut name: Option<String> = None;
@@ -190,6 +202,7 @@ impl Package {
             name = Some(plugins[0].project_name(&pkg_root));
             for plugin in plugins {
                 let worker_hooks = resolve_hooks(plugin.as_ref())?;
+                let r_load = crate::r::resolve_r_load(r_default_load, &pkg_root);
                 test_suites.push(TestSuite::new(
                     plugin,
                     pkg_root.clone(),
@@ -197,6 +210,7 @@ impl Package {
                     Vec::new(),
                     worker_hooks,
                     None,
+                    r_load,
                 )?);
             }
         } else {
@@ -210,6 +224,8 @@ impl Package {
                     name = Some(plugin.project_name(&suite_root));
                 }
                 let worker_hooks = resolve_hooks(plugin.as_ref())?;
+                let r_load =
+                    crate::r::resolve_r_load(sc.load.or(r_default_load), &suite_root);
                 test_suites.push(TestSuite::new(
                     plugin,
                     suite_root,
@@ -217,6 +233,7 @@ impl Package {
                     sc.watch.clone(),
                     worker_hooks,
                     sc.runner.clone(),
+                    r_load,
                 )?);
             }
         }
@@ -310,6 +327,8 @@ impl Package {
             worker_hooks: WorkerHookPaths::default(),
             runner_override: None,
             explicit_files: true,
+            r_load: crate::r::LoadStrategy::default(),
+            extra_env: Vec::new(),
         };
 
         Ok(Package {
@@ -631,6 +650,7 @@ mod tests {
             watch.into_iter().map(String::from).collect(),
             WorkerHookPaths::default(),
             None,
+            crate::r::LoadStrategy::default(),
         )
         .expect("compile globs")
     }
