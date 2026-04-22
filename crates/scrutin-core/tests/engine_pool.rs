@@ -159,6 +159,7 @@ fn fake_package(root: &Path) -> Package {
         skyspell_extra_args: Vec::new(),
         skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
+            r_interpreter: Vec::new(),
         env: BTreeMap::new(),
     }
 }
@@ -309,6 +310,7 @@ async fn pool_honors_worker_concurrency_cap() {
         skyspell_extra_args: Vec::new(),
         skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
+            r_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };
 
@@ -472,6 +474,7 @@ async fn pool_multi_suite_fan_out_runs_concurrently() {
         skyspell_extra_args: Vec::new(),
         skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
+            r_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };
 
@@ -537,6 +540,7 @@ async fn pool_shared_cancel_handle_cancels_all_suites() {
         skyspell_extra_args: Vec::new(),
         skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
+            r_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };
 
@@ -611,6 +615,7 @@ async fn pool_cancel_all_stops_remaining_files() {
         skyspell_extra_args: Vec::new(),
         skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
+            r_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };
 
@@ -701,6 +706,7 @@ async fn pool_finds_runner_when_suite_root_differs_from_pkg_root() {
         skyspell_extra_args: Vec::new(),
         skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
+            r_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };
 

@@ -172,6 +172,10 @@ pub struct Package {
     /// `["uv", "run", "python"]`). When non-empty, replaces the interpreter
     /// that `py_subprocess_cmd` would auto-detect.
     pub python_interpreter: Vec<String>,
+    /// Resolved R interpreter command (may be multiple tokens, e.g.
+    /// `["rig", "run", "Rscript"]`). When non-empty, replaces `Rscript`
+    /// from PATH.
+    pub r_interpreter: Vec<String>,
     /// User-declared env vars from `[env]`.
     pub env: BTreeMap<String, String>,
 }
@@ -189,6 +193,7 @@ impl Package {
         skyspell_extra_args: &[String],
         skyspell_add_args: &[String],
         python_interpreter: Vec<String>,
+        r_interpreter: Vec<String>,
         mut resolve_hooks: impl FnMut(&dyn Plugin) -> Result<WorkerHookPaths>,
         env: BTreeMap<String, String>,
         r_default_load: Option<crate::r::LoadStrategy>,
@@ -246,6 +251,7 @@ impl Package {
             skyspell_extra_args: skyspell_extra_args.to_vec(),
             skyspell_add_args: skyspell_add_args.to_vec(),
             python_interpreter,
+            r_interpreter,
             env,
         })
     }
@@ -264,6 +270,7 @@ impl Package {
         skyspell_extra_args: &[String],
         skyspell_add_args: &[String],
         python_interpreter: Vec<String>,
+        r_interpreter: Vec<String>,
         env: BTreeMap<String, String>,
     ) -> Result<Self> {
         if files.is_empty() {
@@ -282,6 +289,7 @@ impl Package {
             skyspell_extra_args: skyspell_extra_args.to_vec(),
             skyspell_add_args: skyspell_add_args.to_vec(),
             python_interpreter: python_interpreter.clone(),
+            r_interpreter: r_interpreter.clone(),
             env: env.clone(),
         };
         if plugin.command_spec(&pkg_root, &stub).is_none() {
@@ -339,6 +347,7 @@ impl Package {
             skyspell_extra_args: skyspell_extra_args.to_vec(),
             skyspell_add_args: skyspell_add_args.to_vec(),
             python_interpreter,
+            r_interpreter,
             env,
         })
     }
@@ -691,6 +700,7 @@ mod tests {
             skyspell_extra_args: Vec::new(),
             skyspell_add_args: Vec::new(),
             python_interpreter: Vec::new(),
+            r_interpreter: Vec::new(),
             env: BTreeMap::new(),
         };
 
@@ -782,6 +792,7 @@ mod tests {
             &[],
             &[],
             Vec::new(),
+            Vec::new(),
             BTreeMap::new(),
         )
         .expect("skyspell is command-mode");
@@ -805,6 +816,7 @@ mod tests {
             &[],
             &[],
             &[],
+            Vec::new(),
             Vec::new(),
             BTreeMap::new(),
         )
@@ -830,6 +842,7 @@ mod tests {
             &[],
             &[],
             Vec::new(),
+            Vec::new(),
             BTreeMap::new(),
         )
         .map(|_| ())
@@ -847,6 +860,7 @@ mod tests {
             &[],
             &[],
             &[],
+            Vec::new(),
             Vec::new(),
             BTreeMap::new(),
         )

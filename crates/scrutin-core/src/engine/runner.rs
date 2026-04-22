@@ -71,6 +71,14 @@ impl RProcess {
             argv = pkg.python_interpreter.clone();
             argv.extend(tail);
         }
+        // For R plugins, replace Rscript with the user's [r].interpreter override.
+        if plugin.language() == "r" && !pkg.r_interpreter.is_empty() {
+            // argv is ["Rscript", "--vanilla", "<runner path>", ...]
+            // Replace just the first element with the override tokens.
+            let tail: Vec<String> = argv.drain(1..).collect();
+            argv = pkg.r_interpreter.clone();
+            argv.extend(tail);
+        }
         let mut cmd = Command::new(&argv[0]);
         cmd.args(&argv[1..]);
         for (k, v) in plugin.env_vars(&suite.root) {

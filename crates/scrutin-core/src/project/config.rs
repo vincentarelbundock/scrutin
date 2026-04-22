@@ -100,6 +100,22 @@ pub struct RConfig {
     /// `src/` get `install`; pure-R packages get `load_all`.
     /// Override from the CLI with `-s r.load=install`.
     pub load: Option<crate::r::LoadStrategy>,
+    /// Override the Rscript command. When set, replaces the `Rscript` on
+    /// PATH. Split on whitespace so wrappers like `rig run Rscript` work.
+    /// Useful on Windows where R may not be on PATH, or to pin a specific
+    /// R version.
+    pub interpreter: Option<String>,
+}
+
+impl RConfig {
+    /// Resolve the interpreter override to an argv prefix. Returns an empty
+    /// vec when no override is configured (`Rscript` from PATH is used).
+    pub fn resolve_interpreter(&self) -> Vec<String> {
+        self.interpreter
+            .as_ref()
+            .map(|s| s.split_whitespace().map(String::from).collect())
+            .unwrap_or_default()
+    }
 }
 
 /// Python-level config (applies to all Python tools: pytest,

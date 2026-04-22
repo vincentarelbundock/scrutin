@@ -282,6 +282,7 @@ fn discover_for_verb(root: &Path) -> Result<Package> {
         &[],
         &[],
         Vec::new(),
+        Vec::new(),
         |_| Ok(scrutin_core::project::package::WorkerHookPaths::default()),
         Default::default(),
         None,
@@ -384,6 +385,7 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
     let cfg_for_hooks = cfg.clone();
     let root_for_hooks = root.clone();
     let python_interpreter = cfg.python.resolve_interpreter(&root);
+    let r_interpreter = cfg.r.resolve_interpreter();
 
     let pkg = if file_mode {
         if cfg.run.tool == "auto" {
@@ -399,6 +401,7 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
             &cfg.skyspell.extra_args,
             &cfg.skyspell.add_args,
             python_interpreter,
+            r_interpreter,
             cfg.env.clone(),
         )?
     } else {
@@ -429,6 +432,7 @@ async fn run_subcommand(mut args: RunArgs) -> Result<()> {
             &cfg.skyspell.extra_args,
             &cfg.skyspell.add_args,
             python_interpreter,
+            r_interpreter,
             |plugin| {
                 let wh = hooks::resolve_worker_hooks(&cfg_for_hooks, plugin, &root_for_hooks)?;
                 Ok(scrutin_core::project::package::WorkerHookPaths {

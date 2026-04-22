@@ -304,6 +304,19 @@
 
 
 # ---------------------------------------------------------------------------
+# [r]: R interpreter
+# ---------------------------------------------------------------------------
+# When unset, scrutin uses `Rscript` from PATH. Override to pin a
+# specific R version or to use a wrapper like `rig run Rscript`.
+# Split on whitespace so multi-token wrappers work.
+# Useful on Windows where R may not be on PATH.
+#
+# [r]
+# interpreter = "C:/Program Files/R/R-4.4.0/bin/Rscript.exe"
+# interpreter = "rig run Rscript"
+
+
+# ---------------------------------------------------------------------------
 # [python]: interpreter resolution
 # ---------------------------------------------------------------------------
 # When unset, scrutin auto-detects in this order: $VIRTUAL_ENV, then

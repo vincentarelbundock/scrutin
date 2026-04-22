@@ -57,6 +57,7 @@ fn pytest_package(root: &Path) -> Package {
         skyspell_extra_args: Vec::new(),
         skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
+            r_interpreter: Vec::new(),
         env: BTreeMap::new(),
     }
 }
@@ -537,6 +538,7 @@ fn unified_dep_map_merges_r_cache_and_python_imports() {
         skyspell_extra_args: Vec::new(),
         skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
+            r_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };
 
@@ -599,6 +601,7 @@ fn import_map_not_clobbered_by_linter_suites() {
         skyspell_extra_args: Vec::new(),
         skyspell_add_args: Vec::new(),
         python_interpreter: Vec::new(),
+            r_interpreter: Vec::new(),
         env: BTreeMap::new(),
     };
 
