@@ -324,6 +324,17 @@ async fn open_editor(
         }
     }
 
+    // On Windows, canonicalize() returns a verbatim path like \\?\C:\...
+    // that many editors reject. Strip the prefix to get a plain C:\... path.
+    #[cfg(windows)]
+    let canon = {
+        let s = canon.to_string_lossy();
+        if let Some(rest) = s.strip_prefix(r"\\?\").filter(|r| !r.starts_with("UNC\\")) {
+            std::path::PathBuf::from(rest.to_string())
+        } else {
+            canon
+        }
+    };
     let path_str = canon.to_string_lossy().to_string();
     let (argv, skipped_terminal_editor) = pick_editor_argv(&state, &path_str, body.line);
     let label = argv.first().cloned().unwrap_or_else(|| "system default".into());

@@ -59,7 +59,7 @@ export function createPanel(
         const filePath: string = msg.path;
         const line: number | undefined = msg.line;
         try {
-          const doc = await vscode.workspace.openTextDocument(filePath);
+          const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
           const opts: vscode.TextDocumentShowOptions = {};
           if (line != null && line > 0) {
             const pos = new vscode.Position(line - 1, 0);
