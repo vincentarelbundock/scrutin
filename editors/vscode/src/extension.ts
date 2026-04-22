@@ -233,7 +233,8 @@ async function findBinary(
   const cfg = vscode.workspace.getConfiguration("scrutin");
 
   // 1. Explicit user override wins.
-  const explicit = cfg.get<string>("binaryPath", "").trim();
+  // Strip surrounding quotes in case the value was set to "" or "path/to/bin".
+  const explicit = cfg.get<string>("binaryPath", "").trim().replace(/^["']+|["']+$/g, "").trim();
   if (explicit) return explicit;
 
   // 2. Bundled binary (per-platform VSIX).

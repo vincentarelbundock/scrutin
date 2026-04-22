@@ -1560,6 +1560,7 @@ function connectEvents() {
     "run_complete",
     "run_cancelled",
     "watcher_triggered",
+    "notice",
     "log",
     "heartbeat"
   ];
@@ -1650,6 +1651,9 @@ function apply(kind, data) {
       break;
     case "watcher_triggered":
       setStatus(`watcher: ${data.changed_files.length} files changed`);
+      break;
+    case "notice":
+      toast(data.message);
       break;
     case "log":
       break;
