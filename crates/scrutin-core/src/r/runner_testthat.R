@@ -25,7 +25,8 @@
     },
 
     add_result = function(context, test, result) {
-      ms <- as.integer(difftime(Sys.time(), self$start_time, units = "secs") * 1000)
+      ms <- if (is.null(self$start_time)) 0L else
+        as.integer(difftime(Sys.time(), self$start_time, units = "secs") * 1000)
       line <- .scrutin_env$expectation_line(result, self$current_file)
 
       outcome <- if (inherits(result, "expectation_skip")) {
@@ -46,7 +47,7 @@
         file = self$current_file,
         outcome = outcome,
         subject_kind = "function",
-        subject_name = test,
+        subject_name = if (is.null(test) || !nzchar(test)) "<file>" else test,
         message = msg,
         line = line,
         duration_ms = ms
@@ -69,6 +70,18 @@
   tryCatch({
     testthat::test_file(path, reporter = reporter)
     elapsed <- as.integer((proc.time()["elapsed"] - t0) * 1000)
+    if (sum(unlist(reporter$counts)) == 0L) {
+      reporter$counts[["skip"]] <- 1L
+      .scrutin_env$emit(.scrutin_env$event(
+        file = file,
+        outcome = "skip",
+        subject_kind = "function",
+        subject_name = "<file>",
+        message = NULL,
+        line = NULL,
+        duration_ms = elapsed
+      ))
+    }
     .scrutin_env$emit_summary(file, reporter$counts, elapsed)
   }, error = function(e) {
     elapsed <- as.integer((proc.time()["elapsed"] - t0) * 1000)

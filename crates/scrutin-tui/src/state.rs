@@ -561,6 +561,12 @@ pub(super) struct NavState {
     pub file_list_height: usize,
     pub test_list_height: usize,
     pub failure_view_height: usize,
+    /// First content row (terminal-absolute, 0-indexed) of the file list
+    /// and test list inner areas. Set each frame by the draw functions so
+    /// the mouse click handler can convert a row coordinate to an index
+    /// without reconstructing the border math.
+    pub file_list_top: u16,
+    pub test_list_top: u16,
 }
 
 impl Default for NavState {
@@ -582,6 +588,8 @@ impl Default for NavState {
             file_list_height: 20,
             test_list_height: 20,
             failure_view_height: 20,
+            file_list_top: 0,
+            test_list_top: 0,
         }
     }
 }

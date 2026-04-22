@@ -98,6 +98,7 @@ pub(super) fn draw_detail(f: &mut ratatui::Frame, state: &mut AppState) {
         PaneLayout::Split { list, main } => {
             state.pane_rects.list = Some(list);
             state.pane_rects.main = Some(main);
+            state.nav.test_list_top = list.y;
             f.render_widget(List::new(items), list);
             render_detail_main_pane(f, state, &tests, main);
         }

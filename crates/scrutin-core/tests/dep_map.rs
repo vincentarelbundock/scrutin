@@ -578,6 +578,7 @@ fn import_map_not_clobbered_by_linter_suites() {
         vec!["src/**/*.py".into(), "**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let ruff_suite = TestSuite::new(
@@ -587,6 +588,7 @@ fn import_map_not_clobbered_by_linter_suites() {
         vec!["**/*.py".into()],
         WorkerHookPaths::default(),
         None,
+        scrutin_core::r::LoadStrategy::default(),
     )
     .expect("compile globs");
     let pkg = Package {

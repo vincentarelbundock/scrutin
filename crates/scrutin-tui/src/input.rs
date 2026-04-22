@@ -7,8 +7,8 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use crossterm::event::{
-    self, DisableMouseCapture, EnableMouseCapture, KeyCode, KeyModifiers, MouseEvent,
-    MouseEventKind,
+    self, DisableMouseCapture, EnableMouseCapture, KeyCode, KeyModifiers, MouseButton,
+    MouseEvent, MouseEventKind,
 };
 use crossterm::terminal::{
     EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
@@ -105,6 +105,39 @@ fn base64_encode(bytes: &[u8]) -> String {
 
 pub(super) fn handle_mouse(m: MouseEvent, state: &Arc<Mutex<AppState>>) {
     const STEP: usize = 3;
+    let (col, row) = (m.column, m.row);
+
+    if let MouseEventKind::Down(MouseButton::Left) = m.kind {
+        let mut st = state.lock().unwrap();
+        match st.mode() {
+            Mode::Detail => {
+                let top = st.nav.test_list_top;
+                let height = st.nav.test_list_height as u16;
+                if height > 0 && row >= top && row < top.saturating_add(height) {
+                    let content_row = (row - top) as usize;
+                    let n = st.selected_file().map(|f| f.tests.len()).unwrap_or(0);
+                    let idx = st.nav.test_scroll + content_row;
+                    if idx < n {
+                        st.nav.test_cursor = idx;
+                    }
+                }
+            }
+            _ => {
+                let top = st.nav.file_list_top;
+                let height = st.nav.file_list_height as u16;
+                if height > 0 && row >= top && row < top.saturating_add(height) {
+                    let content_row = (row - top) as usize;
+                    let n = st.visible_files().len();
+                    let idx = st.nav.file_scroll + content_row;
+                    if idx < n {
+                        st.nav.file_cursor = idx;
+                    }
+                }
+            }
+        }
+        return;
+    }
+
     let down = match m.kind {
         MouseEventKind::ScrollDown => true,
         MouseEventKind::ScrollUp => false,
@@ -133,7 +166,6 @@ pub(super) fn handle_mouse(m: MouseEvent, state: &Arc<Mutex<AppState>>) {
     }
 
     let rects = st.pane_rects;
-    let (col, row) = (m.column, m.row);
 
     // Route to whichever pane the cursor is over. Mode-aware: in Normal the
     // list pane scrolls the file cursor; in Detail it scrolls the test

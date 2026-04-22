@@ -18,6 +18,7 @@ pub(super) fn draw_file_list(f: &mut ratatui::Frame, state: &mut AppState, area:
     let visible = state.visible_files();
     let height = area.height as usize;
     state.nav.file_list_height = height;
+    state.nav.file_list_top = area.y;
 
     if !visible.is_empty() && state.nav.file_cursor >= visible.len() {
         state.nav.file_cursor = visible.len() - 1;
@@ -90,7 +91,7 @@ pub(super) fn draw_file_list(f: &mut ratatui::Frame, state: &mut AppState, area:
                 FileStatus::Passed { warned, .. } if *warned > 0 => ("\u{25cf}", Color::Yellow),
                 FileStatus::Passed   { .. } => ("\u{25cf}", Color::Green),
                 FileStatus::Failed   { .. } => ("\u{25cf}", Color::Red),
-                FileStatus::Skipped  { .. } => ("\u{25cb}", Color::DarkGray),
+                FileStatus::Skipped  { .. } => ("\u{2296}", Color::DarkGray),
                 FileStatus::Cancelled       => ("\u{2298}", Color::DarkGray),
             };
 
