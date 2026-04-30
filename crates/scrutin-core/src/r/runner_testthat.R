@@ -13,11 +13,13 @@
     current_file = NULL,
     start_time = NULL,
     counts = NULL,
+    events = NULL,
 
     initialize = function(...) {
       super$initialize(...)
       self$counts <- list(pass = 0L, fail = 0L, error = 0L,
                           skip = 0L, xfail = 0L, warn = 0L)
+      self$events <- list()
     },
 
     set_file = function(file) {
@@ -43,7 +45,7 @@
       self$counts[[outcome]] <- self$counts[[outcome]] + 1L
 
       msg <- if (outcome == "pass") NULL else result$message
-      .scrutin_env$emit(.scrutin_env$event(
+      self$events[[length(self$events) + 1L]] <- .scrutin_env$event(
         file = self$current_file,
         outcome = outcome,
         subject_kind = "function",
@@ -51,11 +53,20 @@
         message = msg,
         line = line,
         duration_ms = ms
-      ))
+      )
     },
 
     start_test = function(context, test) {
       self$start_time <- Sys.time()
+    },
+
+    flush = function() {
+      if (length(self$events) == 0L) return(invisible())
+      for (event in self$events) {
+        .scrutin_env$emit(event)
+      }
+      self$events <- list()
+      invisible()
     },
 
     end_reporter = function() {}
@@ -72,7 +83,7 @@
     elapsed <- as.integer((proc.time()["elapsed"] - t0) * 1000)
     if (sum(unlist(reporter$counts)) == 0L) {
       reporter$counts[["skip"]] <- 1L
-      .scrutin_env$emit(.scrutin_env$event(
+      reporter$events[[length(reporter$events) + 1L]] <- .scrutin_env$event(
         file = file,
         outcome = "skip",
         subject_kind = "function",
@@ -80,11 +91,13 @@
         message = NULL,
         line = NULL,
         duration_ms = elapsed
-      ))
+      )
     }
+    reporter$flush()
     .scrutin_env$emit_summary(file, reporter$counts, elapsed)
   }, error = function(e) {
     elapsed <- as.integer((proc.time()["elapsed"] - t0) * 1000)
+    reporter$flush()
     .scrutin_env$emit(.scrutin_env$event(
       file = file,
       outcome = "error",
