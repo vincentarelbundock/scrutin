@@ -422,12 +422,18 @@ function renderTestListLeft() {
 
 function renderDurationCell(f, maxMs) {
   const ms = f.last_duration_ms;
+  if (f.status === "running") {
+    return `
+      <span class="duration-wrap">
+        <span class="duration-ms">running</span>
+      </span>
+    `;
+  }
   if (ms == null || maxMs === 0) return `<span class="duration-wrap"></span>`;
   const pct = Math.max(4, Math.round((ms / maxMs) * 100));
   let cls = "";
   if (f.status === "failed") cls = "failed";
   else if (f.status === "errored") cls = "errored";
-  else if (f.status === "running") cls = "running";
   else if ((f.counts?.warn ?? 0) > 0) cls = "warned";
   return `
     <span class="duration-wrap">

@@ -325,7 +325,7 @@ function handleSseFrame(frame: string): void {
     // event so that onRunStarted enqueues items from the fresh tree,
     // not stale nodes that buildTree is about to replace.
     if (eventType === "run_started" && scrutinProcess?.baseUrl) {
-      statusBar.text = "$(sync~spin) scrutin: running\u2026";
+      statusBar.text = "$(sync) scrutin: running\u2026";
       fetchSnapshot(scrutinProcess.baseUrl).then((snap) => {
         bus?.setSnapshot(snap);
         testCtrl?.buildTree(snap);

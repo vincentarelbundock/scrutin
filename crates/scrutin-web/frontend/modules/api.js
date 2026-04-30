@@ -170,15 +170,20 @@ export async function applyCorrection(fileId, correction, replacement) {
 
 // ── Editor integrations (standalone POST vs VSCode webview postMessage) ──
 
+async function openResolvedPathInEditor(body, line) {
+  const req = { ...body, defer: true };
+  if (line != null) req.line = line;
+  const res = await postJSON("/api/open-editor", req);
+  if (res?.path) {
+    vscode.postMessage({ command: "openFile", path: res.path, line });
+  }
+}
+
 export async function openInEditor(fileId, line) {
   const id = fileId ?? state.selected;
   if (!id) return;
   if (IS_VSCODE) {
-    const f = state.files.get(id);
-    if (!f) return;
-    const root = state.pkg?.root ?? "";
-    const absPath = f.path.startsWith("/") ? f.path : `${root}/${f.path}`;
-    vscode.postMessage({ command: "openFile", path: absPath, line });
+    await openResolvedPathInEditor({ file_id: String(id) }, line);
   } else {
     const body = { file_id: id };
     if (line != null) body.line = line;
@@ -228,11 +233,9 @@ export async function openSourceInEditor() {
   const src = await fetchSourceFor(state.selected);
   if (!src || !src.path) { toast("no source mapping found", true); return; }
   if (IS_VSCODE) {
-    const root = state.pkg?.root ?? "";
-    vscode.postMessage({ command: "openFile", path: `${root}/${src.path}` });
+    await openResolvedPathInEditor({ path: src.path });
   } else {
-    const root = state.pkg?.root ?? "";
-    const body = { path: `${root}/${src.path}` };
+    const body = { path: src.path };
     const res = await postJSON("/api/open-editor", body);
     if (res !== null) notifyOpened(res);
   }

@@ -390,7 +390,10 @@ body {
 .status-dot.unknown  { background: transparent; border: 2px solid var(--pending); }
 .status-dot.pending  { background: transparent; border: 2px solid var(--pending); }
 .status-dot.running  {
-  background: conic-gradient(var(--running) 180deg, transparent 180deg);
+  background: transparent;
+  border: 2px solid var(--running);
+  border-top-color: transparent;
+  box-sizing: border-box;
   animation: spin 0.8s linear infinite;
 }
 .status-dot.passed   { background: var(--pass); }
@@ -402,6 +405,13 @@ body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-dot.running {
+    animation: none;
+    border-top-color: var(--running);
+  }
 }
 
 /* Detail pane ------------------------------------------------------------- */

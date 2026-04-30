@@ -1010,12 +1010,18 @@ function renderTestListLeft() {
 }
 function renderDurationCell(f, maxMs) {
   const ms = f.last_duration_ms;
+  if (f.status === "running") {
+    return `
+      <span class="duration-wrap">
+        <span class="duration-ms">running</span>
+      </span>
+    `;
+  }
   if (ms == null || maxMs === 0) return `<span class="duration-wrap"></span>`;
   const pct = Math.max(4, Math.round(ms / maxMs * 100));
   let cls = "";
   if (f.status === "failed") cls = "failed";
   else if (f.status === "errored") cls = "errored";
-  else if (f.status === "running") cls = "running";
   else if ((f.counts?.warn ?? 0) > 0) cls = "warned";
   return `
     <span class="duration-wrap">
@@ -1466,15 +1472,19 @@ async function applyCorrection(fileId, correction, replacement) {
     toast(res.message ?? "correction applied");
   }
 }
+async function openResolvedPathInEditor(body, line) {
+  const req = { ...body, defer: true };
+  if (line != null) req.line = line;
+  const res = await postJSON("/api/open-editor", req);
+  if (res?.path) {
+    vscode.postMessage({ command: "openFile", path: res.path, line });
+  }
+}
 async function openInEditor(fileId, line) {
   const id = fileId ?? state.selected;
   if (!id) return;
   if (IS_VSCODE) {
-    const f = state.files.get(id);
-    if (!f) return;
-    const root = state.pkg?.root ?? "";
-    const absPath = f.path.startsWith("/") ? f.path : `${root}/${f.path}`;
-    vscode.postMessage({ command: "openFile", path: absPath, line });
+    await openResolvedPathInEditor({ file_id: String(id) }, line);
   } else {
     const body = { file_id: id };
     if (line != null) body.line = line;
@@ -1512,11 +1522,9 @@ async function openSourceInEditor() {
     return;
   }
   if (IS_VSCODE) {
-    const root = state.pkg?.root ?? "";
-    vscode.postMessage({ command: "openFile", path: `${root}/${src.path}` });
+    await openResolvedPathInEditor({ path: src.path });
   } else {
-    const root = state.pkg?.root ?? "";
-    const body = { path: `${root}/${src.path}` };
+    const body = { path: src.path };
     const res = await postJSON("/api/open-editor", body);
     if (res !== null) notifyOpened(res);
   }

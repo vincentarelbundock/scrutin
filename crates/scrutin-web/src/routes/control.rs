@@ -283,11 +283,17 @@ struct OpenEditorBody {
     path: Option<String>,
     #[serde(default)]
     line: Option<u32>,
+    /// Editor-embedded frontends resolve the canonical path server-side,
+    /// then open it in their own editor host instead of spawning a process.
+    #[serde(default)]
+    defer: bool,
 }
 
 #[derive(Serialize)]
 struct OpenEditorResponse {
     opened: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     hint: Option<String>,
 }
@@ -324,18 +330,16 @@ async fn open_editor(
         }
     }
 
-    // On Windows, canonicalize() returns a verbatim path like \\?\C:\...
-    // that many editors reject. Strip the prefix to get a plain C:\... path.
-    #[cfg(windows)]
-    let canon = {
-        let s = canon.to_string_lossy();
-        if let Some(rest) = s.strip_prefix(r"\\?\").filter(|r| !r.starts_with("UNC\\")) {
-            std::path::PathBuf::from(rest.to_string())
-        } else {
-            canon
-        }
-    };
+    let canon = editor_friendly_path(canon);
     let path_str = canon.to_string_lossy().to_string();
+    if body.defer {
+        return Ok(Json(OpenEditorResponse {
+            opened: "deferred".into(),
+            path: Some(path_str),
+            hint: None,
+        }));
+    }
+
     let (argv, skipped_terminal_editor) = pick_editor_argv(&state, &path_str, body.line);
     let label = argv.first().cloned().unwrap_or_else(|| "system default".into());
 
@@ -359,8 +363,41 @@ async fn open_editor(
 
     Ok(Json(OpenEditorResponse {
         opened: label,
+        path: None,
         hint,
     }))
+}
+
+#[cfg(windows)]
+fn editor_friendly_path(canon: PathBuf) -> PathBuf {
+    use std::path::{Component, Prefix};
+
+    let mut components = canon.components();
+    let Some(Component::Prefix(prefix)) = components.next() else {
+        return canon;
+    };
+
+    let mut path = match prefix.kind() {
+        Prefix::VerbatimDisk(disk) => PathBuf::from(format!("{}:\\", disk as char)),
+        Prefix::VerbatimUNC(server, share) => PathBuf::from(format!(
+            r"\\{}\{}",
+            server.to_string_lossy(),
+            share.to_string_lossy()
+        )),
+        _ => return canon,
+    };
+
+    for component in components {
+        if !matches!(component, Component::RootDir) {
+            path.push(component.as_os_str());
+        }
+    }
+    path
+}
+
+#[cfg(not(windows))]
+fn editor_friendly_path(canon: PathBuf) -> PathBuf {
+    canon
 }
 
 /// Pick the argv for "open file in editor". Returns `(argv, skipped)` where
