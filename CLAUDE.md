@@ -34,12 +34,21 @@ scrutin is a fast, watch-mode test runner with Rust orchestration. It watches a 
 - `cargo run -- init demo` / `cargo run -- stats demo` : verb subcommands
 - `make revert` : restore demo lint files (`demo/R/lint.R`, `demo/src/scrutindemo_py/lint.py`) to their unfixed state
 - `make install` : `cargo install` from the bin crate
+- `make web` : run the web dashboard against the demo fixture (shorthand for `-r web demo`)
+- `make docs` : full docs build (CLI ref injection + `zensical build`; output goes to `target/site/`)
 - `make docs-preview` : build the docs site and serve statically on :8001 (matches GitHub Pages: includes llms.txt, llms-full.txt, and raw .md files)
+- `make inject-docs` : regenerate the three auto-generated docs pages (CLI reference, config template, SQL schema) from binary output + templates; run this after changing CLI flags or config fields
 - `make vscode` / `make positron` / `make rstudio` : build and install editor extensions
+- `make bump VERSION=x.y.z` : bump the workspace version across all Cargo.toml files
+- `make release` : tag and push, triggering cargo-dist binary builds, crates.io publishing, and VS Code Marketplace release
 
 ## Rust edition
 
 The workspace uses **edition 2024**. This means `gen` is a reserved keyword, `unsafe` on extern blocks is required, and the MSRV is Rust 1.85+.
+
+## Python dev tooling
+
+Python dev dependencies (zensical docs build, smoke tests against external fixtures) are managed with `uv`. The `.python-version` file pins Python 3.12. The Makefile invokes `uv run` for all Python-dependent targets; no global install of `zensical` or other tools is needed beyond `uv`.
 
 ## Architecture
 
@@ -167,6 +176,10 @@ route is additionally wrapped in a `require_loopback` middleware. See
 ### Doc generation
 
 `cargo run --features generate-docs -- generate-docs target/docs` produces CLI reference, man pages, and shell completions. The `generate-docs` feature flag gates this codepath. `make docs` runs this + `zensical build` for the full doc site.
+
+### Testing conventions
+
+`docs-src/developer/testing.md` documents the test pyramid, required harnesses (`FakePlugin`, `temp_package!` macro, NDJSON golden tests, `RunAccumulator` builder, TUI test harness), and locked behaviors per surface. Read it before adding tests to a new module.
 
 ## Key Design Decisions
 
